@@ -126,7 +126,8 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | --- | --- | --- |
 | 0 | Foundation: monorepo, API bootstrap, RBAC matrix, tenant context, CI | ✅ Complete |
 | 0b | Validation layer, cursor pagination, HTTP utilities | ✅ Complete |
-| 1 | Identity & tenancy: auth, MFA, memberships, tenant plugin, audit log | ⏳ Next |
+| 1a | Tenant plugin, identity models, Argon2id, access tokens, isolation matrix | ✅ Complete |
+| 1b | Auth routes, MFA enforcement, audit log persistence | ⏳ Next |
 | 2 | Hospital onboarding: departments, doctors, staff, permissions | Planned |
 | 3 | Patients & appointments | Planned |
 | 4 | Consultations, prescriptions, PDFs | Planned |

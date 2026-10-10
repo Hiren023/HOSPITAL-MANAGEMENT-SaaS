@@ -39,15 +39,36 @@ substituting an identifier.
 
 1. `hospitalId` is derived from the verified membership, never from request input
    (`apps/api/src/infrastructure/db/tenant-context.ts`).
-2. `AsyncLocalStorage` + Mongoose plugin auto-injects `hospitalId` into every tenant query and
-   **throws** when no context is bound (Phase 1).
+2. `AsyncLocalStorage` + a Mongoose plugin auto-injects `hospitalId` into every tenant query and
+   **throws** when no context is bound (`apps/api/src/infrastructure/db/tenant-plugin.ts`).
 3. Controllers cannot import Mongoose models (ESLint `no-restricted-imports`).
 
 **Behaviour:** cross-tenant access returns `404`, never `403`, so existence is not disclosed.
 
-**Verified by:** `tenant-context.test.ts` (context plumbing, concurrent isolation, fail-closed
-behaviour) now; the full isolation matrix in `apps/api/src/tests/tenant-isolation.test.ts` in
-Phase 1.
+**Verified by:**
+
+| Test | Proves |
+| --- | --- |
+| `tests/tenant-isolation.test.ts` (16) | Unscoped read throws; a caller-supplied `hospitalId` is discarded; cross-tenant read/update/delete affect 0 rows; `hospitalId` is stripped from update payloads; aggregates are prefixed with the tenant `$match`; concurrent tenants stay isolated |
+| `tests/platform-scope.test.ts` (6) | `withPlatformScope` cannot nest, is released on throw, and **does not leak bypass access to a concurrent request** |
+| `tests/isolation-meta.test.ts` (3) | An unprotected model **does** leak — proving the suite is capable of failing |
+| `tenant-context.test.ts` (12) | Context plumbing, concurrent isolation, fail-closed behaviour |
+
+> **Why the meta-test exists.** The plugin originally injected the filter with
+> `query.set({...})`, which does **not** affect `getFilter()` in mongoose 9.11.1. The call
+> silently no-opped, so every "tenant-scoped" read returned every tenant's rows — exactly the
+> leak the plugin exists to prevent. `isolation-meta.test.ts` asserts that an unprotected model
+> leaks, so the suite demonstrably can fail rather than passing vacuously. The correct call is
+> `query.setQuery(filter)`.
+
+**Mongoose behaviour established empirically (9.11.1):**
+
+| Fact | Consequence |
+| --- | --- |
+| Query hooks receive **zero** arguments, even when `next` is declared | Hooks must be promise-style and throw; calling `next()` throws `next is not a function` |
+| `query.setFilter()` does not exist | Use `setQuery()` |
+| `query.set({...})` does not modify the filter | It builds an update document; using it here silently leaked |
+| Document hooks cannot see `schema.modelName` | Read the model name from `this.constructor` |
 
 ---
 

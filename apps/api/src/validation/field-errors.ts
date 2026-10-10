@@ -12,7 +12,9 @@ export function fieldError(path: string, message: string): ApiFieldError {
 }
 
 /** Normalise a thrown value into a list of field errors. */
-export function toFieldErrors(issues: readonly { path: (string | number)[]; message: string }[]): ApiFieldError[] {
+export function toFieldErrors(
+  issues: readonly { path: (string | number)[]; message: string }[],
+): ApiFieldError[] {
   return issues.map((issue) => ({
     path: issue.path.map(String).join('.') || '(root)',
     message: issue.message,

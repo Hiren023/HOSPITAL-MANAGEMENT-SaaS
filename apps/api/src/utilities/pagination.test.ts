@@ -45,12 +45,16 @@ describe('encodeCursor / decodeCursor', () => {
   })
 
   it('rejects a payload missing the id', () => {
-    const bad = Buffer.from(JSON.stringify({ v: 1, t: '2026-10-09T12:00:00.000Z' })).toString('base64url')
+    const bad = Buffer.from(JSON.stringify({ v: 1, t: '2026-10-09T12:00:00.000Z' })).toString(
+      'base64url',
+    )
     expect(decodeCursor(bad)).toBeNull()
   })
 
   it('rejects a payload with an unparseable timestamp', () => {
-    const bad = Buffer.from(JSON.stringify({ v: 1, t: 'not-a-date', i: 'abc' })).toString('base64url')
+    const bad = Buffer.from(JSON.stringify({ v: 1, t: 'not-a-date', i: 'abc' })).toString(
+      'base64url',
+    )
     expect(decodeCursor(bad)).toBeNull()
   })
 

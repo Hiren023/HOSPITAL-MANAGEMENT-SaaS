@@ -27,7 +27,8 @@ const SUBJECTS: Record<OtpPurpose, string> = {
 
 const INTRO: Record<OtpPurpose, string> = {
   EMAIL_VERIFICATION: 'Confirm this address to finish setting up your account.',
-  PASSWORD_RESET: 'Use this code to choose a new password. If you did not request this, ignore this email.',
+  PASSWORD_RESET:
+    'Use this code to choose a new password. If you did not request this, ignore this email.',
   LOGIN_CHALLENGE: 'Use this code to complete your sign-in.',
 }
 

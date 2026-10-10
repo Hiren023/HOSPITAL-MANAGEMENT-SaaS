@@ -1,7 +1,12 @@
 import { Writable } from 'node:stream'
 import { describe, expect, it } from 'vitest'
 
-import { REDACTED_FIELD_NAMES, REDACTED_HEADER_NAMES, REDACTED_VALUE, createLogger } from './logger.js'
+import {
+  REDACTED_FIELD_NAMES,
+  REDACTED_HEADER_NAMES,
+  REDACTED_VALUE,
+  createLogger,
+} from './logger.js'
 
 /**
  * Log redaction tests (docs/SECURITY.md R8).
@@ -17,7 +22,9 @@ import { REDACTED_FIELD_NAMES, REDACTED_HEADER_NAMES, REDACTED_VALUE, createLogg
  * before the output is inspected — otherwise the assertion reads an empty buffer and
  * would pass for the wrong reason.
  */
-async function captureLog(write: (logger: ReturnType<typeof createLogger>) => void): Promise<string> {
+async function captureLog(
+  write: (logger: ReturnType<typeof createLogger>) => void,
+): Promise<string> {
   const chunks: string[] = []
 
   const stream = new Writable({
@@ -49,7 +56,10 @@ describe('logger destination', () => {
 describe('logger redaction', () => {
   it('redacts a password field', async () => {
     const line = await captureLog((logger) =>
-      logger.info({ email: 'user@example.test', password: 'correct-horse-battery-staple' }, 'login attempt'),
+      logger.info(
+        { email: 'user@example.test', password: 'correct-horse-battery-staple' },
+        'login attempt',
+      ),
     )
 
     expect(line).not.toContain('correct-horse-battery-staple')
@@ -154,7 +164,13 @@ describe('logger output format', () => {
   it('serialises a request to method and url only, never headers', async () => {
     const line = await captureLog((logger) =>
       logger.info(
-        { req: { method: 'GET', url: '/api/v1/patients', headers: { authorization: 'Bearer secret-token' } } },
+        {
+          req: {
+            method: 'GET',
+            url: '/api/v1/patients',
+            headers: { authorization: 'Bearer secret-token' },
+          },
+        },
         'request',
       ),
     )

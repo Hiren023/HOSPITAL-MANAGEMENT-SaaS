@@ -64,14 +64,20 @@ describe('runWithContext', () => {
 
   it('keeps concurrent contexts isolated from one another', async () => {
     const [a, b] = await Promise.all([
-      runWithContext(tenantContext({ hospitalId: 'hospital-a' as RequestContext['hospitalId'] }), async () => {
-        await new Promise((resolve) => setTimeout(resolve, 5))
-        return getTenantContext()?.hospitalId
-      }),
-      runWithContext(tenantContext({ hospitalId: 'hospital-b' as RequestContext['hospitalId'] }), async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1))
-        return getTenantContext()?.hospitalId
-      }),
+      runWithContext(
+        tenantContext({ hospitalId: 'hospital-a' as RequestContext['hospitalId'] }),
+        async () => {
+          await new Promise((resolve) => setTimeout(resolve, 5))
+          return getTenantContext()?.hospitalId
+        },
+      ),
+      runWithContext(
+        tenantContext({ hospitalId: 'hospital-b' as RequestContext['hospitalId'] }),
+        async () => {
+          await new Promise((resolve) => setTimeout(resolve, 1))
+          return getTenantContext()?.hospitalId
+        },
+      ),
     ])
 
     expect(a).toBe('hospital-a')

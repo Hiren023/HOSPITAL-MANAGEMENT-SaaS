@@ -18,8 +18,12 @@ async function main(): Promise<void> {
   await connectToDatabase()
 
   const result = await (
-    UserModel as never as { deleteOne: (f: unknown) => { exec: () => Promise<{ deletedCount: number }> } }
-  ).deleteOne({ email }).exec()
+    UserModel as never as {
+      deleteOne: (f: unknown) => { exec: () => Promise<{ deletedCount: number }> }
+    }
+  )
+    .deleteOne({ email })
+    .exec()
 
   process.stdout.write(`\n  Deleted ${result.deletedCount} user(s) for ${email}\n\n`)
 

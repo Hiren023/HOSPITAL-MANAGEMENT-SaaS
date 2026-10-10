@@ -46,9 +46,7 @@ async function seedBoth(): Promise<void> {
     [HOSPITAL_A, 'a'],
     [HOSPITAL_B, 'b'],
   ] as const) {
-    await runWithContext(contextFor(hospitalId), () =>
-      ScopedModel.create({ hospitalId, value }),
-    )
+    await runWithContext(contextFor(hospitalId), () => ScopedModel.create({ hospitalId, value }))
   }
 }
 

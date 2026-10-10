@@ -22,7 +22,8 @@ async function call(method, path, { body, token, raw = false } = {}) {
 }
 
 const line = (label, value) => console.log(`  ${label.padEnd(34)} ${value}`)
-const step = (n, title) => console.log(`\n${'─'.repeat(78)}\nSTEP ${n} — ${title}\n${'─'.repeat(78)}`)
+const step = (n, title) =>
+  console.log(`\n${'─'.repeat(78)}\nSTEP ${n} — ${title}\n${'─'.repeat(78)}`)
 
 const HOSPITAL_A = {
   hospitalName: 'Kaveri Diagnostics Centre',
@@ -83,7 +84,9 @@ async function main() {
     line('result', `${platform.status} — ${platform.body?.error?.message ?? 'unknown'}`)
     console.log('\n  Run the bootstrap first:')
     console.log('    npx tsx src/scripts/bootstrap-super-admin.ts --email operator@example.test \\')
-    console.log('      --name "Platform Operator" --password "correct-horse-battery-staple" --i-am-secure')
+    console.log(
+      '      --name "Platform Operator" --password "correct-horse-battery-staple" --i-am-secure',
+    )
     return
   }
 
@@ -101,7 +104,9 @@ async function main() {
   }
 
   for (const hospital of list.body.data.filter((h) => h.status === 'PENDING')) {
-    const approved = await call('POST', `/platform/hospitals/${hospital.id}/approve`, { token: platformToken })
+    const approved = await call('POST', `/platform/hospitals/${hospital.id}/approve`, {
+      token: platformToken,
+    })
     line(`approve ${hospital.name}`, `${approved.status} -> ${approved.body?.data?.status}`)
   }
 
@@ -116,7 +121,10 @@ async function main() {
 
   line('Hospital A admin', `${a.status} hospitalId=${a.body?.data?.user?.hospitalId}`)
   line('Hospital B admin', `${b.status} hospitalId=${b.body?.data?.user?.hospitalId}`)
-  line('A and B are different tenants', String(a.body?.data?.user?.hospitalId !== b.body?.data?.user?.hospitalId))
+  line(
+    'A and B are different tenants',
+    String(a.body?.data?.user?.hospitalId !== b.body?.data?.user?.hospitalId),
+  )
 
   // 7 ── current user
   step(7, 'GET /auth/me — identity from the membership')
@@ -141,7 +149,10 @@ async function main() {
   })
   line('wrong password', `${wrongPassword.status} ${wrongPassword.body?.error?.message}`)
   line('unknown email', `${unknownUser.status} ${unknownUser.body?.error?.message}`)
-  line('indistinguishable', String(wrongPassword.body.error.message === unknownUser.body.error.message))
+  line(
+    'indistinguishable',
+    String(wrongPassword.body.error.message === unknownUser.body.error.message),
+  )
 
   // 10 ── validation
   step(10, 'Input validation')
@@ -150,7 +161,11 @@ async function main() {
   })
   line('operator payload {email:{$ne:null}}', `${injected.status} ${injected.body?.error?.code}`)
   const escalated = await call('POST', '/auth/login', {
-    body: { email: HOSPITAL_A.admin.email, password: HOSPITAL_A.admin.password, role: 'SUPER_ADMIN' },
+    body: {
+      email: HOSPITAL_A.admin.email,
+      password: HOSPITAL_A.admin.password,
+      role: 'SUPER_ADMIN',
+    },
   })
   line('role escalation attempt', `${escalated.status} ${escalated.body?.error?.code}`)
 

@@ -82,7 +82,9 @@ describe.skipIf(!db.uri)('isolation meta-test (the suite can fail)', () => {
   it('an UNPROTECTED model leaks both hospitals', async () => {
     // If this fails, the database is not actually returning other tenants' rows and
     // every "the plugin blocks this" assertion elsewhere would be vacuous.
-    const rows = await runWithContext(contextFor(HOSPITAL_A), () => UnprotectedModel.find({}).exec())
+    const rows = await runWithContext(contextFor(HOSPITAL_A), () =>
+      UnprotectedModel.find({}).exec(),
+    )
 
     expect(rows).toHaveLength(2)
   })

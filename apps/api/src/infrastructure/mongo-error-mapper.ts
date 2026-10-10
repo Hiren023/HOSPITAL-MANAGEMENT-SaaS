@@ -28,9 +28,7 @@ export function mapMongooseValidationError(error: mongoose.Error.ValidationError
  * internals and mislead monitoring.
  */
 export function mapMongooseCastError(error: mongoose.Error.CastError): ApiError {
-  return ApiError.validation([
-    { path: error.path, message: `Invalid value for ${error.path}` },
-  ])
+  return ApiError.validation([{ path: error.path, message: `Invalid value for ${error.path}` }])
 }
 
 /** MongoDB duplicate-key failure → 409, naming the offending fields. */

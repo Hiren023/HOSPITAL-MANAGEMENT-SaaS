@@ -12,7 +12,12 @@
 export interface OtpDelivery {
   readonly name: string
   /** Send an OTP. Must not log the code. */
-  sendOtp(input: { to: string; code: string; purpose: OtpPurpose; expiresInMinutes: number }): Promise<void>
+  sendOtp(input: {
+    to: string
+    code: string
+    purpose: OtpPurpose
+    expiresInMinutes: number
+  }): Promise<void>
 }
 
 export type OtpPurpose = 'EMAIL_VERIFICATION' | 'PASSWORD_RESET' | 'LOGIN_CHALLENGE'

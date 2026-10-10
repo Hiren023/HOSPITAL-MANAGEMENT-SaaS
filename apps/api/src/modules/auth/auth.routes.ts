@@ -172,39 +172,35 @@ authRouter.post(
  * Identity and permissions, resolved from the caller's MEMBERSHIP. No client-supplied
  * hospital id is involved at any point.
  */
-authRouter.get(
-  '/me',
-  authenticate,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const context = req.auth
-      if (!context) throw ApiError.unauthenticated('Authentication required')
+authRouter.get('/me', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const context = req.auth
+    if (!context) throw ApiError.unauthenticated('Authentication required')
 
-      // A platform actor has no tenant scope, so the response is deliberately minimal.
-      if (!('permissions' in context)) {
-        res.status(200).json({
-          success: true,
-          data: {
-            userId: context.userId,
-            role: context.role,
-            hospitalId: null,
-            hospitalName: null,
-            membershipId: null,
-            permissions: [],
-            scope: 'platform',
-          },
-          meta: { requestId: req.requestId },
-        })
-        return
-      }
-
-      const user = await getCurrentUser(context)
-      res.status(200).json({ success: true, data: user, meta: { requestId: req.requestId } })
-    } catch (error) {
-      next(error)
+    // A platform actor has no tenant scope, so the response is deliberately minimal.
+    if (!('permissions' in context)) {
+      res.status(200).json({
+        success: true,
+        data: {
+          userId: context.userId,
+          role: context.role,
+          hospitalId: null,
+          hospitalName: null,
+          membershipId: null,
+          permissions: [],
+          scope: 'platform',
+        },
+        meta: { requestId: req.requestId },
+      })
+      return
     }
-  },
-)
+
+    const user = await getCurrentUser(context)
+    res.status(200).json({ success: true, data: user, meta: { requestId: req.requestId } })
+  } catch (error) {
+    next(error)
+  }
+})
 
 /**
  * POST /api/v1/auth/forgot-password

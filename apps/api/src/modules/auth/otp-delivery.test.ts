@@ -50,7 +50,9 @@ describe('buildOtpMessage', () => {
   })
 
   it('warns an unexpected recipient to ignore a reset they did not request', () => {
-    expect(buildOtpMessage({ ...base, purpose: 'PASSWORD_RESET' }).text).toMatch(/ignore this email/i)
+    expect(buildOtpMessage({ ...base, purpose: 'PASSWORD_RESET' }).text).toMatch(
+      /ignore this email/i,
+    )
   })
 })
 

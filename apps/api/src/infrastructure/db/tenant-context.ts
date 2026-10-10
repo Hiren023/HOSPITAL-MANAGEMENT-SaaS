@@ -62,7 +62,9 @@ export function getTenantContext(): RequestContext | null {
 export function requireTenantContext(operation: string): RequestContext {
   const context = getTenantContext()
   if (!context) {
-    throw new Error(`Tenant context required for "${operation}" but none was bound to this execution`)
+    throw new Error(
+      `Tenant context required for "${operation}" but none was bound to this execution`,
+    )
   }
   return context
 }

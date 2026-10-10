@@ -7,7 +7,12 @@ import helmet from 'helmet'
 import { RATE_LIMITS } from '@infinigrow/shared'
 import { pinoHttp } from 'pino-http'
 
-import { API_BASE_PATH, PRODUCT_TAGLINE, PRODUCT_VENDOR, SERVICE_VERSION } from './config/constants.js'
+import {
+  API_BASE_PATH,
+  PRODUCT_TAGLINE,
+  PRODUCT_VENDOR,
+  SERVICE_VERSION,
+} from './config/constants.js'
 import { env } from './config/env.js'
 import { ApiError } from './infrastructure/api-error.js'
 import { logger } from './infrastructure/logger.js'
@@ -79,7 +84,9 @@ export function createApp(): Express {
       crossOriginResourcePolicy: { policy: 'same-site' },
       referrerPolicy: { policy: 'no-referrer' },
       // getUpgradeInsecureRequests is meaningless server-side and noisy in logs.
-      hsts: env.isProduction ? { maxAge: 31_536_000, includeSubDomains: true, preload: true } : false,
+      hsts: env.isProduction
+        ? { maxAge: 31_536_000, includeSubDomains: true, preload: true }
+        : false,
     }),
   )
 

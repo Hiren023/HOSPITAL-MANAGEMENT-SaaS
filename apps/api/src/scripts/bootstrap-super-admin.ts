@@ -58,9 +58,16 @@ async function main(): Promise<void> {
 
   await connectToDatabase()
 
-  const existing = await (UserModel as never as {
-    findOne: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
-  }).findOne({ email }).lean().exec()
+  const existing = await (
+    UserModel as never as {
+      findOne: (input: unknown) => {
+        lean: () => { exec: () => Promise<Record<string, unknown> | null> }
+      }
+    }
+  )
+    .findOne({ email })
+    .lean()
+    .exec()
 
   if (existing) {
     throw new Error(`A user already exists for ${email}. Nothing was changed.`)

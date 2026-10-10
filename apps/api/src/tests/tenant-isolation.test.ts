@@ -1,11 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import mongoose, { type Model } from 'mongoose'
 
-import {
-  HospitalModel,
-  MembershipModel,
-  UserModel,
-} from '../modules/identity/models.js'
+import { HospitalModel, MembershipModel, UserModel } from '../modules/identity/models.js'
 import { hashPassword } from '../modules/identity/password.util.js'
 import { hashToken, generateOpaqueToken } from '../modules/identity/token.util.js'
 import { runWithContext, type RequestContext } from '../infrastructure/db/tenant-context.js'
@@ -131,15 +127,15 @@ describe.skipIf(!db.uri)('tenant isolation', () => {
   it('names the model in the thrown error', async () => {
     // Regression guard: an earlier version read `schema.modelName` inside a document
     // hook, where it is undefined, so the message said `"undefined"`.
-    await expect(
-      SecretModel.create({ hospitalId: HOSPITAL_A, value: 'x' }),
-    ).rejects.toThrow(/Tenant context is required to save a "Secret"/)
+    await expect(SecretModel.create({ hospitalId: HOSPITAL_A, value: 'x' })).rejects.toThrow(
+      /Tenant context is required to save a "Secret"/,
+    )
   })
 
   it('refuses to save with no context at all', async () => {
-    await expect(
-      SecretModel.create({ hospitalId: HOSPITAL_A, value: 'x' }),
-    ).rejects.toThrow(/Tenant context is required to save/)
+    await expect(SecretModel.create({ hospitalId: HOSPITAL_A, value: 'x' })).rejects.toThrow(
+      /Tenant context is required to save/,
+    )
   })
 
   it('auto-injects the caller hospital into an otherwise unscoped find', async () => {
@@ -166,7 +162,7 @@ describe.skipIf(!db.uri)('tenant isolation', () => {
     expect(results.some((row) => row['value'] === 'secret-b')).toBe(false)
   })
 
-  it('returns nothing for another hospital\'s document by id', async () => {
+  it("returns nothing for another hospital's document by id", async () => {
     const bSecret = await seedSecret(HOSPITAL_B, 'secret-b')
 
     const found = await runWithContext(contextFor(HOSPITAL_A), () =>
@@ -176,7 +172,7 @@ describe.skipIf(!db.uri)('tenant isolation', () => {
     expect(found).toBeNull()
   })
 
-  it('blocks an update targeting another hospital\'s document', async () => {
+  it("blocks an update targeting another hospital's document", async () => {
     const bSecret = await seedSecret(HOSPITAL_B, 'secret-b')
 
     const result = await runWithContext(contextFor(HOSPITAL_A), () =>
@@ -186,7 +182,7 @@ describe.skipIf(!db.uri)('tenant isolation', () => {
     expect(result.modifiedCount).toBe(0)
   })
 
-  it('blocks a delete targeting another hospital\'s document', async () => {
+  it("blocks a delete targeting another hospital's document", async () => {
     const bSecret = await seedSecret(HOSPITAL_B, 'secret-b')
 
     const result = await runWithContext(contextFor(HOSPITAL_A), () =>
@@ -211,10 +207,7 @@ describe.skipIf(!db.uri)('tenant isolation', () => {
     const aSecret = await seedSecret(HOSPITAL_A, 'secret-a')
 
     await runWithContext(contextFor(HOSPITAL_A), () =>
-      SecretModel.updateOne(
-        { _id: aSecret['_id'] },
-        { value: 'x', hospitalId: HOSPITAL_B },
-      ).exec(),
+      SecretModel.updateOne({ _id: aSecret['_id'] }, { value: 'x', hospitalId: HOSPITAL_B }).exec(),
     )
 
     // Read through the raw collection: this must not be tenant-scoped, since the
@@ -271,9 +264,9 @@ describe.skipIf(!db.uri)('tenant isolation', () => {
       passwordHash: await hashPassword('correct-horse-battery-staple'),
     })
 
-    const memberships = await (
-      MembershipModel as Model<Record<string, unknown>>
-    ).find({ userId: stranger, status: 'ACTIVE' }).exec()
+    const memberships = await (MembershipModel as Model<Record<string, unknown>>)
+      .find({ userId: stranger, status: 'ACTIVE' })
+      .exec()
 
     expect(memberships).toHaveLength(0)
   })

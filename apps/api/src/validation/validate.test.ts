@@ -281,7 +281,7 @@ describe('validate — envelope', () => {
     expect(paths).toContain('password')
   })
 
-it('never leaks a stack trace', async () => {
+  it('never leaks a stack trace', async () => {
     const response = await request(appWith({ body: strictSchema }))
       .post('/test')
       .send({ name: 'A', age: 1 })

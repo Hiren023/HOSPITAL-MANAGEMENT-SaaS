@@ -86,7 +86,11 @@ const otpModel = () => OtpChallengeModel as Model<Record<string, unknown>>
  * The counter lives on the user document, so the lockout survives a restart and is not
  * defeated by rotating IPs.
  */
-async function registerFailedLogin(userId: string, email: string, meta: RequestMeta): Promise<void> {
+async function registerFailedLogin(
+  userId: string,
+  email: string,
+  meta: RequestMeta,
+): Promise<void> {
   const user = await userModel().findById(userId).select('failedLoginCount').exec()
   if (!user) return
 
@@ -229,10 +233,7 @@ export async function login(input: {
     .updateOne({ _id: userId }, { $set: { failedLoginCount: 0, lastLoginAt: new Date() } })
     .exec()
 
-  const memberships = await membershipModel()
-    .find({ userId, status: 'ACTIVE' })
-    .lean()
-    .exec()
+  const memberships = await membershipModel().find({ userId, status: 'ACTIVE' }).lean().exec()
 
   // A platform administrator holds `platform:*` permissions and has NO hospital
   // membership by design. Resolving them through a membership would make platform
@@ -271,7 +272,11 @@ export async function login(input: {
         hospitalId: null,
         hospitalName: null,
         membershipId: null,
-        permissions: ['platform:hospital:read', 'platform:hospital:approve', 'platform:hospital:suspend'],
+        permissions: [
+          'platform:hospital:read',
+          'platform:hospital:approve',
+          'platform:hospital:suspend',
+        ],
         emailVerified: Boolean(user['emailVerified']),
       },
     }
@@ -288,7 +293,9 @@ export async function login(input: {
       : undefined
 
   if (memberships.length > 1 && !chosen) {
-    throw ApiError.badRequest('This account belongs to multiple hospitals. Choose one and try again.')
+    throw ApiError.badRequest(
+      'This account belongs to multiple hospitals. Choose one and try again.',
+    )
   }
 
   if (!chosen) {
@@ -301,10 +308,14 @@ export async function login(input: {
   const membershipId = String(membership['_id'])
 
   const { resolvePermissions } = await import('@infinigrow/shared')
-  const permissions = [...resolvePermissions(role, (membership['grantedPermissions'] as string[]) ?? [])]
+  const permissions = [
+    ...resolvePermissions(role, (membership['grantedPermissions'] as string[]) ?? []),
+  ]
 
   const hospital = await (
-    (await import('../identity/models.js')).HospitalModel as Model<Record<string, unknown>>
+    (
+      await import('../identity/models.js')
+    ).HospitalModel as Model<Record<string, unknown>>
   )
     .findById(hospitalId)
     .select('name')
@@ -361,10 +372,7 @@ export async function refreshSession(input: {
 }): Promise<{ tokens: SessionTokens; user: CurrentUser }> {
   const tokenHash = hashToken(input.refreshToken)
 
-  const session = await refreshSessionModel()
-    .findOne({ tokenHash })
-    .lean()
-    .exec()
+  const session = await refreshSessionModel().findOne({ tokenHash }).lean().exec()
 
   if (!session) {
     throw ApiError.unauthenticated('Invalid or expired session')
@@ -673,7 +681,9 @@ export async function getCurrentUser(context: {
   let hospitalName: string | null = null
   if (context.hospitalId) {
     const hospital = await (
-      (await import('../identity/models.js')).HospitalModel as Model<Record<string, unknown>>
+      (
+        await import('../identity/models.js')
+      ).HospitalModel as Model<Record<string, unknown>>
     )
       .findById(context.hospitalId)
       .select('name')

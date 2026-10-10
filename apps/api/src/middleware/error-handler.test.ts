@@ -42,7 +42,8 @@ describe('toApiError', () => {
       uhid: { type: String, required: true },
       dateOfBirth: { type: Date, required: true },
     })
-    const ProbeModel = mongoose.models['ErrorHandlerProbe'] ?? mongoose.model('ErrorHandlerProbe', schema)
+    const ProbeModel =
+      mongoose.models['ErrorHandlerProbe'] ?? mongoose.model('ErrorHandlerProbe', schema)
 
     let thrown: unknown
     try {

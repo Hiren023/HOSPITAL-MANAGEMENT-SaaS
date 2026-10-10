@@ -10,7 +10,14 @@ import { notFoundHandler } from '../middleware/not-found.js'
 import { validate } from '../validation/validate.js'
 import { z } from 'zod'
 
-import { connectTestDatabase, installTestJwtKeys, resetDatabase, seedFixtures, TEST_PASSWORD, type Fixture } from './auth-harness.js'
+import {
+  connectTestDatabase,
+  installTestJwtKeys,
+  resetDatabase,
+  seedFixtures,
+  TEST_PASSWORD,
+  type Fixture,
+} from './auth-harness.js'
 import { tryStartTestDatabase } from './mongo.js'
 import { tenantScopedSchema } from '../infrastructure/db/tenant-plugin.js'
 
@@ -66,34 +73,44 @@ function buildTestApp(): Express {
 
   app.use(authenticate)
 
-  app.get('/notes', requireTenantScope, requirePermission('patient:read'), async (_req, res, next) => {
-    try {
-      const notes = await ClinicalNoteModel.find({}).sort({ _id: 1 }).lean().exec()
-      res.json({
-        success: true,
-        data: notes.map((n) => ({ id: String(n['_id']), summary: n['summary'] })),
-      })
-    } catch (error) {
-      next(error)
-    }
-  })
-
-  app.get('/notes/:id', requireTenantScope, requirePermission('patient:read'), async (req, res, next) => {
-    try {
-      const id = (req as Request & { params: Record<string, string> }).params.id
-      const note = await ClinicalNoteModel.findById(id).lean().exec()
-      if (!note) {
-        res.status(404).json({
-          success: false,
-          error: { code: 'NOT_FOUND', message: 'Resource not found', requestId: req.requestId },
+  app.get(
+    '/notes',
+    requireTenantScope,
+    requirePermission('patient:read'),
+    async (_req, res, next) => {
+      try {
+        const notes = await ClinicalNoteModel.find({}).sort({ _id: 1 }).lean().exec()
+        res.json({
+          success: true,
+          data: notes.map((n) => ({ id: String(n['_id']), summary: n['summary'] })),
         })
-        return
+      } catch (error) {
+        next(error)
       }
-      res.json({ success: true, data: { id: String(note['_id']), summary: note['summary'] } })
-    } catch (error) {
-      next(error)
-    }
-  })
+    },
+  )
+
+  app.get(
+    '/notes/:id',
+    requireTenantScope,
+    requirePermission('patient:read'),
+    async (req, res, next) => {
+      try {
+        const id = (req as Request & { params: Record<string, string> }).params.id
+        const note = await ClinicalNoteModel.findById(id).lean().exec()
+        if (!note) {
+          res.status(404).json({
+            success: false,
+            error: { code: 'NOT_FOUND', message: 'Resource not found', requestId: req.requestId },
+          })
+          return
+        }
+        res.json({ success: true, data: { id: String(note['_id']), summary: note['summary'] } })
+      } catch (error) {
+        next(error)
+      }
+    },
+  )
 
   app.patch(
     '/notes/:id',
@@ -162,14 +179,20 @@ async function seedNotes(): Promise<{ noteA: string; noteB: string }> {
     userAgent: 'seed',
   })
 
-  const noteA = (await runWithContext(
-    contextFor(fixture.hospitalA.id, fixture.adminA.id),
-    () => ClinicalNoteModel.create({ hospitalId: fixture.hospitalA.id, summary: NOTE_A, authorRole: 'DOCTOR' }),
+  const noteA = (await runWithContext(contextFor(fixture.hospitalA.id, fixture.adminA.id), () =>
+    ClinicalNoteModel.create({
+      hospitalId: fixture.hospitalA.id,
+      summary: NOTE_A,
+      authorRole: 'DOCTOR',
+    }),
   )) as Record<string, unknown>
 
-  const noteB = (await runWithContext(
-    contextFor(fixture.hospitalB.id, fixture.adminB.id),
-    () => ClinicalNoteModel.create({ hospitalId: fixture.hospitalB.id, summary: NOTE_B, authorRole: 'DOCTOR' }),
+  const noteB = (await runWithContext(contextFor(fixture.hospitalB.id, fixture.adminB.id), () =>
+    ClinicalNoteModel.create({
+      hospitalId: fixture.hospitalB.id,
+      summary: NOTE_B,
+      authorRole: 'DOCTOR',
+    }),
   )) as Record<string, unknown>
 
   void issueAccessToken
@@ -230,8 +253,7 @@ describe.skipIf(!db.uri)('CROSS-TENANT ACCESS CONTROL (release gate)', () => {
     tokenA = await signIn(fixture.adminA.email)
   })
 
-  afterAll(async () => {
-  })
+  afterAll(async () => {})
 
   it('seeded one note per hospital, with different contents', async () => {
     expect(noteA).not.toBe(noteB)
@@ -361,7 +383,7 @@ describe.skipIf(!db.uri)('CROSS-TENANT ACCESS CONTROL (release gate)', () => {
     const tokenB = await signIn(fixture.adminB.email)
 
     const list = await request(testApp).get('/notes').set('Authorization', `Bearer ${tokenB}`)
-    expect((list.body.data as unknown[])).toHaveLength(1)
+    expect(list.body.data as unknown[]).toHaveLength(1)
     expect((list.body.data as { summary: string }[])[0]?.summary).toBe(NOTE_B)
 
     const direct = await request(testApp)
@@ -377,7 +399,7 @@ describe.skipIf(!db.uri)('CROSS-TENANT ACCESS CONTROL (release gate)', () => {
     expect((await request(testApp).delete(`/notes/${noteB}`)).status).toBe(401)
   })
 
-  it('refuses tenant operations with another user\'s invalid token', async () => {
+  it("refuses tenant operations with another user's invalid token", async () => {
     const response = await request(testApp)
       .get('/notes')
       .set('Authorization', 'Bearer not.a.real.token')

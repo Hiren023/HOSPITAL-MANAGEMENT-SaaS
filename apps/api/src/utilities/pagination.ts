@@ -89,9 +89,14 @@ export function buildPageMeta(input: {
  * The id is the tie-breaker so that rows sharing a timestamp are neither skipped
  * nor repeated.
  */
-export function cursorFilter(cursor: CursorPayload | null, timestampField = 'createdAt'): {
-  $or: Record<string, unknown>[]
-} | Record<string, never> {
+export function cursorFilter(
+  cursor: CursorPayload | null,
+  timestampField = 'createdAt',
+):
+  | {
+      $or: Record<string, unknown>[]
+    }
+  | Record<string, never> {
   if (!cursor) return {}
 
   return {

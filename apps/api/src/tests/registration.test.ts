@@ -57,17 +57,23 @@ describe.skipIf(!db.uri)('hospital registration', () => {
     await resetDatabase()
   })
 
-  afterAll(async () => {
-  })
+  afterAll(async () => {})
 
   it('creates the hospital in PENDING status', async () => {
     const result = await registerHospital(registration(), meta)
 
     expect(result.hospitalStatus).toBe('PENDING')
 
-    const hospital = await (HospitalModel as never as {
-      findById: (id: string) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
-    }).findById(result.hospitalId).lean().exec()
+    const hospital = await (
+      HospitalModel as never as {
+        findById: (id: string) => {
+          lean: () => { exec: () => Promise<Record<string, unknown> | null> }
+        }
+      }
+    )
+      .findById(result.hospitalId)
+      .lean()
+      .exec()
 
     expect(hospital?.['status']).toBe('PENDING')
     expect(hospital?.['approvedAt']).toBeFalsy()
@@ -76,9 +82,16 @@ describe.skipIf(!db.uri)('hospital registration', () => {
   it('assigns the administrator role server-side', async () => {
     const result = await registerHospital(registration(), meta)
 
-    const membership = await (MembershipModel as never as {
-      findOne: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
-    }).findOne({ hospitalId: result.hospitalId }).lean().exec()
+    const membership = await (
+      MembershipModel as never as {
+        findOne: (input: unknown) => {
+          lean: () => { exec: () => Promise<Record<string, unknown> | null> }
+        }
+      }
+    )
+      .findOne({ hospitalId: result.hospitalId })
+      .lean()
+      .exec()
 
     expect(membership?.['role']).toBe('HOSPITAL_ADMIN')
     expect(membership?.['status']).toBe('ACTIVE')
@@ -87,9 +100,16 @@ describe.skipIf(!db.uri)('hospital registration', () => {
   it('creates the administrator with a PENDING_VERIFICATION status', async () => {
     const result = await registerHospital(registration(), meta)
 
-    const user = await (UserModel as never as {
-      findById: (id: string) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
-    }).findById(result.adminUserId).lean().exec()
+    const user = await (
+      UserModel as never as {
+        findById: (id: string) => {
+          lean: () => { exec: () => Promise<Record<string, unknown> | null> }
+        }
+      }
+    )
+      .findById(result.adminUserId)
+      .lean()
+      .exec()
 
     expect(user?.['status']).toBe('PENDING_VERIFICATION')
     expect(user?.['emailVerified']).toBe(false)
@@ -98,9 +118,19 @@ describe.skipIf(!db.uri)('hospital registration', () => {
   it('never stores the plaintext password', async () => {
     const result = await registerHospital(registration(), meta)
 
-    const user = await (UserModel as never as {
-      findById: (id: string) => { select: (v: string) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } } }
-    }).findById(result.adminUserId).select('+passwordHash').lean().exec()
+    const user = await (
+      UserModel as never as {
+        findById: (id: string) => {
+          select: (v: string) => {
+            lean: () => { exec: () => Promise<Record<string, unknown> | null> }
+          }
+        }
+      }
+    )
+      .findById(result.adminUserId)
+      .select('+passwordHash')
+      .lean()
+      .exec()
 
     const stored = String(user?.['passwordHash'] ?? '')
     expect(stored).toMatch(/^\$argon2id\$/)
@@ -161,9 +191,14 @@ describe.skipIf(!db.uri)('hospital registration', () => {
   it('records an audit entry without the password', async () => {
     await registerHospital(registration(), meta)
 
-    const entries = await (AuditLogModel as never as {
-      find: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown>[]> } }
-    }).find({ action: 'hospital.registered' }).lean().exec()
+    const entries = await (
+      AuditLogModel as never as {
+        find: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown>[]> } }
+      }
+    )
+      .find({ action: 'hospital.registered' })
+      .lean()
+      .exec()
 
     expect(entries).toHaveLength(1)
     expect(JSON.stringify(entries)).not.toContain(PASSWORD)
@@ -174,9 +209,14 @@ describe.skipIf(!db.uri)('hospital registration', () => {
   it('records a membership-created audit entry', async () => {
     await registerHospital(registration(), meta)
 
-    const entries = await (AuditLogModel as never as {
-      find: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown>[]> } }
-    }).find({ action: 'membership.created' }).lean().exec()
+    const entries = await (
+      AuditLogModel as never as {
+        find: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown>[]> } }
+      }
+    )
+      .find({ action: 'membership.created' })
+      .lean()
+      .exec()
 
     expect(entries).toHaveLength(1)
   })
@@ -191,23 +231,32 @@ describe.skipIf(!db.uri)('hospital approval', () => {
     await resetDatabase()
   })
 
-  afterAll(async () => {
-  })
+  afterAll(async () => {})
 
   it('flips the tenant to APPROVED and records who approved it', async () => {
     const { hospitalId } = await registerHospital(registration(), meta)
 
     const result = await approveHospital({
       hospitalId,
-      actor: { userId: new (await import('mongoose')).Types.ObjectId().toString(), role: 'SUPER_ADMIN' },
+      actor: {
+        userId: new (await import('mongoose')).Types.ObjectId().toString(),
+        role: 'SUPER_ADMIN',
+      },
       meta,
     })
 
     expect(result.status).toBe('APPROVED')
 
-    const hospital = await (HospitalModel as never as {
-      findById: (id: string) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
-    }).findById(hospitalId).lean().exec()
+    const hospital = await (
+      HospitalModel as never as {
+        findById: (id: string) => {
+          lean: () => { exec: () => Promise<Record<string, unknown> | null> }
+        }
+      }
+    )
+      .findById(hospitalId)
+      .lean()
+      .exec()
 
     expect(hospital?.['status']).toBe('APPROVED')
     expect(hospital?.['approvedAt']).toBeTruthy()
@@ -222,9 +271,16 @@ describe.skipIf(!db.uri)('hospital approval', () => {
       meta,
     })
 
-    const user = await (UserModel as never as {
-      findById: (id: string) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
-    }).findById(adminUserId).lean().exec()
+    const user = await (
+      UserModel as never as {
+        findById: (id: string) => {
+          lean: () => { exec: () => Promise<Record<string, unknown> | null> }
+        }
+      }
+    )
+      .findById(adminUserId)
+      .lean()
+      .exec()
 
     expect(user?.['status']).toBe('ACTIVE')
   })
@@ -241,13 +297,27 @@ describe.skipIf(!db.uri)('hospital approval', () => {
       meta,
     })
 
-    const owner = await (MembershipModel as never as {
-      findOne: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
-    }).findOne({ hospitalId, role: 'HOSPITAL_ADMIN' }).lean().exec()
+    const owner = await (
+      MembershipModel as never as {
+        findOne: (input: unknown) => {
+          lean: () => { exec: () => Promise<Record<string, unknown> | null> }
+        }
+      }
+    )
+      .findOne({ hospitalId, role: 'HOSPITAL_ADMIN' })
+      .lean()
+      .exec()
 
-    const user = await (UserModel as never as {
-      findById: (id: string) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
-    }).findById(String(owner?.['userId'])).lean().exec()
+    const user = await (
+      UserModel as never as {
+        findById: (id: string) => {
+          lean: () => { exec: () => Promise<Record<string, unknown> | null> }
+        }
+      }
+    )
+      .findById(String(owner?.['userId']))
+      .lean()
+      .exec()
 
     expect(user?.['status']).toBe('ACTIVE')
   })
@@ -271,9 +341,14 @@ describe.skipIf(!db.uri)('hospital approval', () => {
       meta,
     })
 
-    const entries = await (AuditLogModel as never as {
-      find: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown>[]> } }
-    }).find({ action: 'hospital.approved' }).lean().exec()
+    const entries = await (
+      AuditLogModel as never as {
+        find: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown>[]> } }
+      }
+    )
+      .find({ action: 'hospital.approved' })
+      .lean()
+      .exec()
 
     expect(entries).toHaveLength(1)
     // Stored as an ObjectId, so compare on its string form.

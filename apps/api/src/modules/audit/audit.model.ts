@@ -30,7 +30,12 @@ const auditLogSchema = new Schema(
     resourceType: { type: String, maxlength: 80 },
     resourceId: { type: String, maxlength: 100 },
 
-    outcome: { type: String, enum: ['SUCCESS', 'FAILURE', 'DENIED'], default: 'SUCCESS', index: true },
+    outcome: {
+      type: String,
+      enum: ['SUCCESS', 'FAILURE', 'DENIED'],
+      default: 'SUCCESS',
+      index: true,
+    },
 
     ip: { type: String, maxlength: 64 },
     userAgent: { type: String, maxlength: 500 },

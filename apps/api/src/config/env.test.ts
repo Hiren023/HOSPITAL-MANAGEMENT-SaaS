@@ -140,7 +140,10 @@ describe('production safety rules', () => {
   })
 
   it('refuses to start with a non-MongoDB URI', async () => {
-    const { error } = await loadEnv({ ...SAFE_PRODUCTION, MONGODB_URI: 'postgres://user:pw@host/db' })
+    const { error } = await loadEnv({
+      ...SAFE_PRODUCTION,
+      MONGODB_URI: 'postgres://user:pw@host/db',
+    })
     expect(error?.message).toContain('mongodb://')
   })
 
@@ -208,7 +211,7 @@ describe('production safety rules', () => {
     expect(found).not.toContain('apps\\api')
   })
 
-it('does not apply production rules in development', async () => {
+  it('does not apply production rules in development', async () => {
     const { error } = await loadEnv({
       NODE_ENV: 'development',
       MONGODB_URI: 'mongodb://changeme',

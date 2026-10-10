@@ -64,9 +64,11 @@ describe.skipIf(!uri)('mongodb connection', () => {
     const { UserModel } = await import('../../modules/identity/models.js')
 
     await expect(
-      (UserModel as unknown as { find: (f: unknown) => { exec: () => Promise<unknown> } }).find({
-        _id: { $in: [new mongoose.Types.ObjectId()] },
-      }).exec(),
+      (UserModel as unknown as { find: (f: unknown) => { exec: () => Promise<unknown> } })
+        .find({
+          _id: { $in: [new mongoose.Types.ObjectId()] },
+        })
+        .exec(),
     ).rejects.toThrow()
   })
 

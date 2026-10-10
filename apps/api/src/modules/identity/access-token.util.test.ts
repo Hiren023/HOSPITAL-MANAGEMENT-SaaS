@@ -93,13 +93,16 @@ describe('issueAccessToken / verifyAccessToken', () => {
     const [header, payload, signature] = token.split('.') as [string, string, string]
 
     // Re-encode the payload with an escalated role.
-    const decoded = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as Record<string, unknown>
+    const decoded = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as Record<
+      string,
+      unknown
+    >
     decoded['role'] = 'SUPER_ADMIN'
     const forged = Buffer.from(JSON.stringify(decoded), 'utf8').toString('base64url')
 
-    await expect(
-      verifyAccessToken(`${header}.${forged}.${signature}`, keys),
-    ).rejects.toThrow(/Invalid or expired/)
+    await expect(verifyAccessToken(`${header}.${forged}.${signature}`, keys)).rejects.toThrow(
+      /Invalid or expired/,
+    )
   })
 
   it('rejects a token minted for a different audience', async () => {
@@ -131,14 +134,13 @@ describe('issueAccessToken / verifyAccessToken', () => {
     const token = await issueAccessToken(baseClaims, keys)
     const [, payload, signature] = token.split('.') as [string, string, string]
 
-    const noneHeader = Buffer.from(
-      JSON.stringify({ alg: 'none', typ: 'JWT' }),
-      'utf8',
-    ).toString('base64url')
+    const noneHeader = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' }), 'utf8').toString(
+      'base64url',
+    )
 
-    await expect(
-      verifyAccessToken(`${noneHeader}.${payload}.${signature}`, keys),
-    ).rejects.toThrow(/Invalid or expired/)
+    await expect(verifyAccessToken(`${noneHeader}.${payload}.${signature}`, keys)).rejects.toThrow(
+      /Invalid or expired/,
+    )
   })
 
   it('uses the same message for every failure, so nothing is disclosed', async () => {

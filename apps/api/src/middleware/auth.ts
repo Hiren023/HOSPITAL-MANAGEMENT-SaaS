@@ -43,7 +43,11 @@ function bearerToken(header: string | undefined): string | null {
  * attempt to reach tenant data fails closed rather than defaulting to "no hospital
  * means all hospitals".
  */
-export async function authenticate(req: Request, _res: Response, next: NextFunction): Promise<void> {
+export async function authenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const token = bearerToken(req.headers.authorization)
     if (!token) throw ApiError.unauthenticated('Authentication required')
@@ -54,9 +58,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     // Re-read the user on every request rather than trusting the token body alone, so
     // a suspension or deletion takes effect immediately rather than at token expiry
     // (docs/SECURITY.md R4).
-    const user = await (
-      UserModel as Model<Record<string, unknown>>
-    )
+    const user = await (UserModel as Model<Record<string, unknown>>)
       .findById(claims.userId)
       .select('status lockedUntil email firstName lastName')
       .lean()
@@ -96,9 +98,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
 
     // The membership is re-validated on every request: it is the authority for both
     // "may this user act" and "in which hospital".
-    const membership = await (
-      MembershipModel as Model<Record<string, unknown>>
-    )
+    const membership = await (MembershipModel as Model<Record<string, unknown>>)
       .findOne({
         _id: claims.membershipId,
         userId: claims.userId,
@@ -113,7 +113,10 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     }
 
     const role = (membership['role'] as Role) ?? claims.role
-    const permissions = resolvePermissions(role, (membership['grantedPermissions'] as string[]) ?? [])
+    const permissions = resolvePermissions(
+      role,
+      (membership['grantedPermissions'] as string[]) ?? [],
+    )
 
     const context: RequestContext = {
       ...common,
@@ -153,9 +156,7 @@ export function requirePermission(...required: Permission[]) {
     const missing = required.filter((permission) => !context.permissions.has(permission))
 
     if (missing.length > 0) {
-      return next(
-        ApiError.forbidden('You do not have permission to perform this action'),
-      )
+      return next(ApiError.forbidden('You do not have permission to perform this action'))
     }
 
     next()
@@ -172,9 +173,7 @@ export function requirePermission(...required: Permission[]) {
 export function requireTenantScope(req: Request, _res: Response, next: NextFunction): void {
   if (!req.auth) return next(ApiError.unauthenticated('Authentication required'))
   if (!req.tenant) {
-    return next(
-      ApiError.forbidden('This operation requires a hospital context'),
-    )
+    return next(ApiError.forbidden('This operation requires a hospital context'))
   }
   next()
 }

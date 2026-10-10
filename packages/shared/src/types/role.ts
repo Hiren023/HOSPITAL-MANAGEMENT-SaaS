@@ -246,7 +246,10 @@ export const PLATFORM_ONLY_PERMISSIONS: ReadonlySet<Permission> = new Set<Permis
  *
  * With no grants, the full role ceiling applies.
  */
-export function resolvePermissions(role: Role, grantedPermissions: readonly string[] = []): Set<Permission> {
+export function resolvePermissions(
+  role: Role,
+  grantedPermissions: readonly string[] = [],
+): Set<Permission> {
   const ceiling = ROLE_PERMISSIONS[role]
 
   if (grantedPermissions.length === 0) {

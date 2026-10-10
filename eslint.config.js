@@ -132,9 +132,9 @@ export default tseslint.config(
   },
 
   // ── Config and script files ─────────────────────────────────────────────────
-// Globs must reach into `scripts/`: a bare `*.mjs` matches only the config's base
-// directory (the repo root), so `scripts/check-workspace-path.mjs` would be linted
-// without Node globals and fail on `no-undef`.
+  // Globs must reach into `scripts/`: a bare `*.mjs` matches only the config's base
+  // directory (the repo root), so `scripts/check-workspace-path.mjs` would be linted
+  // without Node globals and fail on `no-undef`.
   {
     files: ['*.js', '*.mjs', 'scripts/**/*.mjs'],
     languageOptions: { globals: { ...globals.node } },

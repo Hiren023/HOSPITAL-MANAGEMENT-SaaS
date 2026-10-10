@@ -84,7 +84,8 @@ const booleanFromEnv = z
 const PLACEHOLDER_PATTERN =
   /(changeme|change-me|replace[-_ ]?me|placeholder|your[-_ ]?(secret|password|key|token)|xxx+|<[^>]+>)/i
 
-const isMongoUri = (value: string): boolean => value.startsWith('mongodb://') || value.startsWith('mongodb+srv://')
+const isMongoUri = (value: string): boolean =>
+  value.startsWith('mongodb://') || value.startsWith('mongodb+srv://')
 
 const rawEnvSchema = z.object({
   NODE_ENV: z.enum(NODE_ENVIRONMENTS).default('development'),
@@ -109,8 +110,16 @@ const rawEnvSchema = z.object({
   REQUEST_BODY_LIMIT: z.string().default('1mb'),
 
   MONGODB_URI: z.string().default('mongodb://127.0.0.1:27017'),
-  MONGODB_DB_NAME: z.string().regex(/^[A-Za-z0-9_-]+$/).default('infinigrow'),
-  MONGODB_SERVER_SELECTION_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60_000).default(10_000),
+  MONGODB_DB_NAME: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]+$/)
+    .default('infinigrow'),
+  MONGODB_SERVER_SELECTION_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1000)
+    .max(60_000)
+    .default(10_000),
   /** Guard against accidentally dropping data. */
   MONGODB_AUTO_INDEX: booleanFromEnv.default(false),
 

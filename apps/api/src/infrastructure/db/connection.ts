@@ -54,7 +54,8 @@ export async function disconnectFromDatabase(): Promise<void> {
   logger.info('MongoDB disconnected')
 }
 
-export type DatabaseState = 'disconnected' | 'connected' | 'connecting' | 'disconnecting' | 'unknown'
+export type DatabaseState =
+  'disconnected' | 'connected' | 'connecting' | 'disconnecting' | 'unknown'
 
 export function getDatabaseState(): DatabaseState {
   const readyState = mongoose.connection.readyState

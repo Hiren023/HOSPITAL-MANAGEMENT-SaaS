@@ -103,7 +103,12 @@ export function createLogger(options: CreateLoggerOptions = {}): Logger {
 
     // JSON everywhere except local development with the transport available.
     ...(usePrettyTransport(options)
-      ? { transport: { target: 'pino-pretty', options: { colorize: true, translateTime: 'SYS:standard' } } }
+      ? {
+          transport: {
+            target: 'pino-pretty',
+            options: { colorize: true, translateTime: 'SYS:standard' },
+          },
+        }
       : {}),
 
     base: {

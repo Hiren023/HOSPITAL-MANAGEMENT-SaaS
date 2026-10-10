@@ -59,7 +59,10 @@ export function installTestJwtKeys(): { privateKeyPem: string; publicKeyPem: str
   process.env['JWT_ISSUER'] = 'https://api.test.invalid'
   process.env['JWT_AUDIENCE'] = 'infinigrow-test'
 
-  return { privateKeyPem: privateKey as unknown as string, publicKeyPem: publicKey as unknown as string }
+  return {
+    privateKeyPem: privateKey as unknown as string,
+    publicKeyPem: publicKey as unknown as string,
+  }
 }
 
 async function createUser(input: {
@@ -69,9 +72,7 @@ async function createUser(input: {
   status?: string
   emailVerified?: boolean
 }): Promise<string> {
-  const user = await (
-    UserModel as Model<Record<string, unknown>>
-  ).create({
+  const user = await (UserModel as Model<Record<string, unknown>>).create({
     email: input.email,
     firstName: input.firstName,
     lastName: input.lastName,

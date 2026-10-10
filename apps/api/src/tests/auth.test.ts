@@ -28,9 +28,7 @@ async function signIn(
   email: string,
   password = TEST_PASSWORD,
 ): Promise<{ token: string; body: Record<string, unknown> }> {
-  const response = await request(fixture.app)
-    .post('/api/v1/auth/login')
-    .send({ email, password })
+  const response = await request(fixture.app).post('/api/v1/auth/login').send({ email, password })
 
   const data = (response.body.data ?? {}) as Record<string, unknown>
   return { token: String(data['accessToken'] ?? ''), body: data }
@@ -47,8 +45,7 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
     fixture = await seedFixtures()
   })
 
-  afterAll(async () => {
-  })
+  afterAll(async () => {})
 
   // ───────────────────────────── login ─────────────────────────────
 
@@ -190,13 +187,11 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
 
     it('rejects a payload carrying a role or hospital override', async () => {
       // Mass-assignment attempt: a client must not be able to grant itself a role.
-      const response = await request(fixture.app)
-        .post('/api/v1/auth/login')
-        .send({
-          email: fixture.adminA.email,
-          password: TEST_PASSWORD,
-          role: 'SUPER_ADMIN',
-        })
+      const response = await request(fixture.app).post('/api/v1/auth/login').send({
+        email: fixture.adminA.email,
+        password: TEST_PASSWORD,
+        role: 'SUPER_ADMIN',
+      })
 
       expect(response.status).toBe(422)
       expect(response.body.error.code).toBe('VALIDATION_ERROR')
@@ -235,7 +230,9 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
     it('returns the identity resolved from the membership', async () => {
       const { token } = await signIn(fixture.adminA.email)
 
-      const response = await request(fixture.app).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`)
+      const response = await request(fixture.app)
+        .get('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${token}`)
 
       expect(response.status).toBe(200)
       expect(response.body.data.hospitalId).toBe(fixture.hospitalA.id)
@@ -425,25 +422,21 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
 
   describe('POST /api/v1/auth/reset-password', () => {
     it('rejects a wrong code', async () => {
-      const response = await request(fixture.app)
-        .post('/api/v1/auth/reset-password')
-        .send({
-          email: fixture.adminA.email,
-          code: '000000',
-          newPassword: 'a-new-long-enough-password',
-        })
+      const response = await request(fixture.app).post('/api/v1/auth/reset-password').send({
+        email: fixture.adminA.email,
+        code: '000000',
+        newPassword: 'a-new-long-enough-password',
+      })
 
       expect(response.status).toBe(422)
     })
 
     it('rejects a non-numeric code', async () => {
-      const response = await request(fixture.app)
-        .post('/api/v1/auth/reset-password')
-        .send({
-          email: fixture.adminA.email,
-          code: 'abcdef',
-          newPassword: 'a-new-long-enough-password',
-        })
+      const response = await request(fixture.app).post('/api/v1/auth/reset-password').send({
+        email: fixture.adminA.email,
+        code: 'abcdef',
+        newPassword: 'a-new-long-enough-password',
+      })
 
       expect(response.status).toBe(422)
     })
@@ -457,14 +450,12 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
     })
 
     it('rejects mismatched confirmation', async () => {
-      const response = await request(fixture.app)
-        .post('/api/v1/auth/reset-password')
-        .send({
-          email: fixture.adminA.email,
-          code: '123456',
-          newPassword: 'a-new-long-enough-password',
-          confirmPassword: 'a-different-password',
-        })
+      const response = await request(fixture.app).post('/api/v1/auth/reset-password').send({
+        email: fixture.adminA.email,
+        code: '123456',
+        newPassword: 'a-new-long-enough-password',
+        confirmPassword: 'a-different-password',
+      })
 
       expect(response.status).toBe(422)
     })
@@ -514,9 +505,8 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
      * operationally. This mirrors what that provisioning would issue.
      */
     async function platformToken(): Promise<string> {
-      const { issueAccessToken, keysFromEnv } = await import(
-        '../modules/identity/access-token.util.js'
-      )
+      const { issueAccessToken, keysFromEnv } =
+        await import('../modules/identity/access-token.util.js')
       return issueAccessToken(
         {
           userId: fixture.superAdmin.id,
@@ -630,7 +620,10 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
       // A new tenant must not be usable before approval.
       expect(response.body.data.status).toBe('PENDING')
 
-      const membership = await modelOf('Membership').findOne({ hospitalId: response.body.data.hospitalId }).lean().exec()
+      const membership = await modelOf('Membership')
+        .findOne({ hospitalId: response.body.data.hospitalId })
+        .lean()
+        .exec()
 
       // Role is assigned server-side, not taken from the request.
       expect(membership?.['role']).toBe('HOSPITAL_ADMIN')
@@ -692,7 +685,10 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
     it('records a successful sign-in', async () => {
       await signIn(fixture.adminA.email)
 
-      const entries = await modelOf('AuditLog').find({ action: 'auth.login.succeeded' }).lean().exec()
+      const entries = await modelOf('AuditLog')
+        .find({ action: 'auth.login.succeeded' })
+        .lean()
+        .exec()
 
       expect(entries.length).toBeGreaterThanOrEqual(1)
       expect(entries[0]?.['hospitalId']).toBeTruthy()

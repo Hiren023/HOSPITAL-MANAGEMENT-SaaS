@@ -99,9 +99,7 @@ describe.skipIf(!db.uri)('session lifecycle', () => {
       const rotated = await refreshSession({ refreshToken: 'seed-token', meta })
 
       // Replay the consumed token.
-      await expect(refreshSession({ refreshToken: 'seed-token', meta })).rejects.toThrow(
-        /revoked/i,
-      )
+      await expect(refreshSession({ refreshToken: 'seed-token', meta })).rejects.toThrow(/revoked/i)
 
       // The newly issued token must be dead too — that is the whole point.
       await expect(
@@ -227,7 +225,10 @@ describe.skipIf(!db.uri)('session lifecycle', () => {
 
       await requestPasswordReset({ email: fixture.adminA.email, meta })
 
-      const challenges = await modelOf('AuditLog').find({ action: 'auth.otp.requested' }).lean().exec()
+      const challenges = await modelOf('AuditLog')
+        .find({ action: 'auth.otp.requested' })
+        .lean()
+        .exec()
       // An audit entry records the failure rather than a code.
       expect(challenges).toHaveLength(0)
       process.env = saved
@@ -267,10 +268,7 @@ describe.skipIf(!db.uri)('session lifecycle', () => {
       expect(response.status).toBe(200)
       expect(response.body.data.status).toBe('SUSPENDED')
 
-      const entries = await modelOf('AuditLog')
-        .find({ action: 'hospital.suspended' })
-        .lean()
-        .exec()
+      const entries = await modelOf('AuditLog').find({ action: 'hospital.suspended' }).lean().exec()
       expect(entries).toHaveLength(1)
     })
 

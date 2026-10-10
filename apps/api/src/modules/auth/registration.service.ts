@@ -220,11 +220,9 @@ export async function approveHospital(input: {
 }
 
 async function ownerIds(hospitalId: string): Promise<string[]> {
-  const memberships = await (
-    (MembershipModel as Model<Record<string, unknown>>)
-      .find({ hospitalId, role: 'HOSPITAL_ADMIN' })
-      .lean()
-      .exec()
-  )
+  const memberships = await (MembershipModel as Model<Record<string, unknown>>)
+    .find({ hospitalId, role: 'HOSPITAL_ADMIN' })
+    .lean()
+    .exec()
   return memberships.map((membership) => String(membership['userId']))
 }

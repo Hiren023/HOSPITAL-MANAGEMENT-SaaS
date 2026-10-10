@@ -80,7 +80,10 @@ export async function clearDatabase(): Promise<void> {
  * access to the download host that fails; tests depending on it are then SKIPPED and
  * reported as skipped rather than silently passing.
  */
-export async function tryStartTestDatabase(): Promise<{ uri: string | null; error: string | null }> {
+export async function tryStartTestDatabase(): Promise<{
+  uri: string | null
+  error: string | null
+}> {
   try {
     return { uri: await startTestDatabase(), error: null }
   } catch (error) {

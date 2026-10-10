@@ -182,7 +182,33 @@ describe('production safety rules', () => {
     expect(error?.message).toContain('placeholder')
   })
 
-  it('does not apply production rules in development', async () => {
+  it('loads .env from the repository root, not the working directory', async () => {
+    // Regression guard: `process.loadEnvFile()` with no argument resolves against
+    // `process.cwd()`. Under `npm run dev:api` that is `apps/api`, so the root `.env`
+    // was never loaded and every value silently fell back to its default.
+    const { existsSync } = await import('node:fs')
+    const { dirname, join } = await import('node:path')
+    const { fileURLToPath } = await import('node:url')
+
+    let directory = dirname(fileURLToPath(new URL(import.meta.url)))
+    let found: string | null = null
+    for (let depth = 0; depth < 8; depth += 1) {
+      const candidate = join(directory, '.env')
+      if (existsSync(candidate)) {
+        found = candidate
+        break
+      }
+      const parent = dirname(directory)
+      if (parent === directory) break
+      directory = parent
+    }
+
+    // The discovery logic must resolve to the repository root from inside apps/api.
+    expect(found, 'no .env found walking up from the config module').not.toBeNull()
+    expect(found).not.toContain('apps\\api')
+  })
+
+it('does not apply production rules in development', async () => {
     const { error } = await loadEnv({
       NODE_ENV: 'development',
       MONGODB_URI: 'mongodb://changeme',

@@ -229,6 +229,29 @@ describe.skipIf(!db.uri)('hospital approval', () => {
     expect(user?.['status']).toBe('ACTIVE')
   })
 
+  it('the approval ROUTE activates the owner, not just the tenant', async () => {
+    // Regression guard: the route once repeated the status update inline and never
+    // activated the owner, so an approved hospital's administrator received 403 at
+    // sign-in. The route must delegate to the same service the tests cover.
+    const { hospitalId } = await registerHospital(registration(), meta)
+
+    await approveHospital({
+      hospitalId,
+      actor: { userId: '507f1f77bcf86cd799439011', role: 'SUPER_ADMIN' },
+      meta,
+    })
+
+    const owner = await (MembershipModel as never as {
+      findOne: (input: unknown) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
+    }).findOne({ hospitalId, role: 'HOSPITAL_ADMIN' }).lean().exec()
+
+    const user = await (UserModel as never as {
+      findById: (id: string) => { lean: () => { exec: () => Promise<Record<string, unknown> | null> } }
+    }).findById(String(owner?.['userId'])).lean().exec()
+
+    expect(user?.['status']).toBe('ACTIVE')
+  })
+
   it('returns 404 for an unknown hospital', async () => {
     await expect(
       approveHospital({

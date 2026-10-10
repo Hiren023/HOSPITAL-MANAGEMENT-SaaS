@@ -91,6 +91,19 @@ const userSchema = new Schema(
     emailVerified: { type: Boolean, default: false },
     emailVerifiedAt: { type: Date },
 
+    /**
+     * Marks a platform (SaaS operator) administrator.
+     *
+     * A `SUPER_ADMIN` holds `platform:*` permissions and has NO hospital membership, so
+     * sign-in cannot resolve them through a membership like every other role. This flag
+     * is how `login` recognises a platform operator and issues a token with no hospital
+     * scope.
+     *
+     * It is deliberately NOT a normal `Role`: a platform admin is not a member of any
+     * hospital, so there is no membership to hang a role on.
+     */
+    platformRole: { type: String, enum: ['SUPER_ADMIN'], default: null, index: true },
+
     mfa: {
       enabled: { type: Boolean, default: false },
       /** TOTP secret, encrypted at rest. Never selected by default. */

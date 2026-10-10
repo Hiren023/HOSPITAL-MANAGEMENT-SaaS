@@ -10,7 +10,7 @@ import { HospitalModel } from '../identity/models.js'
 import { AUDIT_ACTIONS } from '../audit/audit.model.js'
 import { recordAudit } from '../audit/audit.service.js'
 import { hospitalIdParamSchema, hospitalRegistrationSchema } from './auth.schemas.js'
-import { registerHospital } from './registration.service.js'
+import { registerHospital, approveHospital } from './registration.service.js'
 
 /**
  * Hospital registration and platform (SUPER_ADMIN) tenant administration.
@@ -112,38 +112,18 @@ registrationRouter.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { hospitalId } = req.params as { hospitalId: string }
+      const actor = req.auth as { userId: string; role: string }
 
-      const updated = await withPlatformScope(() =>
-        (HospitalModel as Model<Record<string, unknown>>)
-          .findByIdAndUpdate(
-            hospitalId,
-            {
-              $set: {
-                status: 'APPROVED',
-                approvedAt: new Date(),
-                approvedBy: (req.auth as { userId: string }).userId,
-              },
-            },
-            { new: true },
-          )
-          .lean()
-          .exec(),
-      )
-
-      if (!updated) throw ApiError.notFound()
-
-      await recordAudit({
-        action: AUDIT_ACTIONS.HOSPITAL_APPROVED,
-        actorUserId: String((req.auth as { userId: string }).userId),
-        actorRole: String((req.auth as { role: string }).role),
+      // Delegates to the service rather than repeating the update. An earlier inline
+      // version flipped the tenant status but never activated the owner's account, so
+      // an approved hospital's administrator still received 403 at sign-in.
+      const result = await approveHospital({
         hospitalId,
-        resourceType: 'Hospital',
-        resourceId: hospitalId,
-        ip: req.ip ?? '',
-        requestId: req.requestId,
+        actor: { userId: actor.userId, role: actor.role },
+        meta: { ip: req.ip ?? '', requestId: req.requestId },
       })
 
-      res.status(200).json({ success: true, data: { hospitalId, status: 'APPROVED' } })
+      res.status(200).json({ success: true, data: result })
     } catch (error) {
       next(error)
     }

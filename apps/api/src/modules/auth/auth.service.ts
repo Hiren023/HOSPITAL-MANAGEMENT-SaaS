@@ -164,7 +164,9 @@ export async function login(input: {
 
   const user = await userModel()
     .findOne({ email })
-    .select('email passwordHash status lockedUntil firstName lastName emailVerified failedLoginCount')
+    .select(
+      'email passwordHash status lockedUntil firstName lastName emailVerified failedLoginCount platformRole',
+    )
     .exec()
 
   if (!user) {
@@ -231,6 +233,49 @@ export async function login(input: {
     .find({ userId, status: 'ACTIVE' })
     .lean()
     .exec()
+
+  // A platform administrator holds `platform:*` permissions and has NO hospital
+  // membership by design. Resolving them through a membership would make platform
+  // sign-in impossible, so they get a token with no hospital scope — which the
+  // `requirePlatformPermission` guard then requires to be a SUPER_ADMIN.
+  if (user['platformRole'] === 'SUPER_ADMIN' && memberships.length === 0) {
+    const platformTokens = await issueSession({
+      userId,
+      role: 'SUPER_ADMIN',
+      hospitalId: null,
+      membershipId: null,
+      meta: input.meta,
+    })
+
+    await recordAudit({
+      action: AUDIT_ACTIONS.LOGIN_SUCCEEDED,
+      actorUserId: userId,
+      actorRole: 'SUPER_ADMIN',
+      hospitalId: null,
+      resourceType: 'User',
+      resourceId: userId,
+      ip: input.meta.ip,
+      userAgent: input.meta.userAgent,
+      requestId: input.meta.requestId,
+      metadata: { email, scope: 'platform' },
+    })
+
+    return {
+      tokens: platformTokens,
+      user: {
+        userId,
+        email: String(user['email']),
+        firstName: String(user['firstName']),
+        lastName: String(user['lastName']),
+        role: 'SUPER_ADMIN',
+        hospitalId: null,
+        hospitalName: null,
+        membershipId: null,
+        permissions: ['platform:hospital:read', 'platform:hospital:approve', 'platform:hospital:suspend'],
+        emailVerified: Boolean(user['emailVerified']),
+      },
+    }
+  }
 
   if (memberships.length === 0) {
     throw ApiError.forbidden('This account is not a member of any hospital')

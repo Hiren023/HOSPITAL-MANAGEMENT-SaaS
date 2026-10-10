@@ -79,12 +79,30 @@ export interface CreateLoggerOptions {
   level?: string
 }
 
+/**
+ * Pretty transport is a LOCAL DEVELOPMENT convenience and `pino-pretty` is a
+ * devDependency. If it is missing, falling back to JSON is correct; crashing the
+ * process at boot is not. A misconfigured `LOG_PRETTY` must never stop the API from
+ * serving patients' requests.
+ */
+function usePrettyTransport(options: CreateLoggerOptions): boolean {
+  if (options.destination) return false
+  if (!env.LOG_PRETTY) return false
+
+  try {
+    require.resolve('pino-pretty')
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function createLogger(options: CreateLoggerOptions = {}): Logger {
   const loggerOptions: LoggerOptions = {
     level: options.level ?? env.LOG_LEVEL,
 
-    // JSON in every environment except when a developer explicitly asks for pretty.
-    ...(env.LOG_PRETTY && !options.destination
+    // JSON everywhere except local development with the transport available.
+    ...(usePrettyTransport(options)
       ? { transport: { target: 'pino-pretty', options: { colorize: true, translateTime: 'SYS:standard' } } }
       : {}),
 

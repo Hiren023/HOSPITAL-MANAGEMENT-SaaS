@@ -1,4 +1,7 @@
+import { existsSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
 
 /**
@@ -25,10 +28,35 @@ const SKIP_DOTENV = process.env['DOTENV_DISABLED'] === '1'
 // Load a local .env file when present. In production the variables come from the
 // platform's secret manager and this simply finds no file.
 if (!SKIP_DOTENV) {
-  try {
-    process.loadEnvFile()
-  } catch {
-    // No .env file — rely on the real process environment.
+  /**
+   * Locate the repository-root `.env` explicitly.
+   *
+   * `process.loadEnvFile()` with no argument resolves relative to `process.cwd()`.
+   * `npm run dev:api` executes with cwd = `apps/api`, so the root `.env` was silently
+   * never loaded — and the failure was invisible because every default happened to
+   * match the local file (port 4000, database `infinigrow`). A changed value, such as a
+   * JWT key, was simply absent.
+   *
+   * Walking up from this file is deterministic regardless of how the process was
+   * started.
+   */
+  let directory = dirname(fileURLToPath(import.meta.url))
+
+  for (let depth = 0; depth < 8; depth += 1) {
+    const candidate = join(directory, '.env')
+    if (existsSync(candidate)) {
+      try {
+        process.loadEnvFile(candidate)
+      } catch {
+        // A malformed file is ignored here; the validators below then report the
+        // specific missing or invalid variable, which is far more useful.
+      }
+      break
+    }
+
+    const parent = dirname(directory)
+    if (parent === directory) break
+    directory = parent
   }
 }
 

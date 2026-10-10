@@ -137,6 +137,41 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
       expect(String(orphan['_id'])).toBeTruthy()
     })
 
+    it('signs in a platform administrator who has no hospital membership', async () => {
+      // Regression guard: login resolves hospital users through a membership, but a
+      // SUPER_ADMIN has none BY DESIGN. Before this was handled, platform sign-in
+      // returned 403 and the whole approval flow was unreachable.
+      await modelOf('User').updateOne(
+        { _id: fixture.superAdmin.id },
+        { $set: { platformRole: 'SUPER_ADMIN' } },
+      )
+
+      const response = await request(fixture.app)
+        .post('/api/v1/auth/login')
+        .send({ email: fixture.superAdmin.email, password: TEST_PASSWORD })
+
+      expect(response.status).toBe(200)
+      expect(response.body.data.user.role).toBe('SUPER_ADMIN')
+      // No hospital scope at all, which is what the platform guard expects.
+      expect(response.body.data.user.hospitalId).toBeNull()
+      expect(response.body.data.user.membershipId).toBeNull()
+    })
+
+    it('issues a platform token that satisfies requirePlatformPermission', async () => {
+      await modelOf('User').updateOne(
+        { _id: fixture.superAdmin.id },
+        { $set: { platformRole: 'SUPER_ADMIN' } },
+      )
+
+      const { token } = await signIn(fixture.superAdmin.email)
+
+      const response = await request(fixture.app)
+        .get('/api/v1/platform/hospitals')
+        .set('Authorization', `Bearer ${token}`)
+
+      expect(response.status).toBe(200)
+    })
+
     it('locks an account after repeated failures', async () => {
       for (let attempt = 0; attempt < 5; attempt += 1) {
         await request(fixture.app)

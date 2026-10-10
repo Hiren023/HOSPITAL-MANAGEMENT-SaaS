@@ -1,0 +1,15 @@
+# Normalise line endings in the repository; check out LF on Windows too, so that
+# checksums and CI results match across operating systems.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+
+# Lockfiles must never be line-ending normalised.
+package-lock.json -text

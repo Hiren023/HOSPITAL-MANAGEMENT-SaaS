@@ -1,0 +1,281 @@
+# Architecture
+
+**Infinigrow Hospital Cloud** · maintained by Infinigrow Softech · last updated during Phase 0.
+
+This document expands sections 3–8 of [`PROJECT_PROPOSAL.md`](./PROJECT_PROPOSAL.md) into the
+concrete decisions actually implemented. Everything described here is verified by the test
+suite unless explicitly marked as *planned*.
+
+---
+
+## 1. Repository layout
+
+An npm workspaces monorepo with three packages:
+
+| Package | Path | Purpose |
+| --- | --- | --- |
+| `@infinigrow/shared` | `packages/shared` | Types, Zod schemas, RBAC matrix, API envelope, error codes, limits |
+| `@infinigrow/api` | `apps/api` | Express 5 REST API |
+| `@infinigrow/web` | `apps/web` | React 19 single-page application |
+
+`shared` is consumed by both applications so that a permission, an error code or a validation
+rule is defined exactly once. It compiles to `dist/` and is imported as a real dependency;
+there is no path-alias trickery between workspaces.
+
+---
+
+## 2. Layering (enforced, not merely documented)
+
+```
+HTTP route / middleware
+        ↓
+     controller        ← knows req/res, nothing else
+        ↓
+      service          ← business logic; receives validated input + RequestContext
+        ↓
+    repository         ← THE ONLY PLACE raw Mongoose queries are allowed
+        ↓
+     Mongoose model
+```
+
+Two lint rules protect this boundary:
+
+| Rule | Location | Effect |
+| --- | --- | --- |
+| `no-restricted-imports` on `mongoose` | `eslint.config.js` | Only files under `apps/api/src/infrastructure/**` may import `mongoose` |
+| `no-restricted-imports` on `**/infrastructure/db/models/*` | `eslint.config.js` | Only repositories may import a Mongoose model |
+
+Services never read `hospitalId` from request input. They receive a `RequestContext` built by
+middleware, which is the single source of tenant identity.
+
+---
+
+## 3. Tenant isolation
+
+This is the highest-severity concern in the product and is designed in three enforcing layers.
+
+### 3.1 Tenant context is derived, never supplied
+
+> `hospitalId` is **never** read from a request body, query string or path parameter.
+
+`RequestContext` is constructed in middleware from the verified membership and exposed through
+`AsyncLocalStorage` (`apps/api/src/infrastructure/db/tenant-context.ts`):
+
+```ts
+export interface RequestContext {
+  requestId: string
+  userId: UserId
+  membershipId: MembershipId
+  role: Role
+  hospitalId: HospitalId   // ← from the verified membership, never from input
+  permissions: ReadonlySet<Permission>
+  ip: string
+  userAgent: string
+}
+```
+
+A client-supplied `hospitalId` is ignored and recorded. Switching tenant is only possible
+through an explicit endpoint that validates an **active membership** (Phase 1).
+
+### 3.2 Platform scope is an explicit, narrow opt-in
+
+Platform operations (tenant approval, plan management) run without a hospital scope. A
+`PlatformContext` has no `hospitalId` field at all, so `getTenantContext()` returns `null` and
+any attempt to touch tenant data fails loudly rather than silently succeeding.
+
+### 3.3 Storage-level enforcement (Phase 1)
+
+A Mongoose plugin registered on every tenant-scoped schema will:
+
+1. **inject** `{ hospitalId: ctx.hospitalId }` into every query filter, and
+2. **throw** when a tenant-scoped query executes with no tenant context bound.
+
+The plumbing — `AsyncLocalStorage`, `requireTenantContext()`, concurrent-context isolation —
+is implemented and tested in Phase 0. The plugin itself lands in Phase 1.
+
+### 3.4 HTTP semantics
+
+Accessing a resource that belongs to another tenant returns **404 `NOT_FOUND`**, not 403
+`FORBIDDEN`. The message is a fixed string (`Resource not found`), so the API never confirms
+that an identifier exists somewhere else. See [`SECURITY.md`](./SECURITY.md) R11.
+
+---
+
+## 4. Authorisation
+
+### 4.1 Roles
+
+`SUPER_ADMIN`, `HOSPITAL_ADMIN`, `DOCTOR`, `RECEPTIONIST`, `STAFF`, `PHARMACIST`,
+`ACCOUNTANT`, `PATIENT`.
+
+### 4.2 Permissions
+
+`resource:action` strings declared as a TypeScript union, mapped to roles by
+`ROLE_PERMISSIONS` in `packages/shared/src/types/role.ts`.
+
+**Least-privilege properties, each covered by a test:**
+
+- `SUPER_ADMIN` holds **only** `platform:*` permissions. A SaaS operator can approve and
+  suspend tenants but has **no default access to patient clinical data**.
+- `RECEPTIONIST` has no `consultation:read` or `prescription:read`.
+- `ACCOUNTANT` has no `consultation:read` or `prescription:read`.
+- `STAFF` defaults to attendance and notifications only.
+
+### 4.3 Per-hospital grants
+
+A hospital may grant a **subset** of a role's permissions to a membership.
+`resolvePermissions(role, grants)` only ever *narrows* the role's ceiling: unknown permission
+strings are ignored, and platform permissions can never be granted to a hospital role.
+
+### 4.4 Where authorisation is enforced
+
+The API is the authority. The web app imports the same matrix to decide what to *render*, so
+UI and server cannot disagree — but hiding a control is never treated as access control.
+
+Intra-tenant rules (care-team scope for doctors, field-level scoping for accountants) are
+enforced by **role-specific response schemas**, never by the frontend hiding fields.
+
+---
+
+## 5. API conventions
+
+- **Base path:** `/api/v1`. Probes live outside versioning at `/health` and `/health/ready`.
+- **Versioning:** breaking changes require `/api/v2`; deprecated routes announce a
+  `Deprecation` and `Sunset` header before removal.
+- **Content type:** `application/json` in and out.
+
+### 5.1 Response envelope
+
+```jsonc
+// success
+{ "success": true, "data": { }, "meta": { "requestId": "…" } }
+
+// error
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request validation failed",
+    "details": [ { "path": "email", "message": "Must be a valid email address" } ],
+    "requestId": "…"
+  }
+}
+```
+
+The web client unwraps this envelope, so application code never handles envelopes directly.
+
+### 5.2 Error codes
+
+`VALIDATION_ERROR` (422), `UNAUTHENTICATED` (401), `FORBIDDEN` (403), `NOT_FOUND` (404),
+`CONFLICT` (409), `TENANT_SCOPE_REQUIRED` (403), `RATE_LIMITED` (429), `ACCOUNT_LOCKED` (423),
+`MFA_REQUIRED` (401), `PAYLOAD_TOO_LARGE` (413), `UNSUPPORTED_MEDIA_TYPE` (415),
+`SERVICE_UNAVAILABLE` (503), `INTERNAL_ERROR` (500).
+
+Clients branch on `code`, never on `message`.
+
+### 5.3 Pagination
+
+- **Cursor** (default for clinical and audit lists): `?cursor=&limit=`, `limit` ≤ 100.
+- **Offset** (admin tables that genuinely need totals): `?page=&pageSize=`.
+
+### 5.4 Errors never leak internals
+
+`errorHandler` translates known error shapes (Zod, Mongoose `ValidationError`, `CastError`,
+duplicate key `11000`, body-parser) into the envelope. Anything unrecognised becomes a generic
+`INTERNAL_ERROR` with the message *"An unexpected error occurred"*. Stack traces and driver
+messages are logged server-side, keyed by `requestId`, and never returned.
+
+---
+
+## 6. Data model (design)
+
+| Collection | Purpose | Critical indexes |
+| --- | --- | --- |
+| `hospitals` | Tenant | `{ slug: 1 }` unique, `{ status: 1, createdAt: -1 }` |
+| `users` | Global identity | `{ email: 1 }` unique (lowercased), `{ phone: 1 }` sparse unique |
+| `memberships` | User ↔ Hospital ↔ Role | `{ hospitalId: 1, userId: 1 }` unique, `{ hospitalId: 1, role: 1, status: 1 }` |
+| `refresh_sessions` | Token rotation and revocation | `{ userId: 1, revokedAt: 1 }`, `{ familyId: 1 }` |
+| `password_resets` | Recovery | `{ tokenHash: 1 }` unique, TTL on `expiresAt` |
+| `departments` | Clinical org | `{ hospitalId: 1, code: 1 }` unique |
+| `doctor_profiles` | Doctor details | `{ hospitalId: 1, userId: 1 }` unique |
+| `staff_profiles` | Staff details | `{ hospitalId: 1, userId: 1 }` unique |
+| `patients` | Patient master | `{ hospitalId: 1, uhid: 1 }` unique, `{ hospitalId: 1, status: 1, createdAt: -1 }` |
+| `appointments` | Scheduling | `{ hospitalId: 1, doctorId: 1, startAt: 1 }`, partial-unique to prevent double-booking |
+| `consultations` | Clinical notes | `{ hospitalId: 1, patientId: 1, createdAt: -1 }` |
+| `prescriptions` | Medication orders | `{ hospitalId: 1, consultationId: 1 }` |
+| `attendance` | Staff attendance | `{ hospitalId: 1, userId: 1, date: 1 }` unique |
+| `invoices` | Billing | `{ hospitalId: 1, number: 1 }` unique |
+| `payments` | Receipts | `{ hospitalId: 1, invoiceId: 1, receivedAt: -1 }` |
+| `notifications` | In-app | `{ hospitalId: 1, userId: 1, readAt: 1, createdAt: -1 }` |
+| `audit_logs` | Append-only trail | `{ hospitalId: 1, createdAt: -1 }`, `{ actorUserId: 1, createdAt: -1 }` |
+
+Every tenant-scoped collection leads with `hospitalId`. Indexes are created by an idempotent
+migration runner in the background, never implicitly on boot.
+
+### 6.1 Double-booking prevention
+
+```js
+{ hospitalId: 1, doctorId: 1, startAt: 1 },
+{ unique: true, partialFilterExpression: { status: { $in: ['BOOKED', 'CHECKED_IN'] } } }
+```
+
+The database is the final authority; the API reports `409 CONFLICT`.
+
+---
+
+## 7. Frontend architecture
+
+| Concern | Choice |
+| --- | --- |
+| Build | Vite 8 |
+| UI | React 19 + Tailwind CSS 4 (CSS-first `@theme` tokens) |
+| Routing | React Router 7 data router |
+| Server state | TanStack Query 5 |
+| HTTP | Typed `ApiClient` unwrapping the shared envelope |
+| Styling | `cn()` (clsx + tailwind-merge), CVA variants |
+
+**Tenant-keyed caching.** Every query key begins with the active `hospitalId`, so switching
+tenants cannot surface cached data belonging to another hospital.
+
+**Retry policy.** Client errors (4xx) are never retried — they will fail identically and, on a
+rate-limited endpoint, retrying wastes quota.
+
+**Mandatory UI states.** Every data view implements loading, empty, error-with-retry and
+success. See `components/states/`.
+
+**Accessibility.** Native elements throughout, visible focus rings, skip link, landmarks,
+`aria-live` status regions, and `axe-core` assertions in tests.
+
+---
+
+## 8. Cross-cutting concerns
+
+| Concern | Implementation |
+| --- | --- |
+| Validation | Zod schemas shared between client and server; `.strict()` rejects unknown keys |
+| NoSQL injection | `sanitizeFilter`, `strictQuery`, `assertNoMongoOperators()` for free-form maps |
+| Logging | Pino, JSON, mandatory header and field redaction (asserted by tests) |
+| Correlation | `X-Request-Id` generated or sanitised-client-supplied, echoed on every response |
+| Errors | Single `errorHandler`, operational vs bug distinction, no stack leakage |
+| Rate limiting | `express-rate-limit`, per-route policies (auth much stricter than reads) |
+| Security headers | `helmet` with an API-appropriate CSP, HSTS in production only |
+| CORS | Explicit allowlist from environment; wildcard refused in production |
+| Graceful shutdown | SIGTERM/SIGINT stop the listener, close Mongo, then exit |
+| Configuration | Zod-validated environment that refuses unsafe production settings |
+
+---
+
+## 9. What is *not* implemented yet
+
+Being explicit so nothing is mistaken for a working feature:
+
+| Area | Status |
+| --- | --- |
+| Authentication, refresh tokens, MFA | Phase 1 |
+| Mongoose tenant plugin (query auto-injection) | Phase 1 |
+| Hospital/user/membership models | Phase 1 |
+| Audit log persistence | Phase 1 |
+| All clinical, billing, attendance modules | Phases 2–7 |
+| OpenAPI spec generation from Zod | Phase 1 (library choice to confirm) |
+| Dockerfiles, deployment pipeline | Phase 8 |
+| Backup and restore automation | Phase 8 |

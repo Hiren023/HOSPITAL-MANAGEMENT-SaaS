@@ -1,0 +1,135 @@
+name: CI
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Infinigrow Hospital Cloud — continuous integration
+#
+# Gate order is deliberate and fail-fast:
+#   path guard → install → lint → typecheck → test → build → security scan
+#
+# Nothing is deployed from this workflow. Deployment is a separate, manually
+# approved pipeline (docs/RUNBOOK.md).
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# A new push supersedes an in-flight run for the same branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  guard:
+    name: Workspace path guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      # Plain Node, no install step needed: this script runs before dependencies exist.
+      - run: node scripts/check-workspace-path.mjs --strict
+
+  verify:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies from the lockfile
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit and integration tests
+        run: npm test
+
+      - name: Build all workspaces
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            apps/api/coverage
+            apps/web/coverage
+          retention-days: 7
+          if-no-files-found: ignore
+
+  security:
+    name: Security scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies from the lockfile
+        run: npm ci
+
+      # Fails on known vulnerabilities at high or critical severity.
+      - name: Dependency vulnerability audit
+        run: npm audit --audit-level=high
+
+      # Blocks introduction of a package with a known license problem.
+      - name: Dependency review (licences and known advisories)
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+      # Detects committed secrets such as an Atlas connection string.
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+
+  codeql:
+    name: CodeQL (JavaScript / TypeScript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-and-quality
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript-typescript'

@@ -1,0 +1,48 @@
+{
+  "name": "infinigrow-hospital-cloud",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Infinigrow Hospital Cloud — multi-tenant Hospital Management SaaS. Ideas grow without limits.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "predev": "npm run build --workspace @infinigrow/shared",
+    "dev": "concurrently -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev --workspace @infinigrow/api",
+    "dev:web": "npm run dev --workspace @infinigrow/web",
+    "build": "npm run build --workspace @infinigrow/shared && npm run build --workspace @infinigrow/api && npm run build --workspace @infinigrow/web",
+    "build:shared": "npm run build --workspace @infinigrow/shared",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "check:workspace-path": "node scripts/check-workspace-path.mjs",
+    "clean": "npm run clean --workspaces --if-present",
+    "verify": "npm run check:workspace-path && npm run lint && npm run typecheck && npm run test",
+    "preinstall": "node scripts/check-workspace-path.mjs --warn"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.6.5",
+    "concurrently": "10.0.6",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "prettier": "3.9.9",
+    "rimraf": "6.1.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.1"
+  }
+}

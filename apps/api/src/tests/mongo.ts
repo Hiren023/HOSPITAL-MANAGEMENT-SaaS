@@ -1,37 +1,72 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
-
-import { disconnectFromDatabase, isDatabaseReady } from '../infrastructure/db/connection.js'
+import mongoose from 'mongoose'
 
 /**
  * Ephemeral MongoDB for integration tests.
  *
- * Uses a real `mongod` binary rather than a mock, so query semantics (indexes, unique
- * constraints, operator behaviour) are exercised faithfully.
+ * A real `mongod` is used rather than a mock, so index, unique-constraint and operator
+ * behaviour is exercised faithfully.
+ *
+ * SINGLETON, held on `globalThis`: Vitest runs test files sequentially in a reused
+ * worker, and module state is not reliably isolated between them. An earlier version
+ * kept the server in a module-level variable, so file A's teardown stopped the database
+ * file B was still using — surfacing as ECONNREFUSED in whichever file ran next.
+ *
+ * The server is therefore started at most once per process and deliberately NOT stopped
+ * between files; the OS reclaims it when the run ends.
  */
 
-let mongod: MongoMemoryServer | null = null
-
-export async function startTestDatabase(): Promise<string> {
-  if (!mongod) {
-    mongod = await MongoMemoryServer.create()
-  }
-  return mongod.getUri()
+interface GlobalMongoState {
+  server: MongoMemoryServer | null
+  starting: Promise<MongoMemoryServer> | null
+  failed: string | null
 }
 
+const globalRef = globalThis as typeof globalThis & { __igcMongo?: GlobalMongoState }
+
+function state(): GlobalMongoState {
+  globalRef.__igcMongo ??= { server: null, starting: null, failed: null }
+  return globalRef.__igcMongo
+}
+
+export async function startTestDatabase(): Promise<string> {
+  const store = state()
+
+  if (store.server) return store.server.getUri()
+
+  store.starting ??= MongoMemoryServer.create()
+    .then((server) => {
+      store.server = server
+      return server
+    })
+    .catch((error: unknown) => {
+      store.failed = error instanceof Error ? error.message : String(error)
+      store.starting = null
+      throw error
+    })
+
+  const server = await store.starting
+  return server.getUri()
+}
+
+/**
+ * Release the shared server.
+ *
+ * Only call from a suite that owns the whole process. The auth suites deliberately do
+ * NOT call this, because another file may still be using the same database.
+ */
 export async function stopTestDatabase(): Promise<void> {
-  await disconnectFromDatabase()
-  if (mongod) {
-    await mongod.stop()
-    mongod = null
-  }
+  const store = state()
+  if (!store.server) return
+  await store.server.stop()
+  store.server = null
+  store.starting = null
 }
 
 /** Remove every document while keeping the connection and indexes intact. */
 export async function clearDatabase(): Promise<void> {
-  if (!isDatabaseReady()) return
+  if (mongoose.connection.readyState !== 1) return
 
-  // Imported lazily so this helper can be used before a connection exists.
-  const mongoose = (await import('mongoose')).default
   const collections = await mongoose.connection.db?.collections()
   if (!collections) return
 
@@ -41,9 +76,9 @@ export async function clearDatabase(): Promise<void> {
 /**
  * Attempt to start the in-memory database.
  *
- * `mongodb-memory-server` downloads a `mongod` binary on first run. On a machine
- * without access to the download host that fails; tests depending on it are then
- * skipped and reported as skipped rather than silently passing.
+ * `mongodb-memory-server` downloads a `mongod` binary on first run. On a machine without
+ * access to the download host that fails; tests depending on it are then SKIPPED and
+ * reported as skipped rather than silently passing.
  */
 export async function tryStartTestDatabase(): Promise<{ uri: string | null; error: string | null }> {
   try {

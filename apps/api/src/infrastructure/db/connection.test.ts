@@ -51,6 +51,25 @@ describe.skipIf(!uri)('mongodb connection', () => {
     expect(mongoose.get('strictQuery')).toBe(true)
   })
 
+  it('documents that sanitizeFilter rejects an $in filter on an ObjectId path', async () => {
+    // Verified empirically against mongoose 9.11.1: with `sanitizeFilter` enabled, an
+    // `$in` filter on an ObjectId path throws CastError, because the `$`-prefixed
+    // VALUE is wrapped in `$eq` before casting.
+    //
+    // This must go through a MODEL — the raw collection bypasses Mongoose entirely,
+    // so `collection.find({_id: {$in: [...]}})` succeeds and proves nothing.
+    //
+    // This is the price of operator-injection defence. Code must avoid that filter
+    // shape (see registration.service.ts).
+    const { UserModel } = await import('../../modules/identity/models.js')
+
+    await expect(
+      (UserModel as unknown as { find: (f: unknown) => { exec: () => Promise<unknown> } }).find({
+        _id: { $in: [new mongoose.Types.ObjectId()] },
+      }).exec(),
+    ).rejects.toThrow()
+  })
+
   it('performs a real write and read round-trip', async () => {
     const collection = mongoose.connection.collection('connection_probe')
     await collection.insertOne({ probe: true, createdAt: new Date() })

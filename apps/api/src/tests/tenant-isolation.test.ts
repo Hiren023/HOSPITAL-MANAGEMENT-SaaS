@@ -11,7 +11,7 @@ import { hashToken, generateOpaqueToken } from '../modules/identity/token.util.j
 import { runWithContext, type RequestContext } from '../infrastructure/db/tenant-context.js'
 import { connectToDatabase, disconnectFromDatabase } from '../infrastructure/db/connection.js'
 import { tenantScopedSchema } from '../infrastructure/db/tenant-plugin.js'
-import { stopTestDatabase, tryStartTestDatabase } from './mongo.js'
+import { tryStartTestDatabase } from './mongo.js'
 
 /**
  * TENANT ISOLATION — the central proof for docs/SECURITY.md R1.
@@ -113,7 +113,6 @@ describe.skipIf(!db.uri)('tenant isolation', () => {
 
   afterAll(async () => {
     await disconnectFromDatabase()
-    await stopTestDatabase()
   })
 
   it('seeds two hospitals with a membership for A only', async () => {

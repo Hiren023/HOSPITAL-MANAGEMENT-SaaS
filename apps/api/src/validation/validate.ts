@@ -78,7 +78,15 @@ export function validate(schemas: ValidationSchemas): RequestHandler {
       guardAgainstOperators(req.params, 'params')
 
       if (schemas.body) {
-        const result = schemas.body.safeParse(req.body)
+        // Express 5 leaves `req.body` UNDEFINED for a request with no body and no
+        // Content-Type, which a browser client sends routinely (for example a logout
+        // that relies on the refresh cookie alone). Without this normalisation a strict
+        // object schema rejects it with "expected object, received undefined" — a
+        // spurious 422. An absent body is equivalent to an empty one; a route that
+        // requires fields still fails, with one clear message per missing field.
+        const rawBody = req.body ?? {}
+
+        const result = schemas.body.safeParse(rawBody)
         if (!result.success) {
           throw ApiError.validation(toFieldErrors(result.error.issues))
         }

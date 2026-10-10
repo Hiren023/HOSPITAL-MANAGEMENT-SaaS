@@ -81,6 +81,16 @@ const userSchema = new Schema(
 
     status: { type: String, enum: USER_STATUSES, default: 'ACTIVE', index: true },
 
+    /**
+     * Set once the emailed OTP is verified.
+     *
+     * Without this field defined, Mongoose's `strict: true` silently DROPS the value on
+     * write — the flag would appear to be set in code while remaining absent in the
+     * database, so verification could never be enforced.
+     */
+    emailVerified: { type: Boolean, default: false },
+    emailVerifiedAt: { type: Date },
+
     mfa: {
       enabled: { type: Boolean, default: false },
       /** TOTP secret, encrypted at rest. Never selected by default. */

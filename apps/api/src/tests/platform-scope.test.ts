@@ -4,7 +4,7 @@ import mongoose, { type Model } from 'mongoose'
 import { runWithContext, type RequestContext } from '../infrastructure/db/tenant-context.js'
 import { connectToDatabase, disconnectFromDatabase } from '../infrastructure/db/connection.js'
 import { tenantScopedSchema, withPlatformScope } from '../infrastructure/db/tenant-plugin.js'
-import { stopTestDatabase, tryStartTestDatabase } from './mongo.js'
+import { tryStartTestDatabase } from './mongo.js'
 
 /**
  * Platform-scope escape hatch.
@@ -64,7 +64,6 @@ describe.skipIf(!db.uri)('platform scope', () => {
 
   afterAll(async () => {
     await disconnectFromDatabase()
-    await stopTestDatabase()
   })
 
   it('refuses to nest (nesting signals a control-flow misunderstanding)', async () => {

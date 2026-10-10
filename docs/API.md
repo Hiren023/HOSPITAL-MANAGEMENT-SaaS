@@ -85,11 +85,44 @@ localised; codes are stable.
 > another hospital. The message is the fixed string `Resource not found`, so the API never
 > confirms that an identifier exists elsewhere.
 
-### Security headers
+### Authentication endpoints
 
-Every response includes `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`,
-`X-Frame-Options: SAMEORIGIN`, and a restrictive `Content-Security-Policy`. HSTS is added
-in production only. `X-Powered-By` is never sent.
+Full design and trade-offs: [`AUTH.md`](./AUTH.md).
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/auth/login` | — | Sign in; sets the refresh cookie |
+| `POST` | `/api/v1/auth/refresh` | refresh cookie | Rotate the token pair |
+| `POST` | `/api/v1/auth/logout` | refresh cookie | Revoke the token family (idempotent) |
+| `GET` | `/api/v1/auth/me` | Bearer | Current identity, resolved from the membership |
+| `POST` | `/api/v1/auth/forgot-password` | — | Send a reset OTP; response is always identical |
+| `POST` | `/api/v1/auth/reset-password` | — | Complete a reset with the OTP |
+
+### Platform endpoints (SUPER_ADMIN only)
+
+All under `/api/v1/platform/*` and gated by `requirePlatformPermission`.
+
+| Method | Path | Required permission | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/platform/hospitals` | — (rate limited) | Register a hospital; created `PENDING` |
+| `GET` | `/api/v1/platform/hospitals` | `platform:hospital:read` | List all tenants |
+| `POST` | `/api/v1/platform/hospitals/:hospitalId/approve` | `platform:hospital:approve` | Activate a tenant |
+| `POST` | `/api/v1/platform/hospitals/:hospitalId/suspend` | `platform:hospital:suspend` | Suspend a tenant |
+
+Platform routes live in one router under one prefix so a `SUPER_ADMIN` capability cannot
+be added at an unexpected path, and a hospital role can never reach one.
+
+### Tenant scoping
+
+> `hospitalId` is **never** read from a request. It is resolved from the caller's active
+> membership on every request.
+
+- A `hospitalId` in a query, body or path is ignored.
+- A `hospitalId` field in a body is **rejected outright** by the `.strict()` schema.
+- Accessing another tenant's record returns `404`, never `403`.
+- Every platform operation is recorded as `access.platform_scope_used` in the audit log.
+
+### Security headers
 
 ### CORS
 

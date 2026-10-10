@@ -4,7 +4,7 @@ import mongoose, { type Model } from 'mongoose'
 import { runWithContext, type RequestContext } from '../infrastructure/db/tenant-context.js'
 import { connectToDatabase, disconnectFromDatabase } from '../infrastructure/db/connection.js'
 import { tenantScopedSchema } from '../infrastructure/db/tenant-plugin.js'
-import { stopTestDatabase, tryStartTestDatabase } from './mongo.js'
+import { tryStartTestDatabase } from './mongo.js'
 
 /**
  * META-TEST: proves the isolation suite is capable of failing.
@@ -77,7 +77,6 @@ describe.skipIf(!db.uri)('isolation meta-test (the suite can fail)', () => {
 
   afterAll(async () => {
     await disconnectFromDatabase()
-    await stopTestDatabase()
   })
 
   it('an UNPROTECTED model leaks both hospitals', async () => {

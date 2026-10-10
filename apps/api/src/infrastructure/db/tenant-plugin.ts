@@ -63,6 +63,11 @@ export function isPlatformScopeActive(): boolean {
  * The grant is bound to the current async execution, so concurrent requests are
  * unaffected. Nested use is rejected: if platform code already has full visibility,
  * re-entering would suggest a control-flow misunderstanding.
+ *
+ * The scope only permits the CALL to proceed — it grants no authority on its own.
+ * Every caller must still sit behind `requirePlatformPermission`, and must record a
+ * `PLATFORM_SCOPE_USED` audit entry, because reading across hospitals is exactly the
+ * capability that must always leave a trace (docs/SECURITY.md R1).
  */
 export function withPlatformScope<T>(callback: () => T): T {
   if (isPlatformScopeActive()) {

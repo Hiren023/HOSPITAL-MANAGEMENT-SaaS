@@ -1,4 +1,5 @@
 import compression from 'compression'
+import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { type Express, type Request, type Response } from 'express'
 import { rateLimit } from 'express-rate-limit'
@@ -14,6 +15,8 @@ import { errorHandler } from './middleware/error-handler.js'
 import { notFoundHandler } from './middleware/not-found.js'
 import { requestId } from './middleware/request-id.js'
 import { apiRouter } from './modules/api/api.routes.js'
+import { authRouter } from './modules/auth/auth.routes.js'
+import { registrationRouter } from './modules/auth/registration.routes.js'
 import { healthRouter } from './modules/health/health.routes.js'
 
 /**
@@ -98,6 +101,9 @@ export function createApp(): Express {
   )
 
   app.use(compression())
+
+  // Reads the HttpOnly refresh-token cookie on the auth routes.
+  app.use(cookieParser())
   app.use(express.json({ limit: env.REQUEST_BODY_LIMIT }))
   app.use(express.urlencoded({ extended: false, limit: env.REQUEST_BODY_LIMIT }))
 
@@ -132,6 +138,10 @@ export function createApp(): Express {
   })
 
   app.use(API_BASE_PATH, apiRouter)
+
+  // Authentication and platform administration.
+  app.use(`${API_BASE_PATH}/auth`, authRouter)
+  app.use(`${API_BASE_PATH}/platform`, registrationRouter)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

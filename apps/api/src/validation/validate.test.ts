@@ -258,7 +258,30 @@ describe('validate — envelope', () => {
     expect(response.body.error.requestId).toBe('req-test-123')
   })
 
-  it('never leaks a stack trace', async () => {
+  it('treats a bodyless request as an empty object', async () => {
+    // Express 5 leaves req.body undefined when there is no body and no Content-Type.
+    // A browser client does this routinely (a logout relying only on the refresh
+    // cookie), and a strict schema would otherwise reject it with a spurious 422.
+    const empty = z.object({}).strict()
+
+    const response = await request(appWith({ body: empty })).post('/test')
+
+    expect(response.status).toBe(200)
+    expect(response.body.data.body).toEqual({})
+  })
+
+  it('still reports every missing required field for a bodyless request', async () => {
+    const required = z.object({ email: z.string(), password: z.string() }).strict()
+
+    const response = await request(appWith({ body: required })).post('/test')
+
+    expect(response.status).toBe(422)
+    const paths = (response.body.error.details as { path: string }[]).map((d) => d.path)
+    expect(paths).toContain('email')
+    expect(paths).toContain('password')
+  })
+
+it('never leaks a stack trace', async () => {
     const response = await request(appWith({ body: strictSchema }))
       .post('/test')
       .send({ name: 'A', age: 1 })

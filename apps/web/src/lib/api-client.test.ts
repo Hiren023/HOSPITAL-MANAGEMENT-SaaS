@@ -24,9 +24,11 @@ const clientWith = (fetchImpl: typeof fetch, token: string | null = null): ApiCl
 
 describe('successful responses', () => {
   it('unwraps the success envelope and returns only the data', async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(
-      jsonResponse({ success: true, data: { id: '1', name: 'Aarav Memorial Hospital' } }),
-    )
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse({ success: true, data: { id: '1', name: 'Aarav Memorial Hospital' } }),
+      )
 
     const result = await clientWith(fetchImpl as unknown as typeof fetch).get('/hospitals')
 
@@ -36,7 +38,9 @@ describe('successful responses', () => {
   it('handles a 204 No Content response', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
 
-    await expect(clientWith(fetchImpl as unknown as typeof fetch).delete('/x')).resolves.toBeUndefined()
+    await expect(
+      clientWith(fetchImpl as unknown as typeof fetch).delete('/x'),
+    ).resolves.toBeUndefined()
   })
 
   it('serialises a JSON body and sets the content type', async () => {
@@ -100,9 +104,10 @@ describe('URL construction', () => {
   it('supports a relative base URL and keeps the path relative', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ success: true, data: {} }))
 
-    await createApiClient({ baseUrl: '/api/v1', fetchImpl: fetchImpl as unknown as typeof fetch }).get(
-      '/hospitals',
-    )
+    await createApiClient({
+      baseUrl: '/api/v1',
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    }).get('/hospitals')
 
     const [url] = fetchImpl.mock.calls[0] as [string]
     expect(url).toBe('/api/v1/hospitals')
@@ -123,9 +128,10 @@ describe('URL construction', () => {
   it('tolerates a missing leading slash on the base and on the path', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ success: true, data: {} }))
 
-    await createApiClient({ baseUrl: 'api/v1', fetchImpl: fetchImpl as unknown as typeof fetch }).get(
-      'hospitals',
-    )
+    await createApiClient({
+      baseUrl: 'api/v1',
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    }).get('hospitals')
 
     const [url] = fetchImpl.mock.calls[0] as [string]
     expect(url).toBe('/api/v1/hospitals')
@@ -134,9 +140,10 @@ describe('URL construction', () => {
   it('tolerates a trailing slash on the base URL', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ success: true, data: {} }))
 
-    await createApiClient({ baseUrl: '/api/v1/', fetchImpl: fetchImpl as unknown as typeof fetch }).get(
-      '/hospitals',
-    )
+    await createApiClient({
+      baseUrl: '/api/v1/',
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    }).get('/hospitals')
 
     const [url] = fetchImpl.mock.calls[0] as [string]
     expect(url).toBe('/api/v1/hospitals')
@@ -209,7 +216,11 @@ describe('error responses', () => {
       jsonResponse(
         {
           success: false,
-          error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred', requestId: 'req-789' },
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'An unexpected error occurred',
+            requestId: 'req-789',
+          },
         },
         { status: 500 },
       ),

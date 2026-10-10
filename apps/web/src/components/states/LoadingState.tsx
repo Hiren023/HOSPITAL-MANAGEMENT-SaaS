@@ -27,10 +27,10 @@ export function LoadingState({ rows = 3, label = 'Loading…', className }: Load
       <div aria-hidden="true" className="space-y-3">
         {Array.from({ length: rows }, (_, index) => (
           <div key={index} className="flex items-center gap-3">
-            <div className="size-9 shrink-0 animate-pulse rounded-full bg-slate-200" />
+            <div className="size-9 shrink-0 animate-pulse rounded-full bg-surface-muted" />
             <div className="flex-1 space-y-2">
-              <div className="h-3 w-2/5 animate-pulse rounded bg-slate-200" />
-              <div className="h-3 w-3/5 animate-pulse rounded bg-slate-100" />
+              <div className="h-3 w-2/5 animate-pulse rounded bg-surface-muted" />
+              <div className="h-3 w-3/5 animate-pulse rounded bg-[var(--color-canvas)]" />
             </div>
           </div>
         ))}

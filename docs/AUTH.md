@@ -68,6 +68,10 @@ HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=1209600
 | **Opaque refresh tokens** | Requires server-side state | Only way to make revocation and reuse detection actually work. |
 | **No refresh-token reuse grace window** | A network retry logs the user out | A grace window re-opens the replay window an attacker needs. Prefer the annoyance to the compromise. |
 
+The client half of this design — how the browser holds, refreshes and discards these
+credentials, and why the access token is never written to `localStorage` — is documented
+in `FRONTEND.md` §2.
+
 ---
 
 ## 3. Alternatives considered and rejected

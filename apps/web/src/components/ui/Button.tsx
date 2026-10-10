@@ -23,14 +23,20 @@ export const buttonVariants = cva(
       variant: {
         primary: 'bg-brand-700 text-white hover:bg-brand-800 active:bg-brand-900',
         secondary:
-          'bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50 active:bg-slate-100',
-        ghost: 'text-slate-700 hover:bg-slate-100 active:bg-slate-200',
-        danger: 'bg-status-danger text-white hover:brightness-95 active:brightness-90',
+          'bg-white text-navy-800 ring-1 ring-line-strong hover:bg-surface-muted active:bg-[var(--color-canvas)]',
+        ghost: 'text-ink-muted hover:bg-surface-muted hover:text-ink',
+        danger: 'bg-danger text-white hover:brightness-95 active:brightness-90',
+        outline:
+          'bg-transparent text-brand-700 ring-1 ring-brand-300 hover:bg-brand-50 active:bg-brand-100',
+        link: 'text-brand-700 underline underline-offset-4 hover:text-brand-800',
       },
       size: {
         sm: 'h-8 px-3 text-sm',
         md: 'h-10 px-4 text-sm',
         lg: 'h-12 px-6 text-base',
+      },
+      full: {
+        true: 'w-full',
       },
       block: {
         true: 'w-full',
@@ -44,8 +50,7 @@ export const buttonVariants = cva(
 )
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   /** Shows a pending state and prevents repeat submission. */
   busy?: boolean
   /** Accessible announcement of the pending state. */
@@ -58,7 +63,7 @@ export const Button = forwardRef(function Button(
   {
     variant,
     size,
-    block,
+    full,
     busy = false,
     busyLabel = 'Working…',
     leadingIcon,
@@ -80,7 +85,7 @@ export const Button = forwardRef(function Button(
       disabled={isDisabled}
       aria-busy={busy || undefined}
       aria-disabled={isDisabled || undefined}
-      className={cn(buttonVariants({ variant, size, block }), className)}
+      className={cn(buttonVariants({ variant, size, full }), className)}
       {...props}
     >
       {busy ? (

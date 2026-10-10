@@ -22,16 +22,16 @@ export function EmptyState({ title, description, icon, action, className }: Empt
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-card border border-border-subtle',
-        'bg-white px-6 py-14 text-center',
+        'flex flex-col items-center justify-center gap-3 rounded-card border border-line',
+        'bg-surface px-6 py-14 text-center',
         className,
       )}
     >
-      {icon ? <div className="text-slate-400">{icon}</div> : null}
+      {icon ? <div className="text-ink-subtle">{icon}</div> : null}
 
-      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <h3 className="text-base font-semibold text-navy-900">{title}</h3>
 
-      {description ? <p className="max-w-prose text-sm text-slate-600">{description}</p> : null}
+      {description ? <p className="max-w-prose text-sm text-ink-muted">{description}</p> : null}
 
       {action ? <div className="mt-2">{action}</div> : null}
     </div>

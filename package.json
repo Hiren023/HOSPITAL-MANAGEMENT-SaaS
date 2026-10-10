@@ -29,6 +29,9 @@
     "test:coverage": "npm run test:coverage --workspaces --if-present",
     "check:workspace-path": "node scripts/check-workspace-path.mjs",
     "dev:db": "node scripts/dev-mongo.mjs",
+    "demo:flow": "node scripts/demo-flow.mjs",
+    "verify:proxy-auth": "node scripts/verify-proxy-auth.mjs",
+    "keys:jwt": "node scripts/generate-jwt-keys.mjs",
     "clean": "npm run clean --workspaces --if-present",
     "verify": "npm run check:workspace-path && npm run lint && npm run typecheck && npm run test",
     "preinstall": "node scripts/check-workspace-path.mjs --warn"

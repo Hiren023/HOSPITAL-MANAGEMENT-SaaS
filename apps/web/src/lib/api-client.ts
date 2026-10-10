@@ -1,5 +1,7 @@
 import type { ApiErrorCode, ApiFieldError, ApiResponse } from '@infinigrow/shared'
 
+import { tokenStore } from '../auth/token-store.js'
+
 /**
  * Typed API client.
  *
@@ -110,14 +112,27 @@ function buildUrl(baseUrl: string, path: string, query: RequestOptions['query'])
 export class ApiClient {
   readonly baseUrl: string
   private readonly getAccessToken: TokenProvider
-  private readonly fetchImpl: typeof fetch
+  /** Injected implementation, when one was supplied. */
+  private readonly fetchImpl: typeof fetch | null
   private readonly defaultHeaders: Record<string, string>
 
   constructor(options: ApiClientOptions) {
     this.baseUrl = options.baseUrl
     this.getAccessToken = options.getAccessToken ?? (() => null)
-    this.fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis)
+    this.fetchImpl = options.fetchImpl ?? null
     this.defaultHeaders = options.defaultHeaders ?? {}
+  }
+
+  /**
+   * Resolved per request rather than captured at construction.
+   *
+   * Binding `globalThis.fetch` in the constructor captures whatever was installed at
+   * module-load time, so any later substitution — an interceptor, a test double, a
+   * service-worker shim — is silently ignored. Looking it up per call keeps the client
+   * honest about what it is actually using.
+   */
+  private get fetch(): typeof fetch {
+    return this.fetchImpl ?? globalThis.fetch.bind(globalThis)
   }
 
   async request<TData>(path: string, options: RequestOptions = {}): Promise<TData> {
@@ -138,17 +153,14 @@ export class ApiClient {
       body = JSON.stringify(options.body)
     }
 
-    const response = await this.fetchImpl(
-      buildUrl(this.baseUrl, path, options.query),
-      {
-        method: options.method ?? 'GET',
-        headers,
-        body,
-        signal: options.signal,
-        // Send cookies so the HttpOnly refresh-token cookie travels with the request.
-        credentials: 'include',
-      },
-    )
+    const response = await this.fetch(buildUrl(this.baseUrl, path, options.query), {
+      method: options.method ?? 'GET',
+      headers,
+      body,
+      signal: options.signal,
+      // Send cookies so the HttpOnly refresh-token cookie travels with the request.
+      credentials: 'include',
+    })
 
     // 204 has no body to parse.
     if (response.status === 204) {
@@ -189,7 +201,11 @@ export class ApiClient {
     return this.request<TData>(path, { ...options, method: 'POST', body })
   }
 
-  patch<TData>(path: string, body?: unknown, options: Omit<RequestOptions, 'method' | 'body'> = {}) {
+  patch<TData>(
+    path: string,
+    body?: unknown,
+    options: Omit<RequestOptions, 'method' | 'body'> = {},
+  ) {
     return this.request<TData>(path, { ...options, method: 'PATCH', body })
   }
 
@@ -202,8 +218,14 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
   return new ApiClient(options)
 }
 
-/** Default client. The Vite dev server proxies `/api` to the API (see vite.config.ts). */
+/**
+ * Default client. The Vite dev server proxies `/api` to the API (see vite.config.ts).
+ *
+ * The token provider reads the in-memory store, so the token is never written to
+ * `localStorage` or `sessionStorage` where any script on the page could read it
+ * (docs/SECURITY.md R6).
+ */
 export const apiClient = createApiClient({
   baseUrl: import.meta.env['VITE_API_BASE_URL'] ?? '/api/v1',
-  getAccessToken: () => null, // replaced by the auth store in Phase 1
+  getAccessToken: () => tokenStore.get(),
 })

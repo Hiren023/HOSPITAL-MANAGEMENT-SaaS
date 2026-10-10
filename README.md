@@ -73,6 +73,37 @@ npm run dev:web
 The web dev server proxies `/api` to <http://localhost:4000>, so no CORS setup is
 required for local development.
 
+### First run — no accounts exist yet
+
+A fresh database has no users at all, including no platform administrator. Public
+registration creates hospitals, but a `SUPER_ADMIN` can only be created offline, by an
+operator, because no public endpoint is permitted to mint a platform role.
+
+```powershell
+# 1. Generate an EdDSA key pair for JWT signing, then paste the output into .env
+node scripts/generate-jwt-keys.mjs
+
+# 2. Create the first platform administrator (development only)
+npx tsx src/scripts/bootstrap-super-admin.ts `
+  --email operator@example.test `
+  --name "Platform Operator" `
+  --password "a-long-passphrase-of-your-choosing" `
+  --i-am-secure
+```
+
+The command refuses to run under `NODE_ENV=production`, refuses without `--i-am-secure`,
+requires a password of at least 12 characters, and never overwrites an existing account.
+
+### Verifying the stack is working
+
+```powershell
+node scripts/demo-flow.mjs            # registration → approval → sign-in, against a live API
+node scripts/verify-proxy-auth.mjs    # the browser's own request path, through the dev proxy
+```
+
+Both talk to a running API. `demo-flow.mjs` is the quickest way to confirm tenant
+approval works; `verify-proxy-auth.mjs` confirms the same-origin path the web client uses.
+
 ---
 
 ## Environment variables
@@ -116,6 +147,8 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | [`docs/SECURITY.md`](docs/SECURITY.md) | 21-item risk register with mitigations and verification |
 | [`docs/API.md`](docs/API.md) | Conventions, error codes, current endpoints |
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | Operations, deployment, incident procedures |
+| [`docs/AUTH.md`](docs/AUTH.md) | Session design, trade-offs, rejected alternatives |
+| [`docs/FRONTEND.md`](docs/FRONTEND.md) | Web client architecture, design system, accessibility decisions |
 | [`docs/COMPLIANCE-NOTES.md`](docs/COMPLIANCE-NOTES.md) | DPDP-oriented design notes — **not legal advice** |
 
 ---
@@ -126,16 +159,17 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | --- | --- | --- |
 | 0 | Foundation: monorepo, API bootstrap, RBAC matrix, tenant context, CI | ✅ Complete |
 | 0b | Validation layer, cursor pagination, HTTP utilities | ✅ Complete |
-| 1a | Tenant plugin, identity models, Argon2id, access tokens, isolation matrix | ✅ Complete |
-| 1b | Auth routes, MFA enforcement, audit log persistence | ⏳ Next |
-| 2 | Hospital onboarding: departments, doctors, staff, permissions | Planned |
-| 3 | Patients & appointments | Planned |
-| 4 | Consultations, prescriptions, PDFs | Planned |
-| 5 | Staff attendance | Planned |
-| 6 | Billing & payments | Planned |
-| 7 | Reports, notifications, audit UI | Planned |
-| 8 | Hardening, deployment, backups, monitoring | Planned |
-| 9+ | Pharmacy, patient portal, ABDM/ABHA | Planned |
+| 1 | Tenant plugin, identity models, Argon2id, access tokens, isolation matrix | ✅ Complete |
+| 2 | Authentication, registration, platform approval, audit trail, rate limiting | ✅ Complete |
+| 3 | UI/UX foundation, design system, public site, role-aware dashboards | ✅ Complete |
+| 4 | Hospital onboarding: departments, doctors, staff, permissions | ⏳ Next |
+| 5 | Patients & appointments | Planned |
+| 6 | Consultations, prescriptions, PDFs | Planned |
+| 7 | Staff attendance | Planned |
+| 8 | Billing & payments | Planned |
+| 9 | Reports, notifications, audit UI | Planned |
+| 10 | Hardening, deployment, backups, monitoring | Planned |
+| 11+ | Pharmacy, patient portal, ABDM/ABHA | Planned |
 
 ---
 

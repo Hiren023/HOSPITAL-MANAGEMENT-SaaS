@@ -38,7 +38,9 @@ describe('LoadingState', () => {
 
 describe('EmptyState', () => {
   it('shows a title and description', () => {
-    render(<EmptyState title="No patients yet" description="Register your first patient to begin." />)
+    render(
+      <EmptyState title="No patients yet" description="Register your first patient to begin." />,
+    )
 
     expect(screen.getByRole('heading', { name: 'No patients yet' })).toBeInTheDocument()
     expect(screen.getByText('Register your first patient to begin.')).toBeInTheDocument()
@@ -80,7 +82,9 @@ describe('ErrorState', () => {
   })
 
   it('uses a custom title and message', () => {
-    render(<ErrorState title="Could not load patients" message="The hospital server did not respond." />)
+    render(
+      <ErrorState title="Could not load patients" message="The hospital server did not respond." />,
+    )
 
     expect(screen.getByRole('heading', { name: 'Could not load patients' })).toBeInTheDocument()
     expect(screen.getByText('The hospital server did not respond.')).toBeInTheDocument()

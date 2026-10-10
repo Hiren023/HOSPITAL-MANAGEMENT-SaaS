@@ -33,15 +33,15 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-card border border-status-danger/30',
-        'bg-status-danger/5 px-6 py-12 text-center',
+        'flex flex-col items-center justify-center gap-3 rounded-card border border-[oklch(0.88_0.05_25)]',
+        'bg-[var(--color-danger-bg)] px-6 py-12 text-center',
         className,
       )}
     >
-      <AlertTriangle aria-hidden="true" className="size-7 text-status-danger" />
+      <AlertTriangle aria-hidden="true" className="size-7 text-danger" />
 
-      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-      <p className="max-w-prose text-sm text-slate-700">{message}</p>
+      <h3 className="text-base font-semibold text-navy-900">{title}</h3>
+      <p className="max-w-prose text-sm text-ink-muted">{message}</p>
 
       {children}
 

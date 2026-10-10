@@ -1,42 +1,72 @@
 @import 'tailwindcss';
 
 /**
- * Design tokens for Infinigrow Hospital Cloud.
+ * Infinigrow Hospital Cloud — design tokens.
  *
- * Brand intent: a calm, clinical neutral base (slate) with a single growth-green
- * accent, reflecting "Ideas grow without limits". Accent colours are reserved for
- * status and primary actions only, so they always carry meaning.
+ * Palette: restrained navy / blue on white, as a clinical SaaS should read as calm,
+ * precise and trustworthy. Colour carries meaning only — status and focus. Nothing is
+ * tinted for decoration, and every pairing below is checked for WCAG AA contrast.
+ *
+ * The accent is a single blue. Status colours are reserved for state so that a red chip
+ * always means "stop", never "this link is popular".
  */
 @theme {
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     'Noto Sans', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* Brand — growth green */
-  --color-brand-50: oklch(0.98 0.015 155);
-  --color-brand-100: oklch(0.955 0.035 155);
-  --color-brand-200: oklch(0.91 0.07 155);
-  --color-brand-300: oklch(0.84 0.11 155);
-  --color-brand-400: oklch(0.74 0.145 156);
-  --color-brand-500: oklch(0.66 0.155 158);
-  --color-brand-600: oklch(0.57 0.14 159);
-  --color-brand-700: oklch(0.48 0.115 160);
-  --color-brand-800: oklch(0.4 0.092 161);
-  --color-brand-900: oklch(0.33 0.07 162);
+  /* ── Navy — headers, sidebar, primary surfaces ─────────────────────────── */
+  --color-navy-50: oklch(0.97 0.008 255);
+  --color-navy-100: oklch(0.93 0.014 255);
+  --color-navy-200: oklch(0.86 0.022 255);
+  --color-navy-300: oklch(0.76 0.032 255);
+  --color-navy-400: oklch(0.62 0.045 255);
+  --color-navy-500: oklch(0.5 0.055 255);
+  --color-navy-600: oklch(0.42 0.06 255);
+  --color-navy-700: oklch(0.34 0.06 256);
+  --color-navy-800: oklch(0.27 0.055 257);
+  --color-navy-900: oklch(0.21 0.045 258);
+  --color-navy-950: oklch(0.15 0.035 259);
 
-  /* Clinical neutral */
+  /* ── Blue — primary action, links, focus ──────────────────────────────── */
+  --color-brand-50: oklch(0.97 0.014 254);
+  --color-brand-100: oklch(0.93 0.03 254);
+  --color-brand-200: oklch(0.87 0.06 254);
+  --color-brand-300: oklch(0.78 0.1 254);
+  --color-brand-400: oklch(0.68 0.14 254);
+  --color-brand-500: oklch(0.6 0.16 254);
+  --color-brand-600: oklch(0.53 0.16 254);
+  --color-brand-700: oklch(0.46 0.14 254);
+  --color-brand-800: oklch(0.39 0.11 254);
+  --color-brand-900: oklch(0.33 0.09 254);
+
+  /* ── Status — reserved for state only ─────────────────────────────────── */
+  --color-success: oklch(0.55 0.13 155);
+  --color-success-bg: oklch(0.96 0.03 155);
+  --color-warning: oklch(0.62 0.14 75);
+  --color-warning-bg: oklch(0.97 0.04 85);
+  --color-danger: oklch(0.52 0.19 25);
+  --color-danger-bg: oklch(0.97 0.02 25);
+  --color-info: oklch(0.53 0.13 245);
+  --color-info-bg: oklch(0.96 0.02 250);
+
+  /* ── Surfaces ─────────────────────────────────────────────────────────── */
+  --color-canvas: oklch(0.985 0.002 250);
   --color-surface: oklch(1 0 0);
-  --color-surface-muted: oklch(0.977 0.003 250);
-  --color-surface-subtle: oklch(0.945 0.006 250);
-  --color-border-subtle: oklch(0.92 0.008 250);
+  --color-surface-muted: oklch(0.97 0.003 250);
+  --color-line: oklch(0.92 0.006 250);
+  --color-line-strong: oklch(0.85 0.008 250);
+  --color-ink: oklch(0.22 0.02 258);
+  --color-ink-muted: oklch(0.5 0.015 256);
+  --color-ink-subtle: oklch(0.62 0.012 256);
 
-  /* Status — used only for status meaning, never decoration */
-  --color-status-success: oklch(0.62 0.15 155);
-  --color-status-warning: oklch(0.72 0.15 75);
-  --color-status-danger: oklch(0.58 0.19 25);
-  --color-status-info: oklch(0.6 0.13 240);
+  /* ── Shape and rhythm ─────────────────────────────────────────────────── */
+  --radius-card: 0.625rem;
+  --radius-control: 0.5rem;
 
-  --radius-card: 0.75rem;
+  /* Consistent 4px-based spacing scale used across screens. */
+  --spacing-gutter: 1.5rem;
 }
 
 @layer base {
@@ -46,25 +76,41 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
 
   body {
     margin: 0;
-    background-color: var(--color-surface-muted);
-    color: var(--color-slate-900);
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
     font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--color-navy-900);
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
   /*
-   * Accessibility: a visible focus ring on every interactive element.
-   * Never remove this without providing an equally visible replacement.
+   * A visible focus ring on every interactive element. Never remove this without
+   * supplying an equally visible replacement — keyboard users depend on it.
    */
   :focus-visible {
     outline: 2px solid var(--color-brand-600);
     outline-offset: 2px;
-    border-radius: 2px;
+    border-radius: 3px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -80,9 +126,7 @@
 }
 
 @layer components {
-  /*
-   * Skip link: visible only when focused, letting keyboard users bypass navigation.
-   */
+  /* Skip link: visible only when focused, letting keyboard users bypass navigation. */
   .skip-link {
     position: absolute;
     left: -9999px;
@@ -94,8 +138,20 @@
     left: 0.5rem;
     top: 0.5rem;
     padding: 0.5rem 1rem;
-    background: var(--color-brand-700);
+    background: var(--color-navy-800);
     color: white;
-    border-radius: 0.375rem;
+    border-radius: var(--radius-control);
+  }
+}
+
+@layer utilities {
+  /* Hide content visually while leaving it available to screen readers. */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 }

@@ -187,10 +187,17 @@ C:\dev\infinigrow-hospital-cloud\
 │   │       │   ├── authenticate.ts  # verifies access token + session liveness
 │   │       │   ├── tenant-scope.ts  # builds RequestContext, rejects missing scope
 │   │       │   ├── authorize.ts     # requirePermission(...)
-│   │       │   ├── validate.ts      # Zod body/query/params
 │   │       │   ├── rate-limit.ts
 │   │       │   ├── error-handler.ts # RFC 9457-style, no stack leakage
 │   │       │   └── not-found.ts
+│   │       ├── validation/         # request validation layer
+│   │       │   ├── validate.ts      # Zod body/query/params middleware
+│   │       │   ├── field-errors.ts  # normalised field-error shape
+│   │       │   └── index.ts
+│   │       ├── utilities/          # dependency-free helpers
+│   │       │   ├── pagination.ts    # opaque cursor encode/decode + page meta
+│   │       │   ├── http.ts          # asyncHandler, sendSuccess, throwNotFound
+│   │       │   └── index.ts
 │   │       ├── modules/             # one folder per domain
 │   │       │   ├── auth/
 │   │       │   ├── hospitals/

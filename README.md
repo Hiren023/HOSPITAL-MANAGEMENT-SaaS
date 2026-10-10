@@ -50,6 +50,8 @@ required locally.
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Run API and web together |
+| `npm run dev:api` | Backend only → <http://localhost:4000> |
+| `npm run dev:web` | Frontend only → <http://localhost:5173> |
 | `npm run verify` | Path guard → lint → typecheck → tests |
 | `npm test` | All tests |
 | `npm run test:coverage` | Tests with enforced coverage thresholds |
@@ -57,6 +59,51 @@ required locally.
 | `npm run lint` / `lint:fix` | ESLint |
 | `npm run typecheck` | TypeScript, all workspaces |
 | `npm run format` | Prettier |
+
+### Run backend and frontend separately
+
+```powershell
+# Terminal 1 — backend
+npm run dev:api
+
+# Terminal 2 — frontend
+npm run dev:web
+```
+
+The web dev server proxies `/api` to <http://localhost:4000>, so no CORS setup is
+required for local development.
+
+---
+
+## Environment variables
+
+Copy `.env.example` to `.env` and set values. The API validates configuration at startup
+and **refuses to boot** on invalid input, listing every problem at once.
+
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `NODE_ENV` | — | `development` | `development` \| `test` \| `production` |
+| `PORT` | — | `4000` | API port |
+| `HOST` | — | `0.0.0.0` | Bind address |
+| `LOG_LEVEL` | — | `info` | `fatal`…`silent`. Production rejects `debug`/`trace` |
+| `LOG_PRETTY` | — | `false` | Pretty console logs for local use |
+| `CORS_ORIGINS` | Prod | `http://localhost:5173` | Comma-separated allowlist. Production rejects `*` and `localhost` |
+| `REQUEST_BODY_LIMIT` | — | `1mb` | JSON body size cap |
+| `TRUST_PROXY` | — | `false` | Only true behind a trusted proxy |
+| `TRUST_PROXY_HOPS` | — | `0` | Must be > 0 when `TRUST_PROXY` is true |
+| `MONGODB_URI` | **Yes** | `mongodb://127.0.0.1:27017` | Atlas SRV string. **Never commit** |
+| `MONGODB_DB_NAME` | — | `infinigrow` | Logical database name |
+| `MONGODB_SERVER_SELECTION_TIMEOUT_MS` | — | `10000` | Connect timeout |
+| `MONGODB_AUTO_INDEX` | — | `false` | Leave false — indexes are built by the migration runner |
+| `ENABLE_API_DOCS` | — | `true` | Production rejects `true` |
+
+Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`) and
+`VITE_DEV_API_PROXY` (default `http://localhost:4000`).
+
+> `.env` is git-ignored and CI runs a gitleaks secret scan. Never place a credential,
+> connection string or key in source code.
+
+---
 
 ---
 
@@ -78,6 +125,7 @@ required locally.
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 | Foundation: monorepo, API bootstrap, RBAC matrix, tenant context, CI | ✅ Complete |
+| 0b | Validation layer, cursor pagination, HTTP utilities | ✅ Complete |
 | 1 | Identity & tenancy: auth, MFA, memberships, tenant plugin, audit log | ⏳ Next |
 | 2 | Hospital onboarding: departments, doctors, staff, permissions | Planned |
 | 3 | Patients & appointments | Planned |

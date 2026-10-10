@@ -178,6 +178,11 @@ Clients branch on `code`, never on `message`.
 - **Cursor** (default for clinical and audit lists): `?cursor=&limit=`, `limit` ≤ 100.
 - **Offset** (admin tables that genuinely need totals): `?page=&pageSize=`.
 
+Opaque cursors are encoded and decoded by `utilities/pagination.ts`. A cursor is
+base64url-encoded JSON, **not encrypted**, so it must never carry PHI — it is a
+client-held token. A malformed or future-versioned cursor decodes to `null` (start from
+the beginning) rather than raising a 500.
+
 ### 5.4 Errors never leak internals
 
 `errorHandler` translates known error shapes (Zod, Mongoose `ValidationError`, `CastError`,
@@ -252,7 +257,7 @@ success. See `components/states/`.
 
 | Concern | Implementation |
 | --- | --- |
-| Validation | Zod schemas shared between client and server; `.strict()` rejects unknown keys |
+| Validation | Zod schemas shared between client and server; `.strict()` rejects unknown keys. Enforced by `validation/validate.ts`, which also rejects MongoDB operators before parsing (`docs/SECURITY.md` R3, R10) |
 | NoSQL injection | `sanitizeFilter`, `strictQuery`, `assertNoMongoOperators()` for free-form maps |
 | Logging | Pino, JSON, mandatory header and field redaction (asserted by tests) |
 | Correlation | `X-Request-Id` generated or sanitised-client-supplied, echoed on every response |

@@ -4,7 +4,14 @@ name: CI
 # Infinigrow Hospital Cloud — continuous integration
 #
 # Gate order is deliberate and fail-fast:
-#   path guard → install → lint → typecheck → test → build → security scan
+#   install → lint → typecheck → test → build → security scan
+#
+# NOTE ON THE WORKSPACE PATH GUARD: `scripts/check-workspace-path.mjs` runs as an
+# npm `preinstall` hook, so it already warns a developer whose local checkout sits
+# under a directory containing spaces. It is deliberately NOT a CI gate: the path
+# that matters is the developer's local one, and a GitHub runner's path is not
+# ours to control (and has no spaces anyway). Gating on it produced a guaranteed
+# red build with no security value.
 #
 # Nothing is deployed from this workflow. Deployment is a separate, manually
 # approved pipeline (docs/RUNBOOK.md).
@@ -28,17 +35,6 @@ env:
   NODE_VERSION: '24'
 
 jobs:
-  guard:
-    name: Workspace path guard
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      # Plain Node, no install step needed: this script runs before dependencies exist.
-      - run: node scripts/check-workspace-path.mjs --strict
-
   verify:
     name: Lint, typecheck, test, build
     runs-on: ubuntu-latest

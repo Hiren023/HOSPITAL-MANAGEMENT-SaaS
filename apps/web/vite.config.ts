@@ -41,6 +41,20 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
+
+    /**
+     * jsdom environments are memory-hungry. Running every test file in its own fork
+     * while the API suite concurrently holds an ephemeral `mongod` exhausts the worker
+     * pool, and Vitest reports "Failed to start forks worker" — a resource failure
+     * that looks like a broken test but is not one.
+     *
+     * Threads plus a small worker cap keeps both suites reliable on a developer
+     * machine and on a CI runner. Note `poolOptions.threads.singleThread` is not
+     * available in the Vitest 5 config type, so the cap is expressed via `maxWorkers`.
+     */
+    pool: 'threads',
+    maxWorkers: 2,
+    fileParallelism: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],

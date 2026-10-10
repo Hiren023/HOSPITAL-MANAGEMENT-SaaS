@@ -33,6 +33,13 @@ export function assertNoMongoOperators(input: unknown, path = 'body'): void {
   if (input === null || typeof input !== 'object') return
 
   for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+    // `$`-prefixed keys are operators ($ne, $gt, $where, …). A `.`-prefixed key is a
+    // MongoDB field-path reference, which is how an attacker reaches a nested field
+    // the schema never declared.
+    //
+    // Both are rejected ANYWHERE in the payload, including inside a `z.record()`
+    // whose values are `unknown`. Verified against zod 4.6.5: a record schema happily
+    // accepts `{'a.b': 'x'}`, so the schema alone is NOT sufficient protection.
     if (key.includes('$') || key.startsWith('.')) {
       throw new Error(`Illegal key "${key}" at ${path}: MongoDB operators are not permitted`)
     }

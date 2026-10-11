@@ -24,6 +24,9 @@ import { DepartmentsPage } from './features/hospital/DepartmentsPage.js'
 import { DoctorsPage } from './features/hospital/DoctorsPage.js'
 import { DoctorProfilePage } from './features/hospital/DoctorProfilePage.js'
 import { StaffPage } from './features/hospital/StaffPage.js'
+import { PatientsPage } from './features/clinic/PatientsPage.js'
+import { PatientDetailPage } from './features/clinic/PatientDetailPage.js'
+import { SchedulePage } from './features/clinic/SchedulePage.js'
 import { NotFoundPage } from './pages/NotFoundPage.js'
 import type { Permission } from '@infinigrow/shared'
 
@@ -226,6 +229,48 @@ function AuthenticatedRoutes() {
             <RequireTenantScope>
               <RequirePermission permission="user:read">
                 <StaffPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+
+      {/*
+        Patients and appointments. The clinic day is a separate route from the register:
+        reception works from a schedule most of the day, and from a list of people only
+        when someone arrives without an appointment.
+      */}
+      <Route
+        path="/patients"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="patient:read">
+                <PatientsPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/patients/:patientId"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="patient:read">
+                <PatientDetailPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/schedule"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="appointment:read">
+                <SchedulePage />
               </RequirePermission>
             </RequireTenantScope>
           </RequireAuth>

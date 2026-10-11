@@ -900,7 +900,7 @@ describe.skipIf(!db.uri)('patients and appointments', () => {
         })
 
       // Book the OTHER doctor, not our own. An earlier version of this test booked
-      // doctorA and then queried AS doctorA, which naturally returned a row � so it
+      // doctorA and then queried AS doctorA, which naturally returned a row -- so it
       // passed while proving nothing about scoping.
       const patient = await createPatient(admin, 'selfscope')
       const booked = await supertest(app())
@@ -928,7 +928,7 @@ describe.skipIf(!db.uri)('patients and appointments', () => {
         .set('Authorization', `Bearer ${doctor}`)
       expect(direct.status).toBe(403)
 
-      // An administrator asking the same question DOES see it � which is what proves the
+      // An administrator asking the same question DOES see it -- which is what proves the
       // emptiness above is scoping rather than a booking that failed to save.
       const asAdmin = await supertest(app())
         .get(`/api/v1/appointments?doctorUserId=${otherUserId}`)

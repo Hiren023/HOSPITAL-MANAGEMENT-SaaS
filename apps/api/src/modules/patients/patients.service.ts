@@ -288,7 +288,7 @@ export async function listPatients(actor: PatientActor, query: PatientListQuery,
   if (query.phone) {
     // Match the normalised digit form, which is indexed.
     //
-    // The alternative � an $expr stripping punctuation inside the aggregation � is
+    // The alternative -- an $expr stripping punctuation inside the aggregation -- is
     // correct but CANNOT use an index, so every phone lookup would scan the whole patient
     // register. It also depends on $regexReplace, which needs MongoDB 5.0+ and fails
     // loudly below that.

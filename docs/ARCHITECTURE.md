@@ -126,6 +126,58 @@ that an identifier exists somewhere else. See [`SECURITY.md`](./SECURITY.md) R11
 
 ---
 
+### 3.5 Double booking is decided by the database (Phase 6)
+
+MongoDB has no time-range exclusion constraint, so "is this doctor free between 09:00 and
+09:20?" cannot be expressed as an index over a start and an end. What it *can* express is
+uniqueness over a tuple.
+
+Occupied time is therefore materialised: one `AppointmentSlot` row per booked slot, with a
+unique index on `{ hospitalId, doctorUserId, slotStart }`. Booking inserts those rows, and
+a duplicate-key error **is** the conflict.
+
+This is not an optimisation over an application check. Check-then-insert has a race window
+between the two statements: two receptionists booking 09:00 simultaneously both read "free",
+both write, and the second silently duplicates. A unique index has no such window, because
+the constraint is evaluated by the thing doing the writing, no matter how many application
+instances are running.
+
+The slot grid also makes partial overlaps fall out correctly. A 40-minute appointment
+occupies three 20-minute slots, so an 11:20 booking collides with an 11:00 one without any
+interval arithmetic anywhere.
+
+**This only works if the index exists.** `mongoose.connect` is called with `autoIndex:
+false`, on the reasoning that index builds should be an explicit, verifiable step rather
+than a side effect of boot. That reasoning is sound, but the explicit step was missing:
+`connection.ts` referred to a migration runner that was never written, so the database
+carried only its `_id` index and *every unique constraint in the schema was absent*, in
+development and in production alike. Phase 5 did not notice because its duplicate tests
+relied on application-level lookups; Phase 6 could not, which is how it surfaced.
+`infrastructure/db/indexes.ts` now performs that step on boot, and the test harness calls
+it so constraint tests exercise the real thing rather than a fiction of it.
+
+### 3.6 Self-scoping is a permission, not a role name
+
+A doctor may read and write their OWN appointments. Only a holder of `appointment:read:any`
+or `appointment:write:any` may see or move anyone else's. That is enforced in the service,
+on the query and on the target row.
+
+Modelling it as permissions rather than a role-name check keeps "self only" inside the same
+mechanism as every other authorisation decision, and means a future role that should see the
+whole clinic is granted that explicitly rather than having it inferred from its name.
+Reception and administration hold `:any`; a doctor deliberately does not.
+
+### 3.7 Time is instants, never strings (Phase 6)
+
+Appointments store UTC instants. Weekday and time-of-day are derived at read time in the
+hospital's configured IANA zone and never stored alongside, because a second copy is a
+second source of truth that drifts the first time a hospital changes timezone.
+
+The API refuses a bare local time and requires an explicit offset. A wall-clock reading does
+not identify a moment, and around a DST transition some local times do not exist at all.
+The full policy, including the two `Intl` traps this had to handle, is in
+[`TIMEZONE.md`](./TIMEZONE.md).
+
 ## 4. Authorisation
 
 ### 4.1 Roles
@@ -301,7 +353,7 @@ Being explicit so nothing is mistaken for a working feature:
 
 | Area | Status |
 | --- | --- |
-| Patients, appointments, consultations, prescriptions | Phase 6–7 — **not implemented** |
+| Consultations, prescriptions, PDFs | Phase 7 — **not implemented** |
 | Billing, payments, reports, notifications for hospitals | Phase 9–10 — **not implemented** |
 | Attendance | Phase 8 — **not implemented** |
 | Patient portal, pharmacy, ABDM/ABHA | Phase 12+ — **not implemented** |

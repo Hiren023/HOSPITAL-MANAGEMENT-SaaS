@@ -172,6 +172,63 @@ Three things worth knowing about these endpoints:
   Ordering, overlap and midnight-crossing checks are then exact, and no timezone is
   involved — a hospital's working day is local.
 
+### Patient endpoints
+
+Tenant-scoped. `patient:read` to read, `patient:write` to create and change.
+
+| Method | Path | Required permission | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/patients` | `patient:read` | Search. **Server-side** `page`, `pageSize`, `q`, `gender`, `isActive`, `patientNumber`, `phone` |
+| `POST` | `/api/v1/patients` | `patient:write` | Register. The patient number is allocated by the server |
+| `POST` | `/api/v1/patients/duplicate-check` | `patient:write` | Possible duplicates for a partial form. A **warning**, never a block |
+| `GET` | `/api/v1/patients/:patientId` | `patient:read` | One patient |
+| `PATCH` | `/api/v1/patients/:patientId` | `patient:write` | Update, or deactivate |
+
+**Data minimisation, enforced server-side.** A caller holding `patient:read` but not
+`patient:write` receives demographics only: `phone`, `email`, `address` and
+`emergencyContact` are `null`, and `contactVisible` is `false` so a client can say *why*
+rather than rendering a blank that looks like missing data. That is the `ACCOUNTANT`
+configuration: billing staff who can attach a charge to the right person without holding a
+register of who they live with and who to telephone in an emergency.
+
+No clinical field exists on the schema - no allergies, notes or diagnosis - and `.strict()`
+refuses unknown keys, so clinical content cannot be smuggled in through an unexpected field.
+That belongs to the consultation module.
+
+**Patient numbers are unique per hospital, never globally.** Two hospitals each hand out
+`PT-000001`. A global constraint would turn a duplicate-key error into a side channel
+revealing one tenant's register size to every other.
+
+### Appointment endpoints
+
+Tenant-scoped. `appointment:read` / `appointment:write` mean **my own** appointments; the
+`:any` variants mean the whole clinic. A doctor holds only the plain pair; reception and
+administration hold `:any`, because booking on behalf of other doctors is their job.
+
+| Method | Path | Required permission | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/appointments/day` | `appointment:read` | One **hospital-local** day. `date`, `doctorUserId`, `departmentId` |
+| `GET` | `/api/v1/appointments/availability` | `appointment:read` | Free slots as ISO instants, per doctor |
+| `GET` | `/api/v1/appointments` | `appointment:read` | List. `page`, `status`, `doctorUserId`, `patientId`, `from`, `to` |
+| `POST` | `/api/v1/appointments` | `appointment:write` | Book |
+| `GET` | `/api/v1/appointments/:appointmentId` | `appointment:read` | One appointment, with its full status history |
+| `PATCH` | `/api/v1/appointments/:appointmentId/reschedule` | `appointment:write` | Move it. `reason` required |
+| `POST` | `/api/v1/appointments/:appointmentId/cancel` | `appointment:write` | Cancel and free the slot. `reason` required |
+| `PATCH` | `/api/v1/appointments/working-hours` | `hospital:settings:manage` | Opening hours by weekday. `null` means closed |
+
+**Times are ISO 8601 instants with an explicit offset.** A bare `"2026-10-11T09:00:00"` is
+refused, with a message showing what to send instead. See [`TIMEZONE.md`](./TIMEZONE.md)
+for the full policy.
+
+Cancelling is a `POST`, not a `DELETE`. Cancelling is not removal: the appointment stays,
+its status history keeps every transition, and the slot is released so someone else can
+book it.
+
+**Double booking is prevented by the database.** Occupied time is materialised as one
+`AppointmentSlot` row per booked slot, unique on `{hospitalId, doctorUserId, slotStart}`.
+A duplicate-key error *is* the conflict; see [`ARCHITECTURE.md`](./ARCHITECTURE.md) for why
+an application-level check is not sufficient.
+
 ### Tenant scoping
 
 > `hospitalId` is **never** read from a request. It is resolved from the caller's active

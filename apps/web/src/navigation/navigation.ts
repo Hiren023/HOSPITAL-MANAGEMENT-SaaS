@@ -90,8 +90,9 @@ const HOSPITAL_NAV: NavSection[] = [
     items: [
       { label: 'Patients', to: '/patients', icon: Users, requires: ['patient:read'] },
       {
+        // The real schedule, which replaces the `/appointments` placeholder from Phase 3.
         label: 'Appointments',
-        to: '/appointments',
+        to: '/schedule',
         icon: CalendarDays,
         requires: ['appointment:read'],
       },

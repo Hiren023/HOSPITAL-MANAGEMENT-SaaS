@@ -128,6 +128,50 @@ boundary by construction.
 Platform routes live in one router under one prefix so a `SUPER_ADMIN` capability cannot
 be added at an unexpected path, and a hospital role can never reach one.
 
+### Hospital administration endpoints
+
+Tenant-scoped: a hospital membership only. A `SUPER_ADMIN` is refused every route here
+with `403`, because a platform operator has no hospital to administer.
+
+| Method | Path | Required permission | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/hospital` | `hospital:read` | This hospital's own profile |
+| `PATCH` | `/api/v1/hospital` | `hospital:write` | Edit name, registration number, contact details, address |
+| `PATCH` | `/api/v1/hospital/settings` | `hospital:settings:manage` | Operational defaults. Separate from the profile on purpose |
+| `GET` | `/api/v1/departments` | `department:read` | List. **Server-side** `page`, `pageSize`, `q`, `isActive` |
+| `POST` | `/api/v1/departments` | `department:write` | Create. `name` and `code` unique **within this hospital** |
+| `GET` | `/api/v1/departments/:departmentId` | `department:read` | One department |
+| `PATCH` | `/api/v1/departments/:departmentId` | `department:write` | Rename, describe, deactivate |
+| `GET` | `/api/v1/doctors` | `doctor:read` | List doctor profiles |
+| `POST` | `/api/v1/doctors` | `doctor:write` | Attach a profile to an existing `DOCTOR` account |
+| `GET` | `/api/v1/doctors/:profileId` | `doctor:read` | One profile, including its weekly schedule |
+| `PATCH` | `/api/v1/doctors/:profileId` | `doctor:write` | Professional details |
+| `GET` | `/api/v1/doctors/:profileId/schedule` | `schedule:read` | Weekly schedule |
+| `PUT` | `/api/v1/doctors/:profileId/schedule` | `schedule:write` | **Replace** the week. Not a merge |
+| `GET` | `/api/v1/staff` | `user:read` | Staff accounts. `page`, `pageSize`, `q`, `role`, `membershipStatus` |
+| `POST` | `/api/v1/staff` | `user:write` | Create an account. `SUPER_ADMIN` and `PATIENT` are refused |
+| `PATCH` | `/api/v1/staff/:userId/role` | `user:permissions:manage` | Change role. Explicit grants are capped at the role's ceiling |
+| `PATCH` | `/api/v1/staff/:userId/status` | `user:permissions:manage` | Activate or suspend. `reason` required |
+
+Every route applies `authenticate` and `requireTenantScope` before it runs, injected by
+the route registrar rather than repeated per handler — so a new route cannot be added
+without the boundary. There is deliberately **no `hospitalId` in any path, query or
+body**: the hospital is whatever the signed session says it is, so there is no
+identifier for a caller to tamper with.
+
+Three things worth knowing about these endpoints:
+
+- **A doctor profile is attached to a staff account, not created with one.** Identity and
+  professional record are separate documents, so suspending access never destroys a
+  registration number.
+- **`registrationNumber` is masked** for callers without `doctor:write`. It is never
+  searchable and never written to the audit trail. The response carries
+  `registrationNumberMasked: true` so a client can say *why* it is showing a mask rather
+  than rendering a blank.
+- **Schedule times are minutes from midnight**, not `HH:mm` strings and not dates.
+  Ordering, overlap and midnight-crossing checks are then exact, and no timezone is
+  involved — a hospital's working day is local.
+
 ### Tenant scoping
 
 > `hospitalId` is **never** read from a request. It is resolved from the caller's active
@@ -216,11 +260,11 @@ duplicated copy that can drift.
 
 ---
 
-## Planned surface (Phase 1+)
+## Planned surface (Phase 6+)
 
-Listed for planning only — **not implemented**:
-`/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/forgot-password`,
-`/auth/reset-password`, `/auth/switch-hospital`, `/hospitals`, `/users`, `/departments`.
+Listed for planning only — **not implemented**: `/auth/switch-hospital`, `/patients`,
+`/appointments`, `/consultations`, `/prescriptions`, `/attendance`, `/billing`,
+`/payments`, `/reports`.
 
 ---
 

@@ -93,6 +93,31 @@ A Mongoose plugin registered on every tenant-scoped schema will:
 The plumbing — `AsyncLocalStorage`, `requireTenantContext()`, concurrent-context isolation —
 is implemented and tested in Phase 0. The plugin itself lands in Phase 1.
 
+**Aggregations need the id as an `ObjectId`, not a string.** A `Query` casts string ids
+for typed paths, but an aggregation is handed to the driver as-is, so
+`{ $match: { hospitalId: '6acb…' } }` silently matches nothing. The failure is total and
+silent: the query succeeds and returns an empty result, indistinguishable from an empty
+table. The plugin's `aggregate` hook therefore builds a real `ObjectId` and throws on one
+it cannot parse, rather than quietly matching nothing.
+
+### 3.3.1 Where the tenant boundary is applied (Phase 5)
+
+Hospital administration is the first route family that runs entirely inside an implicit
+tenant context, and it establishes the pattern the rest will follow:
+
+- The router is **module-private**. Routes are registered only through a `tenantRoute()`
+  helper that prepends `authenticate` and `requireTenantScope`, so a route cannot be added
+  without the boundary.
+- The middleware is deliberately **not** applied with `router.use()`. A router mounted at
+  the API root runs `router.use` middleware for every path that enters it — including
+  paths matching no route — which turned the tenant gate into a global one on `/api/v1/*`:
+  unknown paths answered `401` instead of `404`, and `requireTenantScope` rejected
+  `SUPER_ADMIN` before `/platform/*` was reached. Wrapping the routes rather than the
+  router keeps the guarantee without widening the blast radius.
+- **No `hospitalId` is accepted anywhere** on these routes, in any path, query or body.
+  A `.strict()` schema rejects one outright rather than ignoring it, so the failure is
+  visible instead of silent.
+
 ### 3.4 HTTP semantics
 
 Accessing a resource that belongs to another tenant returns **404 `NOT_FOUND`**, not 403
@@ -276,11 +301,15 @@ Being explicit so nothing is mistaken for a working feature:
 
 | Area | Status |
 | --- | --- |
-| Authentication, refresh tokens, MFA | Phase 1 |
-| Mongoose tenant plugin (query auto-injection) | Phase 1 |
-| Hospital/user/membership models | Phase 1 |
-| Audit log persistence | Phase 1 |
-| All clinical, billing, attendance modules | Phases 2–7 |
+| Patients, appointments, consultations, prescriptions | Phase 6–7 — **not implemented** |
+| Billing, payments, reports, notifications for hospitals | Phase 9–10 — **not implemented** |
+| Attendance | Phase 8 — **not implemented** |
+| Patient portal, pharmacy, ABDM/ABHA | Phase 12+ — **not implemented** |
+| Payment gateway, invoicing, proration, auto-suspension | Deliberately out of scope — plan assignment only |
+| Email delivery (password reset, invitations) | Not implemented. Staff accounts set their own password on first sign-in |
 | OpenAPI spec generation from Zod | Phase 1 (library choice to confirm) |
-| Dockerfiles, deployment pipeline | Phase 8 |
-| Backup and restore automation | Phase 8 |
+| Dockerfiles, deployment pipeline | Phase 11 |
+| Backup and restore automation | Phase 11 |
+
+Navigation entries for unimplemented modules render an explicit "not yet" placeholder
+rather than a blank screen, and no menu item points at data the API cannot supply.

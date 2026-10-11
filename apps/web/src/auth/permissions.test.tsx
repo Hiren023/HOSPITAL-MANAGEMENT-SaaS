@@ -107,6 +107,16 @@ describe('permission-driven navigation', () => {
     expect(labels).toContain('Reports')
   })
 
+  it('shows the doctor directory only to identities that may read it', () => {
+    // Reception books appointments, so RECEPTIONIST deliberately holds `doctor:read`
+    // and does see the directory — read-only, without `doctor:write`. Baseline STAFF
+    // holds neither and must not see the entry at all.
+    expect(visibleLabels(identityFor('HOSPITAL_ADMIN'))).toContain('Doctors')
+    expect(visibleLabels(identityFor('DOCTOR'))).toContain('Doctors')
+    expect(visibleLabels(identityFor('RECEPTIONIST'))).toContain('Doctors')
+    expect(visibleLabels(identityFor('STAFF'))).not.toContain('Doctors')
+  })
+
   it('gives basic staff only attendance', () => {
     const labels = visibleLabels(identityFor('STAFF'))
 
@@ -129,12 +139,13 @@ describe('permission-driven navigation', () => {
         'Consultations',
         'Prescriptions',
         'Departments',
+        'Doctors',
         'Billing',
         'Payments',
         'Reports',
         'Staff & users',
         'Attendance',
-        'Hospital settings',
+        'Hospital',
         'Audit trail',
       ]),
     )

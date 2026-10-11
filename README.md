@@ -5,8 +5,9 @@
 Cloud-based, multi-tenant Hospital Management SaaS for clinics, small hospitals and large
 multispecialty hospitals. Built by **Infinigrow Softech**.
 
-> **Status: Phase 0 (Foundation) complete.** Authentication, hospital onboarding and all
-> clinical modules are **not yet implemented** — see the roadmap below.
+> **Status: Phase 5 (Hospital Administration) complete.** Registration, authentication, the
+> platform console and hospital administration are implemented and tested. Patient
+> management and all clinical modules are **not yet implemented** — see the roadmap below.
 
 ---
 
@@ -164,7 +165,7 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | 2 | Authentication, registration, platform approval, audit trail, rate limiting | ✅ Complete |
 | 3 | UI/UX foundation, design system, public site, role-aware dashboards | ✅ Complete |
 | 4 | Super Admin SaaS management: tenants, lifecycle, plans, users, audit, reports | ✅ Complete |
-| 5 | Hospital onboarding: departments, doctors, staff, permissions | ⏳ Next |
+| 5 | Hospital administration: profile, departments, doctors, schedules, staff | ✅ Complete |
 | 6 | Patients & appointments | Planned |
 | 7 | Consultations, prescriptions, PDFs | Planned |
 | 8 | Staff attendance | Planned |

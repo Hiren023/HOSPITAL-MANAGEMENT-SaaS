@@ -19,6 +19,11 @@ import { PlatformHospitalDetailPage } from './features/platform/PlatformHospital
 import { PlatformAuditPage } from './features/platform/PlatformAuditPage.js'
 import { PlatformReportsPage } from './features/platform/PlatformReportsPage.js'
 import { HospitalDashboard, ModulePlaceholder } from './features/dashboard/HospitalDashboard.js'
+import { HospitalProfilePage } from './features/hospital/HospitalProfilePage.js'
+import { DepartmentsPage } from './features/hospital/DepartmentsPage.js'
+import { DoctorsPage } from './features/hospital/DoctorsPage.js'
+import { DoctorProfilePage } from './features/hospital/DoctorProfilePage.js'
+import { StaffPage } from './features/hospital/StaffPage.js'
 import { NotFoundPage } from './pages/NotFoundPage.js'
 import type { Permission } from '@infinigrow/shared'
 
@@ -160,6 +165,74 @@ function AuthenticatedRoutes() {
       />
 
       {/*
+        Hospital administration. Each screen names the permission the API will demand, so
+        the guard and the server cannot disagree about who may open what.
+
+        These are real screens backed by real endpoints, not placeholders: every control
+        here calls the API and the UI reflects what the API returned.
+      */}
+      <Route
+        path="/hospital"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="hospital:read">
+                <HospitalProfilePage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/departments"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="department:read">
+                <DepartmentsPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/doctors"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="doctor:read">
+                <DoctorsPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/doctors/:profileId"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="doctor:read">
+                <DoctorProfilePage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="user:read">
+                <StaffPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+
+      {/*
         Clinical and administrative modules. Each entry names the permission the API will
         demand, so the guard and the server cannot disagree about who may open what.
       */}
@@ -169,14 +242,11 @@ function AuthenticatedRoutes() {
           ['/appointments', 'Appointments', 'appointment:read'],
           ['/consultations', 'Consultations', 'consultation:read'],
           ['/prescriptions', 'Prescriptions', 'prescription:read'],
-          ['/departments', 'Departments', 'department:read'],
           ['/billing', 'Billing', 'billing:read'],
           ['/payments', 'Payments', 'payment:read'],
           ['/reports', 'Reports', 'report:read'],
           ['/attendance', 'Attendance', 'attendance:read'],
-          ['/users', 'Staff and users', 'user:read'],
           ['/audit', 'Audit trail', 'audit:read'],
-          ['/settings/hospital', 'Hospital settings', 'hospital:settings:manage'],
         ] as const satisfies readonly (readonly [string, string, Permission])[]
       ).map(([path, title, permission]) => (
         <Route

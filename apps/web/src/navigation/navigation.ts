@@ -108,6 +108,7 @@ const HOSPITAL_NAV: NavSection[] = [
         requiresAny: ['prescription:read'],
       },
       { label: 'Departments', to: '/departments', icon: Bed, requires: ['department:read'] },
+      { label: 'Doctors', to: '/doctors', icon: Stethoscope, requires: ['doctor:read'] },
     ],
   },
   {
@@ -124,10 +125,10 @@ const HOSPITAL_NAV: NavSection[] = [
       { label: 'Staff & users', to: '/users', icon: UserCog, requires: ['user:read'] },
       { label: 'Attendance', to: '/attendance', icon: Timer, requires: ['attendance:read'] },
       {
-        label: 'Hospital settings',
-        to: '/settings/hospital',
+        label: 'Hospital',
+        to: '/hospital',
         icon: Settings,
-        requires: ['hospital:settings:manage'],
+        requires: ['hospital:read'],
       },
       { label: 'Audit trail', to: '/audit', icon: ScrollText, requires: ['audit:read'] },
     ],

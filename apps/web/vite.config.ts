@@ -55,6 +55,20 @@ export default defineConfig({
     pool: 'threads',
     maxWorkers: 2,
     fileParallelism: true,
+
+    /**
+     * The default is 5s, which the form-driven tests sit right on the edge of.
+     *
+     * `userEvent` types character by character, so a registration test that fills a
+     * dozen fields is thousands of events. On a loaded machine — the API suite's `mongod`
+     * still winding down, or a cold first compile — that comfortably exceeds 5s and the
+     * suite reports a timeout for a test that is not actually broken. The API suite
+     * already runs at 30s for the same reason; this keeps the two consistent.
+     *
+     * A genuinely hung test still fails, just later.
+     */
+    testTimeout: 15_000,
+
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],

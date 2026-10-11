@@ -82,12 +82,77 @@ describe('Button', () => {
         <Button variant="danger" busy>
           Danger
         </Button>
-        <Button size="lg" block>
+        <Button size="lg" full>
           Large block
         </Button>
       </div>,
     )
 
     await expectNoSeriousViolations(container)
+  })
+
+  // ─────────────────────── regression guard ───────────────────────
+
+  it('stretches to full width when asked', () => {
+    render(<Button full>Full width</Button>)
+    expect(screen.getByRole('button')).toHaveClass('w-full')
+  })
+
+  it('does not stretch by default', () => {
+    render(<Button>Default</Button>)
+    expect(screen.getByRole('button')).not.toHaveClass('w-full')
+  })
+
+  it('never leaks an unknown attribute to the DOM', () => {
+    // Regression guard. The `full` variant was originally named `block`; renaming the
+    // cva key while a call site still passed `block` left the prop un-destructured, so
+    // React spread it onto the element and logged
+    // "Received `true` for a non-boolean attribute `block`" — while the button silently
+    // failed to stretch. jsdom keeps console noise out of the exit code, so the failure
+    // was invisible to CI and only surfaced from a running dev server.
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    const { rerender } = render(
+      <>
+        <Button full>One</Button>
+        <Button variant="secondary" size="lg" full>
+          Two
+        </Button>
+      </>,
+    )
+
+    expect(spy).not.toHaveBeenCalled()
+
+    for (const button of screen.getAllByRole('button')) {
+      expect(button.getAttribute('block')).toBeNull()
+      expect(button.getAttribute('full')).toBeNull()
+      expect(button.getAttribute('busy')).toBeNull()
+    }
+
+    rerender(<Button busy>Busy</Button>)
+    expect(screen.getByRole('button')).toHaveAttribute('aria-busy', 'true')
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
+  })
+
+  it('every declared variant is actually consumed by the component', () => {
+    // A cva variant nothing destructures is dead: it neither styles anything nor gets
+    // stripped from the DOM. This catches the whole class of bug.
+    const { container } = render(
+      <>
+        <Button variant="primary" size="sm" full busy>
+          All set
+        </Button>
+      </>,
+    )
+
+    const button = container.querySelector('button')
+    expect(button).not.toBeNull()
+    // If any prop were un-destructured it would appear here as a stray attribute.
+    for (const attribute of Array.from(button?.attributes ?? []).map((a) => a.name)) {
+      expect(['class', 'type', 'disabled', 'aria-busy', 'aria-disabled', 'aria-label']).toContain(
+        attribute,
+      )
+    }
   })
 })

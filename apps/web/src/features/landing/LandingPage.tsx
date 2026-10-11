@@ -310,7 +310,7 @@ export function LandingPage() {
                 </ul>
 
                 <a href="#contact" className="mt-6">
-                  <Button variant={plan.featured ? 'primary' : 'secondary'} block>
+                  <Button variant={plan.featured ? 'primary' : 'secondary'} full>
                     {plan.cta}
                   </Button>
                 </a>

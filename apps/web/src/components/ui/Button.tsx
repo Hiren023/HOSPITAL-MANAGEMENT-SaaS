@@ -38,9 +38,6 @@ export const buttonVariants = cva(
       full: {
         true: 'w-full',
       },
-      block: {
-        true: 'w-full',
-      },
     },
     defaultVariants: {
       variant: 'primary',

@@ -1,6 +1,7 @@
 import { generateKeyPairSync } from 'node:crypto'
 import type { Express } from 'express'
 import mongoose, { type Model } from 'mongoose'
+import supertest from 'supertest'
 
 import { createApp } from '../app.js'
 import { connectToDatabase } from '../infrastructure/db/connection.js'
@@ -208,3 +209,79 @@ export async function connectTestDatabase(uri: string): Promise<void> {
 }
 
 export { mongoose }
+
+// ───────────────────────── platform console fixtures (Phase 4) ─────────────────────────
+
+export interface PlatformFixture extends Fixture {
+  /** Signs in as the SUPER_ADMIN and returns its bearer token. */
+  platformToken: () => Promise<string>
+  /** Signs in as any seeded user and returns its bearer token. */
+  signIn: (email: string, password?: string) => Promise<string>
+  password: string
+}
+
+/**
+ * Builds a platform-console fixture: the two seeded hospitals, a SUPER_ADMIN, and the
+ * sign-in helpers the console tests need.
+ *
+ * The SUPER_ADMIN is created with `platformRole: 'SUPER_ADMIN'` — the flag `login` reads
+ * to recognise a platform operator. It exists precisely because a SUPER_ADMIN has no
+ * hospital membership, so sign-in cannot resolve it through a membership the way every
+ * other role does.
+ */
+export async function createPlatformFixture(): Promise<PlatformFixture> {
+  const base = await seedFixtures()
+
+  await (UserModel as Model<Record<string, unknown>>)
+    .updateOne({ email: base.superAdmin.email }, { $set: { platformRole: 'SUPER_ADMIN' } })
+    .exec()
+
+  const signIn = async (email: string, password = TEST_PASSWORD): Promise<string> => {
+    const response = await supertest(base.app).post('/api/v1/auth/login').send({ email, password })
+
+    if (response.status !== 200) {
+      throw new Error(
+        `Fixture sign-in failed for ${email}: ${response.status} ${JSON.stringify(response.body)}`,
+      )
+    }
+
+    return String(response.body.data.accessToken)
+  }
+
+  return {
+    ...base,
+    password: TEST_PASSWORD,
+    signIn,
+    platformToken: () => signIn(base.superAdmin.email),
+  }
+}
+
+/**
+ * Adds extra tenants so pagination and status filters have something to work with.
+ *
+ * All fictional. The names are chosen to be searchable and distinguishable so a
+ * server-side search test can assert on a real result rather than "at least one row".
+ */
+export async function seedPlatformData(): Promise<{ id: string; name: string }[]> {
+  const seeds: ReadonlyArray<readonly [string, string, string]> = [
+    ['Charak Diagnostics Centre', 'charak-diagnostics', 'APPROVED'],
+    ['Dhanvantari Multispeciality', 'dhanvantari-multi', 'PENDING'],
+    ['Gangotri Health Institute', 'gangotri-health', 'APPROVED'],
+    ['Himalayan Care Hospital', 'himalayan-care', 'SUSPENDED'],
+  ]
+
+  const created: { id: string; name: string }[] = []
+
+  for (const [name, slug, status] of seeds) {
+    const hospital = await (HospitalModel as Model<Record<string, unknown>>).create({
+      name,
+      slug,
+      status,
+      plan: 'STARTER',
+      contactEmail: `contact@${slug}.example.test`,
+    })
+    created.push({ id: String(hospital['_id']), name })
+  }
+
+  return created
+}

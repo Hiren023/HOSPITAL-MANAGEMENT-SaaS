@@ -53,39 +53,55 @@ export function Modal({
   const titleId = useId()
   const descriptionId = useId()
 
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation()
-        onClose()
-        return
-      }
+  /**
+   * `onClose` is held in a ref so the key handler stays referentially stable.
+   *
+   * Callers pass inline arrows (`onClose={() => setOpen(false)}`), so the identity
+   * changes on every parent render. If that fed the effect's dependency list, the effect
+   * would tear down and re-run on every keystroke — restoring focus to the trigger and
+   * pulling it straight back into the dialog. The observable symptom was a text field
+   * accepting exactly one character before focus jumped away, in every modal in the
+   * product. Reading the latest callback through a ref avoids the churn entirely.
+   */
+  const onCloseRef = useRef(onClose)
 
-      if (event.key !== 'Tab') return
+  // Synced after render rather than during it: writing a ref while rendering is what the
+  // lint rule rightly flags, and the value is only ever read from an event handler.
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
 
-      const root = dialogRef.current
-      if (!root) return
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation()
+      onCloseRef.current()
+      return
+    }
 
-      const focusable = [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
-        (element) => element.offsetParent !== null || element === document.activeElement,
-      )
-      if (focusable.length === 0) return
+    if (event.key !== 'Tab') return
 
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      if (!first || !last) return
+    const root = dialogRef.current
+    if (!root) return
 
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
-      }
-    },
-    [onClose],
-  )
+    const focusable = [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+      (element) => element.offsetParent !== null || element === document.activeElement,
+    )
+    if (focusable.length === 0) return
 
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (!first || !last) return
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }, [])
+
+  // Depend only on `open`: this manages a transition, not ongoing state.
   useEffect(() => {
     if (!open) return
 

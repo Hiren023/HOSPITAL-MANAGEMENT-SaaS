@@ -41,6 +41,24 @@ export const PERMISSIONS = [
   'platform:settings:manage',
   'platform:audit:read',
 
+  /**
+   * Manage a tenant's user accounts from the platform side (activate, suspend).
+   *
+   * Deliberately distinct from `user:write`. A hospital administrator manages staff
+   * *inside their own hospital*; this operates across every tenant, so it is held only by
+   * the SaaS operator and never by a hospital role.
+   */
+  'platform:user:manage',
+
+  /**
+   * Cross-tenant operational reports.
+   *
+   * Reports here are aggregate counts only — tenant totals, growth, activity volumes.
+   * No permission grants a platform operator access to patient records, because no such
+   * capability exists in the product (docs/SECURITY.md R14).
+   */
+  'platform:report:read',
+
   // Hospital administration
   'hospital:read',
   'hospital:write',
@@ -145,6 +163,8 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, ReadonlySet<Permission>>> =
     'platform:plan:manage',
     'platform:settings:manage',
     'platform:audit:read',
+    'platform:user:manage',
+    'platform:report:read',
   ]),
 
   /** Full administration of one authorised hospital. */
@@ -235,6 +255,8 @@ export const PLATFORM_ONLY_PERMISSIONS: ReadonlySet<Permission> = new Set<Permis
   'platform:plan:manage',
   'platform:settings:manage',
   'platform:audit:read',
+  'platform:user:manage',
+  'platform:report:read',
 ])
 
 /**

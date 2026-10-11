@@ -527,8 +527,13 @@ describe.skipIf(!db.uri)('authentication and authorisation', () => {
         .set('Authorization', `Bearer ${token}`)
 
       expect(response.status).toBe(200)
-      expect(Array.isArray(response.body.data)).toBe(true)
-      expect(response.body.data.length).toBeGreaterThanOrEqual(2)
+      // Phase 4: the list is paginated server-side and returns an envelope, not a bare
+      // array. Fetching up to 100 rows and filtering in the browser produced wrong
+      // answers the moment a platform had more than 100 tenants.
+      expect(Array.isArray(response.body.data.items)).toBe(true)
+      expect(response.body.data.items.length).toBeGreaterThanOrEqual(2)
+      expect(response.body.data.page).toMatchObject({ page: 1, pageSize: 20 })
+      expect(response.body.data.page.total).toBeGreaterThanOrEqual(2)
     })
 
     it('refuses a hospital administrator the same operation', async () => {

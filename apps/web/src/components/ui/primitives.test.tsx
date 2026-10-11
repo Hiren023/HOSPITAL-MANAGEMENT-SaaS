@@ -430,6 +430,39 @@ describe('Modal', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
+  it('accepts every keystroke in a field inside the dialog', async () => {
+    // Regression guard. The focus effect originally depended on an inline `onClose`
+    // callback, so it re-ran on every parent render: focus was restored to the trigger
+    // and pulled back into the dialog after each keystroke, and the field accepted
+    // exactly one character. Every modal in the product was affected.
+    const user = userEvent.setup()
+
+    function TypingHarness() {
+      const [value, setValue] = useState('')
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            Open
+          </button>
+          <Modal open={open} onClose={() => setOpen(false)} title="Enter a reason">
+            <input aria-label="Reason" value={value} onChange={(e) => setValue(e.target.value)} />
+          </Modal>
+          <span data-testid="echo">{value}</span>
+        </>
+      )
+    }
+
+    render(<TypingHarness />)
+    await user.click(screen.getByRole('button', { name: 'Open' }))
+    await screen.findByRole('dialog')
+
+    await user.type(screen.getByLabelText('Reason'), 'Documents could not be verified')
+
+    expect(screen.getByLabelText('Reason')).toHaveValue('Documents could not be verified')
+    expect(screen.getByTestId('echo')).toHaveTextContent('Documents could not be verified')
+  })
+
   it('traps Tab inside the dialog', async () => {
     const user = userEvent.setup()
     render(<Harness />)

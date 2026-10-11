@@ -253,23 +253,39 @@ describe.skipIf(!db.uri)('session lifecycle', () => {
     it('suspends a tenant for a SUPER_ADMIN and audits it', async () => {
       const token = await platformToken()
 
-      const { registrationRouter } = await import('../modules/auth/registration.routes.js')
       const { createApp } = await import('../app.js')
-      const app = createApp()
-
-      // Route through the real app.
-      void registrationRouter
-
       const request = (await import('supertest')).default
-      const response = await request(app)
+
+      const response = await request(createApp())
         .post(`/api/v1/platform/hospitals/${fixture.hospitalA.id}/suspend`)
         .set('Authorization', `Bearer ${token}`)
+        // Phase 4: a reason is mandatory. A suspension with no recorded reason is
+        // indistinguishable from a mistake, and the hospital — locked out of its own
+        // data — has no way to contest it.
+        .send({ reason: 'Failed verification of registration documents' })
 
       expect(response.status).toBe(200)
       expect(response.body.data.status).toBe('SUSPENDED')
 
       const entries = await modelOf('AuditLog').find({ action: 'hospital.suspended' }).lean().exec()
       expect(entries).toHaveLength(1)
+      expect(entries[0]?.['metadata']).toMatchObject({
+        reason: 'Failed verification of registration documents',
+      })
+    })
+
+    it('refuses to suspend a tenant without a reason', async () => {
+      const token = await platformToken()
+      const { createApp } = await import('../app.js')
+      const request = (await import('supertest')).default
+
+      const response = await request(createApp())
+        .post(`/api/v1/platform/hospitals/${fixture.hospitalA.id}/suspend`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({})
+
+      expect(response.status).toBe(422)
+      expect(response.body.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('returns 404 when suspending an unknown tenant', async () => {
@@ -280,6 +296,7 @@ describe.skipIf(!db.uri)('session lifecycle', () => {
       const response = await request(createApp())
         .post('/api/v1/platform/hospitals/507f1f77bcf86cd799439099/suspend')
         .set('Authorization', `Bearer ${token}`)
+        .send({ reason: 'Testing an unknown tenant reference' })
 
       expect(response.status).toBe(404)
     })

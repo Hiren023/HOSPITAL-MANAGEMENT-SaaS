@@ -107,11 +107,31 @@ export const AUDIT_ACTIONS = {
   HOSPITAL_APPROVED: 'hospital.approved',
   HOSPITAL_REJECTED: 'hospital.rejected',
   HOSPITAL_SUSPENDED: 'hospital.suspended',
+  HOSPITAL_REACTIVATED: 'hospital.reactivated',
+
+  /**
+   * A tenant record was opened in the platform console.
+   *
+   * Recorded separately from the mutation actions because *reading* a tenant is itself
+   * sensitive: an operator browsing tenants at scale is exactly the access pattern a
+   * hospital would want to be able to review after the fact.
+   */
+  HOSPITAL_VIEWED: 'hospital.viewed',
+  HOSPITAL_PLAN_CHANGED: 'hospital.plan_changed',
+  HOSPITAL_USER_VIEWED: 'hospital.users_viewed',
 
   // Membership / access
   MEMBERSHIP_CREATED: 'membership.created',
   MEMBERSHIP_REVOKED: 'membership.revoked',
   PERMISSIONS_CHANGED: 'membership.permissions_changed',
+
+  /**
+   * A user account was activated or suspended from the platform side.
+   *
+   * Separate from `membership.revoked`: this changes the global account state, so it
+   * locks the person out of EVERY hospital they belong to, not one membership.
+   */
+  USER_STATUS_CHANGED: 'user.status_changed',
 
   // Authorisation
   ACCESS_DENIED: 'access.denied',

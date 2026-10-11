@@ -201,6 +201,10 @@ export class ApiClient {
     return this.request<TData>(path, { ...options, method: 'POST', body })
   }
 
+  put<TData>(path: string, body?: unknown, options: Omit<RequestOptions, 'method' | 'body'> = {}) {
+    return this.request<TData>(path, { ...options, method: 'PUT', body })
+  }
+
   patch<TData>(
     path: string,
     body?: unknown,

@@ -104,10 +104,26 @@ All under `/api/v1/platform/*` and gated by `requirePlatformPermission`.
 
 | Method | Path | Required permission | Purpose |
 | --- | --- | --- | --- |
-| `POST` | `/api/v1/platform/hospitals` | — (rate limited) | Register a hospital; created `PENDING` |
-| `GET` | `/api/v1/platform/hospitals` | `platform:hospital:read` | List all tenants |
-| `POST` | `/api/v1/platform/hospitals/:hospitalId/approve` | `platform:hospital:approve` | Activate a tenant |
-| `POST` | `/api/v1/platform/hospitals/:hospitalId/suspend` | `platform:hospital:suspend` | Suspend a tenant |
+| `POST` | `/api/v1/platform/hospitals` | — (rate limited) | Register a hospital; created `PENDING`. The **only** unauthenticated route under `/platform/*` |
+| `GET` | `/api/v1/platform/overview` | `platform:hospital:read` | Tenant and account metrics. Aggregate counts only — no clinical data |
+| `GET` | `/api/v1/platform/hospitals` | `platform:hospital:read` | List tenants. **Server-side** `page`, `pageSize`, `q`, `status`, `plan`, `sort` |
+| `GET` | `/api/v1/platform/hospitals/:hospitalId` | `platform:hospital:read` | Tenant detail. Recorded in the audit trail as `hospital.viewed` |
+| `GET` | `/api/v1/platform/hospitals/:hospitalId/users` | `platform:user:manage` | Staff accounts at one tenant |
+| `POST` | `/api/v1/platform/hospitals/:hospitalId/approve` | `platform:hospital:approve` | Activate a tenant and its administrator |
+| `POST` | `/api/v1/platform/hospitals/:hospitalId/suspend` | `platform:hospital:suspend` | Suspend a tenant. `reason` is **required** (10–500 chars) |
+| `POST` | `/api/v1/platform/hospitals/:hospitalId/reactivate` | `platform:hospital:suspend` | Restore a suspended tenant |
+| `PUT` | `/api/v1/platform/hospitals/:hospitalId/plan` | `platform:plan:manage` | Assign a subscription plan. Assignment only — no payment |
+| `PATCH` | `/api/v1/platform/users/:userId/status` | `platform:user:manage` | Activate or suspend an account **globally**. `reason` required; self-change refused |
+| `GET` | `/api/v1/platform/audit` | `platform:audit:read` | Audit trail. Cursor-paginated, strictly filtered, redacted on read |
+| `GET` | `/api/v1/platform/reports/operational` | `platform:report:read` | Operational report. `days` (1–365, default 30) |
+
+Every route except public registration applies both `authenticate` and
+`requirePlatformPermission`, applied at the router level so a new endpoint inherits the
+boundary by construction.
+
+**No platform route returns patient data.** The overview and reports count `hospitals`,
+`users` and `memberships` only, and no permission anywhere in the product grants a
+`SUPER_ADMIN` access to clinical records (`SECURITY.md` R14).
 
 Platform routes live in one router under one prefix so a `SUPER_ADMIN` capability cannot
 be added at an unexpected path, and a hospital role can never reach one.

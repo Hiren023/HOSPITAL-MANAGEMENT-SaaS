@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import type { ReactNode } from 'react'
 
 import { AuthProvider, useAuth } from './auth/auth-context.js'
 import {
@@ -12,9 +13,19 @@ import { LandingPage } from './features/landing/LandingPage.js'
 import { LoginPage } from './features/auth/LoginPage.js'
 import { RegisterHospitalPage } from './features/auth/RegisterHospitalPage.js'
 import { SuperAdminDashboard } from './features/platform/SuperAdminDashboard.js'
+import { PlatformOverviewPage } from './features/platform/PlatformOverviewPage.js'
+import { PlatformHospitalsPage } from './features/platform/PlatformHospitalsPage.js'
+import { PlatformHospitalDetailPage } from './features/platform/PlatformHospitalDetailPage.js'
+import { PlatformAuditPage } from './features/platform/PlatformAuditPage.js'
+import { PlatformReportsPage } from './features/platform/PlatformReportsPage.js'
 import { HospitalDashboard, ModulePlaceholder } from './features/dashboard/HospitalDashboard.js'
 import { NotFoundPage } from './pages/NotFoundPage.js'
 import type { Permission } from '@infinigrow/shared'
+
+/** Platform screen wrapper: SUPER_ADMIN, plus the exact permission the API requires. */
+function PlatformOnly({ permission, children }: { permission: Permission; children: ReactNode }) {
+  return <RequirePermission permission={permission}>{children}</RequirePermission>
+}
 
 /**
  * Route table.
@@ -60,6 +71,71 @@ function AuthenticatedRoutes() {
         }
       />
 
+      {/*
+        Platform console. Each screen is wrapped by both `RequirePlatform` and the guard
+        for the specific permission the underlying API demands, so the interface and the
+        server cannot disagree about who may open what.
+      */}
+      <Route
+        path="/platform"
+        element={
+          <RequireAuth>
+            <RequirePlatform>
+              <PlatformOnly permission="platform:hospital:read">
+                <PlatformOverviewPage />
+              </PlatformOnly>
+            </RequirePlatform>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/platform/hospitals"
+        element={
+          <RequireAuth>
+            <RequirePlatform>
+              <PlatformOnly permission="platform:hospital:read">
+                <PlatformHospitalsPage />
+              </PlatformOnly>
+            </RequirePlatform>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/platform/hospitals/:hospitalId"
+        element={
+          <RequireAuth>
+            <RequirePlatform>
+              <PlatformOnly permission="platform:hospital:read">
+                <PlatformHospitalDetailPage />
+              </PlatformOnly>
+            </RequirePlatform>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/platform/audit"
+        element={
+          <RequireAuth>
+            <RequirePlatform>
+              <PlatformOnly permission="platform:audit:read">
+                <PlatformAuditPage />
+              </PlatformOnly>
+            </RequirePlatform>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/platform/reports"
+        element={
+          <RequireAuth>
+            <RequirePlatform>
+              <PlatformOnly permission="platform:report:read">
+                <PlatformReportsPage />
+              </PlatformOnly>
+            </RequirePlatform>
+          </RequireAuth>
+        }
+      />
       <Route
         path="/platform/*"
         element={

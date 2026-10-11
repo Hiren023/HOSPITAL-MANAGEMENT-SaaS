@@ -1,5 +1,5 @@
-import { SESSION, type Role } from '@infinigrow/shared'
-import type { Model } from 'mongoose'
+import { ROLE_PERMISSIONS, SESSION, type Role } from '@infinigrow/shared'
+import { Types, type Model } from 'mongoose'
 
 import { ApiError } from '../../infrastructure/api-error.js'
 import {
@@ -23,6 +23,7 @@ import {
 import { AUDIT_ACTIONS } from '../audit/audit.model.js'
 import { recordAudit } from '../audit/audit.service.js'
 import { hashToken as hashOtp } from '../identity/token.util.js'
+import { findManyViaAggregate } from '../../utilities/mongo-compat.js'
 import { OtpChallengeModel } from './otp.model.js'
 import {
   OTP_MAX_ATTEMPTS,
@@ -158,6 +159,16 @@ async function issueSession(input: {
  * With no `hospitalId`, a user holding several memberships is refused and told to
  * choose — silently picking one would be a surprising privilege decision.
  */
+/**
+ * The identity models are imported lazily throughout this module, because
+ * `identity/models.js` and the auth service are mutually dependent. This keeps that
+ * lazy import in one named place rather than repeating `await import(...)`.
+ */
+async function hospitalModelAsync(): Promise<Model<Record<string, unknown>>> {
+  const module = await import('../identity/models.js')
+  return module.HospitalModel as Model<Record<string, unknown>>
+}
+
 export async function login(input: {
   email: string
   password: string
@@ -272,11 +283,7 @@ export async function login(input: {
         hospitalId: null,
         hospitalName: null,
         membershipId: null,
-        permissions: [
-          'platform:hospital:read',
-          'platform:hospital:approve',
-          'platform:hospital:suspend',
-        ],
+        permissions: [...ROLE_PERMISSIONS.SUPER_ADMIN],
         emailVerified: Boolean(user['emailVerified']),
       },
     }
@@ -284,6 +291,62 @@ export async function login(input: {
 
   if (memberships.length === 0) {
     throw ApiError.forbidden('This account is not a member of any hospital')
+  }
+
+  /**
+   * A suspended tenant's staff must not be able to sign in.
+   *
+   * Suspension is the platform's most drastic lever: it is supposed to cut a hospital
+   * off entirely. Checking only membership status left that lever decorative — the
+   * membership stayed ACTIVE, so every user of a suspended hospital kept signing in
+   * normally while the platform console insisted access had been revoked.
+   *
+   * The lookup is deliberately a plain equality filter per distinct hospital id, so the
+   * tenant-scoped plugin leaves it alone; it is not wrapped in platform scope, which
+   * would return nothing at all.
+   */
+  const hospitalIds = [
+    ...new Set(memberships.map((m) => new Types.ObjectId(String(m['hospitalId'])))),
+  ]
+  const hospitalStatuses = await findManyViaAggregate<Record<string, unknown>>(
+    await hospitalModelAsync(),
+    // Real ObjectIds, not strings: `aggregate` performs no casting, so a string here
+    // matches nothing at all rather than raising an error.
+    { _id: { $in: hospitalIds } },
+    100,
+    { _id: 1, status: 1 } as unknown as Record<string, 0 | 1>,
+  )
+
+  const statusById = new Map<string, string>(
+    hospitalStatuses.map((row) => [String(row['_id']), String(row['status'])]),
+  )
+
+  const suspendedMembership = memberships.find((m) =>
+    ['SUSPENDED', 'REJECTED'].includes(statusById.get(String(m['hospitalId'])) ?? ''),
+  )
+
+  if (suspendedMembership !== undefined) {
+    const hospitalId = String(suspendedMembership['hospitalId'])
+    await recordAudit({
+      action: AUDIT_ACTIONS.LOGIN_FAILED,
+      actorUserId: userId,
+      actorRole: String(suspendedMembership['role'] ?? ''),
+      hospitalId,
+      resourceType: 'Hospital',
+      resourceId: hospitalId,
+      outcome: 'DENIED',
+      ip: input.meta.ip,
+      userAgent: input.meta.userAgent,
+      requestId: input.meta.requestId,
+      metadata: {
+        reason: 'tenant_not_active',
+        hospitalStatus: statusById.get(hospitalId) ?? 'UNKNOWN',
+      },
+    })
+
+    throw ApiError.forbidden(
+      'This hospital is not currently active. Contact your hospital administrator.',
+    )
   }
 
   const chosen = input.hospitalId

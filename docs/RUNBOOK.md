@@ -40,14 +40,38 @@ Copy-Item .env.example .env
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Start API (4000) and web (5173) together |
-| `npm run dev:api` | API only |
+| `npm run dev:api` | API only — **does not rebuild `@infinigrow/shared`, see below** |
 | `npm run dev:web` | Web only |
+| `npm run build:shared` | Rebuild `@infinigrow/shared` — run this after editing `packages/shared/src` |
 | `npm run verify` | Path guard → lint → typecheck → test |
 | `npm test` | All tests across all workspaces |
 | `npm run test:coverage` | Coverage with thresholds enforced |
 | `npm run build` | Build shared → api → web |
+| `npm run demo:flow` | Registration → approval → sign-in against a running API |
+| `npm run verify:proxy-auth` | The browser's own request path, through the dev proxy |
+| `npm run keys:jwt` | Generate an EdDSA signing pair for `.env` |
 | `npm run format` | Prettier write |
 | `npm run check:workspace-path` | Warn about a path containing spaces |
+
+### Stale `@infinigrow/shared` build
+
+**Symptom.** The API crashes at boot with
+`SyntaxError: The requested module '@infinigrow/shared' does not provide an export named 'X'`
+— for a symbol you can see in `packages/shared/src`.
+
+**Cause.** The API and web app consume `@infinigrow/shared` from its built `dist/`, not
+from source. `npm run dev` rebuilds it through `predev`. **`npm run dev:api` does not.**
+Editing a shared file therefore has no effect until the package is rebuilt, and the
+running API restarts against the old `dist/` and fails.
+
+**Fix.**
+
+```powershell
+npm run build:shared     # then the watcher restarts the API automatically
+```
+
+This is a build-ordering problem, not a code problem. Do not "fix" it by editing the
+consuming module to work around a missing export.
 
 ### First run
 

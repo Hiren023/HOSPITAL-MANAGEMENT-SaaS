@@ -144,13 +144,32 @@ describe('permission-driven navigation', () => {
     const labels = visibleLabels(identityFor('SUPER_ADMIN'))
     const routes = visibleRoutes(identityFor('SUPER_ADMIN'))
 
-    expect(labels).toEqual(['Overview', 'Hospitals', 'Audit trail'])
+    expect(labels).toEqual(['Overview', 'Hospitals', 'Reports', 'Audit trail'])
     for (const route of routes) {
       expect(route.startsWith('/platform')).toBe(true)
     }
     expect(labels).not.toContain('Patients')
     expect(labels).not.toContain('Billing')
     expect(labels).not.toContain('Hospital settings')
+  })
+
+  it('hides the reports entry from an operator without platform:report:read', () => {
+    // A custom SUPER_ADMIN grant that omits `platform:report:read`. Reports are a
+    // separate capability from tenant administration, and the menu must honour the grant
+    // rather than the role name.
+    const user = identityFor('SUPER_ADMIN', {
+      permissions: [
+        'platform:hospital:read',
+        'platform:hospital:write',
+        'platform:hospital:approve',
+        'platform:hospital:suspend',
+        'platform:audit:read',
+      ],
+    })
+
+    expect(visibleLabels(user)).toContain('Hospitals')
+    expect(visibleLabels(user)).toContain('Audit trail')
+    expect(visibleLabels(user)).not.toContain('Reports')
   })
 
   it('never offers a navigation entry the identity cannot actually open', () => {

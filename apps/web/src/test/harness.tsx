@@ -181,11 +181,31 @@ export function renderApp(ui: ReactElement, options: RenderAppOptions = {}): Ren
   })
 }
 
-/** Renders without an AuthProvider, for testing a component in isolation. */
-export function renderWithRouter(ui: ReactElement, route = '/'): RenderResult {
-  return render(ui, {
-    wrapper: ({ children }) => <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>,
+/**
+ * Renders the REAL `App` — router, guards and all — at a given path.
+ *
+ * Required whenever a test is about authorisation. Rendering a guarded page component
+ * directly bypasses the guard entirely, so an assertion like "this page must not call the
+ * API for a hospital user" would pass for the wrong reason and would keep passing even if
+ * the guard were deleted.
+ *
+ * `App` supplies its own `AuthProvider`, so only the router and query client are added
+ * here; wrapping it in a second provider would shadow the real one.
+ */
+export async function renderAppRoutes(path: string): Promise<RenderResult> {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false } },
   })
+
+  const { App } = await import('../App.js')
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
 }
 
 beforeEach(() => {

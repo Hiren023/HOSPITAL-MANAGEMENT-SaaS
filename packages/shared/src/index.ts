@@ -11,6 +11,7 @@
 
 export * from './types/ids.js'
 export * from './types/role.js'
+export * from './types/plan.js'
 export * from './api/errors.js'
 export * from './api/envelope.js'
 export * from './schemas/common.js'

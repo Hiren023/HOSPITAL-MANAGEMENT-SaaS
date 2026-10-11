@@ -148,6 +148,7 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | [`docs/API.md`](docs/API.md) | Conventions, error codes, current endpoints |
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | Operations, deployment, incident procedures |
 | [`docs/AUTH.md`](docs/AUTH.md) | Session design, trade-offs, rejected alternatives |
+| [`docs/SUPERADMIN-BOOTSTRAP.md`](docs/SUPERADMIN-BOOTSTRAP.md) | Creating the first Super Admin without a hardcoded password |
 | [`docs/FRONTEND.md`](docs/FRONTEND.md) | Web client architecture, design system, accessibility decisions |
 | [`docs/COMPLIANCE-NOTES.md`](docs/COMPLIANCE-NOTES.md) | DPDP-oriented design notes — **not legal advice** |
 
@@ -162,14 +163,15 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | 1 | Tenant plugin, identity models, Argon2id, access tokens, isolation matrix | ✅ Complete |
 | 2 | Authentication, registration, platform approval, audit trail, rate limiting | ✅ Complete |
 | 3 | UI/UX foundation, design system, public site, role-aware dashboards | ✅ Complete |
-| 4 | Hospital onboarding: departments, doctors, staff, permissions | ⏳ Next |
-| 5 | Patients & appointments | Planned |
-| 6 | Consultations, prescriptions, PDFs | Planned |
-| 7 | Staff attendance | Planned |
-| 8 | Billing & payments | Planned |
-| 9 | Reports, notifications, audit UI | Planned |
-| 10 | Hardening, deployment, backups, monitoring | Planned |
-| 11+ | Pharmacy, patient portal, ABDM/ABHA | Planned |
+| 4 | Super Admin SaaS management: tenants, lifecycle, plans, users, audit, reports | ✅ Complete |
+| 5 | Hospital onboarding: departments, doctors, staff, permissions | ⏳ Next |
+| 6 | Patients & appointments | Planned |
+| 7 | Consultations, prescriptions, PDFs | Planned |
+| 8 | Staff attendance | Planned |
+| 9 | Billing & payments | Planned |
+| 10 | Reports, notifications, audit UI for hospitals | Planned |
+| 11 | Hardening, deployment, backups, monitoring | Planned |
+| 12+ | Pharmacy, patient portal, ABDM/ABHA | Planned |
 
 ---
 

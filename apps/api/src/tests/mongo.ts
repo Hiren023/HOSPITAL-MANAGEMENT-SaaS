@@ -1,3 +1,7 @@
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from 'mongoose'
 
@@ -20,13 +24,43 @@ interface GlobalMongoState {
   server: MongoMemoryServer | null
   starting: Promise<MongoMemoryServer> | null
   failed: string | null
+  dbPath: string | null
 }
 
 const globalRef = globalThis as typeof globalThis & { __igcMongo?: GlobalMongoState }
 
 function state(): GlobalMongoState {
-  globalRef.__igcMongo ??= { server: null, starting: null, failed: null }
+  globalRef.__igcMongo ??= { server: null, starting: null, failed: null, dbPath: null }
   return globalRef.__igcMongo
+}
+
+/**
+ * A STABLE data directory, deleted when the process exits.
+ *
+ * Without this, `MongoMemoryServer.create()` allocates a fresh `mongo-mem-XXXX` temp
+ * directory per run and never removes it. Those accumulate at roughly 150 MB each; a
+ * long enough session fills the disk, at which point `mongod` aborts at startup with an
+ * opaque `fassert() failure` and every database-backed test silently SKIPS. That is a
+ * genuinely misleading failure — the suite reports "skipped" rather than "broken".
+ *
+ * A fixed directory plus an exit handler keeps the footprint at one database instead of
+ * hundreds, and it is removed whether the run passed, failed or was interrupted.
+ */
+function stableDataPath(): string {
+  const store = state()
+  if (store.dbPath) return store.dbPath
+
+  store.dbPath = mkdtempSync(join(tmpdir(), 'igc-test-db-'))
+  process.once('exit', () => {
+    try {
+      if (store.dbPath) rmSync(store.dbPath, { recursive: true, force: true })
+    } catch {
+      // Best effort: a locked file on Windows must not turn a passing run into a
+      // non-zero exit code.
+    }
+  })
+
+  return store.dbPath
 }
 
 export async function startTestDatabase(): Promise<string> {
@@ -34,7 +68,9 @@ export async function startTestDatabase(): Promise<string> {
 
   if (store.server) return store.server.getUri()
 
-  store.starting ??= MongoMemoryServer.create()
+  store.starting ??= MongoMemoryServer.create({
+    instance: { dbPath: stableDataPath(), storageEngine: 'wiredTiger' },
+  })
     .then((server) => {
       store.server = server
       return server
@@ -61,6 +97,17 @@ export async function stopTestDatabase(): Promise<void> {
   await store.server.stop()
   store.server = null
   store.starting = null
+
+  // Remove the data directory here as well as on exit, so a run that owns the whole
+  // process leaves nothing behind.
+  if (store.dbPath) {
+    try {
+      rmSync(store.dbPath, { recursive: true, force: true })
+    } catch {
+      // Locked on Windows if mongod has not fully exited; the exit handler retries.
+    }
+    store.dbPath = null
+  }
 }
 
 /** Remove every document while keeping the connection and indexes intact. */

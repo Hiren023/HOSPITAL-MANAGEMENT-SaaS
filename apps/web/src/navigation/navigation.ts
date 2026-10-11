@@ -65,6 +65,12 @@ const PLATFORM_NAV: NavSection[] = [
         requires: ['platform:hospital:read'],
       },
       {
+        label: 'Reports',
+        to: '/platform/reports',
+        icon: TrendingUp,
+        requires: ['platform:report:read'],
+      },
+      {
         label: 'Audit trail',
         to: '/platform/audit',
         icon: ScrollText,

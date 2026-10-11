@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose'
 
-import { HOSPITAL_DEFAULTS } from '@infinigrow/shared'
+import { DEFAULT_PLAN, HOSPITAL_DEFAULTS, PLANS } from '@infinigrow/shared'
 
 /**
  * Domain models.
@@ -41,6 +41,20 @@ const hospitalSchema = new Schema(
     approvedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     suspendedAt: { type: Date },
     suspensionReason: { type: String, maxlength: 500 },
+    /** Set when a suspended tenant is restored, so the lifecycle is fully traceable. */
+    reactivatedAt: { type: Date },
+
+    /**
+     * Subscription plan.
+     *
+     * Records which commercial tier a tenant is on. Phase 4 covers ASSIGNMENT ONLY:
+     * there is no payment gateway, no invoicing and no automatic suspension for
+     * non-payment. The seat limit is enforced server-side when staff are added; nothing
+     * here decides what anyone is charged (docs/SECURITY.md R16).
+     */
+    plan: { type: String, enum: PLANS, default: DEFAULT_PLAN, index: true },
+    planChangedAt: { type: Date },
+    planChangedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     settings: {
       currency: { type: String, default: HOSPITAL_DEFAULTS.currency },
       timezone: { type: String, default: HOSPITAL_DEFAULTS.timezone },
@@ -62,6 +76,8 @@ const hospitalSchema = new Schema(
 
 hospitalSchema.index({ slug: 1 }, { unique: true })
 hospitalSchema.index({ status: 1, createdAt: -1 })
+// Supports the platform tenant list: sorted newest-first with an optional status filter.
+hospitalSchema.index({ plan: 1, createdAt: -1 })
 
 // ────────────────────────────── users (global identity) ──────────────────────────────
 

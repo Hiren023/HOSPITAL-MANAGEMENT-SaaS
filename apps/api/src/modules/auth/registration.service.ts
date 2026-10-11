@@ -181,7 +181,9 @@ export async function approveHospital(input: {
             approvedBy: input.actor.userId,
           },
         },
-        { new: true },
+        // `returnDocument: 'after'` rather than the deprecated `{ new: true }`, which
+        // Mongoose 9 warns about and a future major will remove.
+        { returnDocument: 'after' },
       )
       .lean()
       .exec(),

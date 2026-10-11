@@ -50,7 +50,20 @@ async function main() {
 
   if (login.status !== 200) {
     line('result', `${login.status} ${login.body?.error?.message ?? ''}`)
-    console.log('\n  Bootstrap the operator first. See docs/SUPERADMIN-BOOTSTRAP.md\n')
+
+    if (login.status === 429) {
+      // The login limiter allows 10 attempts per 15 minutes and this script spends three
+      // of them. Telling the reader to bootstrap an operator would send them hunting for
+      // a missing account when the account is present and fine.
+      console.log(
+        '\n  Rate limited, not misconfigured. The login limiter allows 10 attempts per\n' +
+          '  15 minutes; this script uses three of them. Wait for the window, or restart\n' +
+          '  the API — the limiter store is in memory and a restart clears it.\n',
+      )
+    } else {
+      console.log('\n  Bootstrap the operator first. See docs/SUPERADMIN-BOOTSTRAP.md\n')
+    }
+
     process.exitCode = 1
     return
   }

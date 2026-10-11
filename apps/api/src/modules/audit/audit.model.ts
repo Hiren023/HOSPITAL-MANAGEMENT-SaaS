@@ -135,6 +135,26 @@ export const AUDIT_ACTIONS = {
   DOCTOR_PROFILE_UPDATED: 'doctor_profile.updated',
   SCHEDULE_UPDATED: 'doctor.schedule_updated',
 
+  // Patients
+  //
+  // A patient record identifies a person who has not consented to its existence in this
+  // system, so reads are audited as well as writes. What is NOT audited is the record's
+  // contents: the metadata records that a record was opened and by whom, never the
+  // demographics, and never an appointment reason.
+  PATIENT_REGISTERED: 'patient.registered',
+  PATIENT_UPDATED: 'patient.updated',
+  PATIENT_VIEWED: 'patient.viewed',
+  PATIENT_SEARCHED: 'patient.searched',
+
+  // Appointments
+  APPOINTMENT_BOOKED: 'appointment.booked',
+  APPOINTMENT_RESCHEDULED: 'appointment.rescheduled',
+  APPOINTMENT_CANCELLED: 'appointment.cancelled',
+  APPOINTMENT_STATUS_CHANGED: 'appointment.status_changed',
+  APPOINTMENT_COMPLETED: 'appointment.completed',
+  APPOINTMENT_NO_SHOW: 'appointment.no_show',
+  APPOINTMENT_VIEWED: 'appointment.viewed',
+
   /**
    * A user account was activated or suspended from the platform side.
    *

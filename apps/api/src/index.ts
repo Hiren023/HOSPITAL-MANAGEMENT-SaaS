@@ -5,6 +5,7 @@ import { createApp } from './app.js'
 import { SERVICE_NAME, SERVICE_VERSION } from './config/constants.js'
 import { env } from './config/env.js'
 import { connectToDatabase, disconnectFromDatabase } from './infrastructure/db/connection.js'
+import { ensureIndexes } from './infrastructure/db/indexes.js'
 import { logger } from './infrastructure/logger.js'
 
 /**
@@ -20,6 +21,12 @@ const SHUTDOWN_GRACE_MS = 15_000
 async function bootstrap(): Promise<void> {
   try {
     await connectToDatabase()
+
+    // Indexes are the enforcement mechanism for several correctness guarantees — double
+    // booking above all — and `autoIndex` is off, so nothing else creates them. Failing
+    // here is the correct outcome: a server serving traffic without its unique constraints
+    // would accept two bookings for one slot and never say why.
+    await ensureIndexes()
   } catch (error) {
     logger.fatal({ err: error }, 'Failed to connect to MongoDB — refusing to start')
     process.exit(1)

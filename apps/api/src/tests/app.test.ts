@@ -133,7 +133,13 @@ describe('error envelope', () => {
   })
 
   it('uses a generic message for NOT_FOUND so ids cannot be enumerated', async () => {
-    const response = await request(app).get('/api/v1/patients/000000000000000000000000')
+    // A path matching NO route. This used to be `/api/v1/patients/000…`, genuinely unknown
+    // when written — but `/patients` is a real tenant-scoped route now, so it answers 401,
+    // correctly, because authentication precedes routing. Reusing it here would assert the
+    // opposite of what this test is about.
+    const response = await request(app).get(
+      '/api/v1/no-such-resource/000000000000000000000000',
+    )
 
     expect(response.status).toBe(404)
     expect(response.body.error.message).toBe('Resource not found')

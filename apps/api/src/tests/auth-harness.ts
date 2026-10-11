@@ -5,6 +5,7 @@ import supertest from 'supertest'
 
 import { createApp } from '../app.js'
 import { connectToDatabase } from '../infrastructure/db/connection.js'
+import { ensureIndexes } from '../infrastructure/db/indexes.js'
 import { hashPassword } from '../modules/identity/password.util.js'
 import {
   HospitalModel,
@@ -100,12 +101,22 @@ async function createMembership(input: {
   userId: string
   hospitalId: string
   role: string
+  /**
+   * An explicit narrowing of the role's ceiling.
+   *
+   * Empty by default, which is the normal case: a membership with no explicit grants gets
+   * its role's full ceiling. Supplying this is how a test creates a user who deliberately
+   * holds LESS than their role normally would — someone who can read a patient list but
+   * not edit one. The server caps any grant at the role's ceiling, so a test cannot
+   * accidentally mint a super-privileged membership here.
+   */
+  grantedPermissions?: string[]
 }): Promise<string> {
   const membership = await (MembershipModel as Model<Record<string, unknown>>).create({
     userId: input.userId,
     hospitalId: input.hospitalId,
     role: input.role,
-    grantedPermissions: [],
+    grantedPermissions: input.grantedPermissions ?? [],
     status: 'ACTIVE',
     joinedAt: new Date(),
   })
@@ -204,8 +215,22 @@ export async function resetDatabase(): Promise<void> {
   await Promise.all((collections ?? []).map((collection) => collection.deleteMany({})))
 }
 
+/**
+ * Connect, then build the indexes.
+ *
+ * `autoIndex` defaults to false because index creation is meant to be an explicit,
+ * verifiable step — but no migration runner exists yet, so without this the database has
+ * only its `_id` index. Every UNIQUE constraint declared in a schema would be absent, and
+ * anything relying on one would pass its tests while being unenforceable in practice.
+ *
+ * That is not hypothetical. The duplicate-booking tests were returning 201 for two
+ * simultaneous requests to the same slot, because the unique index they depend on did not
+ * exist. `syncIndexes` builds exactly what the schemas declare, so these tests exercise
+ * the real constraints instead of a fiction of them.
+ */
 export async function connectTestDatabase(uri: string): Promise<void> {
   await connectToDatabase(uri, 'infinigrow_auth_test')
+  await ensureIndexes()
 }
 
 export { mongoose }

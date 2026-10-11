@@ -56,4 +56,23 @@ export const HOSPITAL_DEFAULTS = Object.freeze({
   maxAppointmentAdvanceDays: 90,
   invoicePrefix: 'INV',
   dateFormat: 'DD/MM/YYYY',
+  /** Prepended to the per-hospital patient sequence, giving e.g. `PT-000042`. */
+  patientNumberPrefix: 'PT',
+  /**
+   * Opening hours per weekday, as minutes from local midnight.
+   *
+   * Keyed by weekday 0–6 (Sunday = 0) to match the unit a doctor's weekly schedule
+   * stores, so the two compare directly with no conversion. A day with no entry is
+   * closed: absence means "the hospital does not work then", which is the safe default
+   * for a booking system — assuming open would let someone book a 3am consultation.
+   */
+  workingHours: Object.freeze({
+    0: null,
+    1: Object.freeze({ opensAtMinute: 9 * 60, closesAtMinute: 18 * 60 }),
+    2: Object.freeze({ opensAtMinute: 9 * 60, closesAtMinute: 18 * 60 }),
+    3: Object.freeze({ opensAtMinute: 9 * 60, closesAtMinute: 18 * 60 }),
+    4: Object.freeze({ opensAtMinute: 9 * 60, closesAtMinute: 18 * 60 }),
+    5: Object.freeze({ opensAtMinute: 9 * 60, closesAtMinute: 18 * 60 }),
+    6: Object.freeze({ opensAtMinute: 9 * 60, closesAtMinute: 14 * 60 }),
+  }),
 })

@@ -1,17 +1,8 @@
-import {
-  Router,
-  type NextFunction,
-  type Request,
-  type RequestHandler,
-  type Response,
-} from 'express'
+import { type NextFunction, type Request, type Response } from 'express'
 import type { Permission } from '@infinigrow/shared'
 
-import {
-  authenticate,
-  requirePermission,
-  requireTenantScope,
-} from '../../middleware/auth.js'
+import { createTenantRouter } from '../../infrastructure/tenant-router.js'
+import { requirePermission } from '../../middleware/auth.js'
 import { validate } from '../../validation/validate.js'
 import {
   createDepartmentSchema,
@@ -68,31 +59,12 @@ import {
  * Each route additionally requires its specific permission, so a doctor holding
  * `schedule:write` cannot create a department.
  */
-const hospitalAdminRouter: Router = Router()
+// The router is created by the shared factory, which guarantees every route is
+// authenticated and tenant-scoped before it runs. See `infrastructure/tenant-router.ts`
+// for why this is a registrar rather than `router.use()` � the short version is that
+// `router.use` at the API root leaks the boundary onto every unmatched path.
+const { router: hospitalAdminRouter, route: tenantRoute } = createTenantRouter()
 
-/**
- * The only way to add a route to this module.
- *
- * The gate is prepended here rather than applied with `router.use(authenticate, …)` so
- * that it wraps the routes and nothing else.
- *
- * `router.use()` applies to every path that ENTERS the router, including paths that match
- * no route at all. This router is mounted at the API root, so a router-wide `use` became
- * a global gate on `/api/v1/*`: an unknown path answered 401 instead of 404, and the
- * `requireTenantScope` check rejected `SUPER_ADMIN` before `/platform/*` was ever reached.
- * Both were silent — the routes themselves were correct.
- *
- * Keeping the router module-private and registering only through this helper preserves
- * the original guarantee (a route cannot be added without the gate) without widening the
- * gate's blast radius to the whole API surface.
- */
-function tenantRoute(
-  method: 'get' | 'post' | 'put' | 'patch' | 'delete',
-  path: string,
-  ...handlers: RequestHandler[]
-): void {
-  hospitalAdminRouter[method](path, authenticate, requireTenantScope, ...handlers)
-}
 
 export { hospitalAdminRouter }
 

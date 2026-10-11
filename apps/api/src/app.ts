@@ -24,6 +24,8 @@ import { authRouter } from './modules/auth/auth.routes.js'
 import { registrationRouter } from './modules/auth/registration.routes.js'
 import { platformRouter } from './modules/platform/platform.routes.js'
 import { hospitalAdminRouter } from './modules/hospital-admin/hospital-admin.routes.js'
+import { patientsRouter } from './modules/patients/patients.routes.js'
+import { appointmentsRouter } from './modules/appointments/appointments.routes.js'
 import { healthRouter } from './modules/health/health.routes.js'
 
 /**
@@ -153,6 +155,12 @@ export function createApp(): Express {
   // Hospital administration lives at the API root, not under `/platform`: these routes
   // are tenant-scoped and a `SUPER_ADMIN` cannot reach them.
   app.use(`${API_BASE_PATH}`, hospitalAdminRouter)
+  // Patients and appointments are tenant-scoped in the same way, and use the same
+  // registrar-built router so their routes cannot be added without the boundary either.
+  // They stay separate routers rather than more paths on the hospital-admin one so that
+  // widening scheduling access cannot quietly widen patient access, or the reverse.
+  app.use(`${API_BASE_PATH}`, patientsRouter)
+  app.use(`${API_BASE_PATH}`, appointmentsRouter)
   // Public registration stays on its own router; everything else platform-scoped lives
   // on `platformRouter`, where every route is authenticated and platform-permissioned by
   // construction rather than by each handler remembering to add the middleware.

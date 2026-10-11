@@ -124,9 +124,19 @@ export const PERMISSIONS = [
   'patient:read',
   'patient:write',
 
-  // Appointments
+  // Appointments.
+  //
+  // `appointment:read` / `appointment:write` scope a DOCTOR to their OWN schedule; the
+  // `:any` variants lift that and are what reception and administration hold, because
+  // booking on behalf of other doctors is their job.
+  //
+  // Modelled as permissions rather than a role-name check so "self only" is enforced by
+  // the same mechanism as everything else, and a future role that should see the whole
+  // clinic is granted it explicitly rather than having it inferred from its name.
   'appointment:read',
   'appointment:write',
+  'appointment:read:any',
+  'appointment:write:any',
 
   // Clinical records
   'consultation:read',
@@ -180,6 +190,8 @@ const HOSPITAL_MANAGEMENT_PERMISSIONS = [
   'patient:write',
   'appointment:read',
   'appointment:write',
+  'appointment:read:any',
+  'appointment:write:any',
   'consultation:read',
   'consultation:write',
   'prescription:read',
@@ -260,6 +272,10 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, ReadonlySet<Permission>>> =
     'patient:write',
     'appointment:read',
     'appointment:write',
+    // Reception books on behalf of every doctor in the clinic, so it holds the `:any`
+    // variants. This is the difference between reception's view and a doctor's.
+    'appointment:read:any',
+    'appointment:write:any',
     'attendance:read',
     'attendance:write',
     'notification:read',
@@ -292,6 +308,10 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, ReadonlySet<Permission>>> =
     'hospital:read',
     'patient:read',
     'appointment:read',
+    // Billing spans the whole clinic, so an accountant sees everyone's appointments.
+    // Without `:any` the self-scoping rule would show them none at all, which is not
+    // "restricted", it is "broken".
+    'appointment:read:any',
     'billing:read',
     'billing:write',
     'payment:read',

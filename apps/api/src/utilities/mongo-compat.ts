@@ -134,7 +134,12 @@ export async function findManyViaAggregate<T = Document>(
   project?: Record<string, 0 | 1>,
 ): Promise<T[]> {
   let stage = model.aggregate<T>([{ $match: match }]).limit(limit)
-  stage = stage.project(project ?? { _id: 1 })
+
+  // Only project when asked. Defaulting to `{ _id: 1 }` silently returns documents
+  // stripped to their id, so every field the caller then reads is `undefined` — which
+  // surfaces far from the cause, as a BSONError from a later `new ObjectId('')`. This is
+  // the same trap `findPageViaAggregate` had; it is fixed in both.
+  if (project) stage = stage.project(project)
 
   return stage.exec()
 }

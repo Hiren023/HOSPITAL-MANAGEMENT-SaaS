@@ -69,6 +69,33 @@ const hospitalSchema = new Schema(
       },
       invoicePrefix: { type: String, default: HOSPITAL_DEFAULTS.invoicePrefix },
       dateFormat: { type: String, default: HOSPITAL_DEFAULTS.dateFormat },
+      patientNumberPrefix: {
+        type: String,
+        default: HOSPITAL_DEFAULTS.patientNumberPrefix,
+      },
+
+      /**
+       * Opening hours, keyed by weekday 0–6 (Sunday = 0).
+       *
+       * Minutes from local midnight — the same unit a doctor's schedule block stores — so
+       * a booking is checked against the roster with no conversion at all. A weekday whose
+       * value is `null` is CLOSED: absence means "the hospital does not work then", which
+       * is the safe reading. A booking system that defaults to open will happily take a
+       * 3am consultation.
+       *
+       * Defaults are declared per key rather than on the object, so a hospital that has
+       * never been configured is open on weekdays from its very first appointment instead
+       * of appearing permanently closed.
+       */
+      workingHours: {
+        0: { type: Schema.Types.Mixed, default: HOSPITAL_DEFAULTS.workingHours[0] },
+        1: { type: Schema.Types.Mixed, default: HOSPITAL_DEFAULTS.workingHours[1] },
+        2: { type: Schema.Types.Mixed, default: HOSPITAL_DEFAULTS.workingHours[2] },
+        3: { type: Schema.Types.Mixed, default: HOSPITAL_DEFAULTS.workingHours[3] },
+        4: { type: Schema.Types.Mixed, default: HOSPITAL_DEFAULTS.workingHours[4] },
+        5: { type: Schema.Types.Mixed, default: HOSPITAL_DEFAULTS.workingHours[5] },
+        6: { type: Schema.Types.Mixed, default: HOSPITAL_DEFAULTS.workingHours[6] },
+      },
     },
   },
   { timestamps: true, strict: true, strictQuery: true },

@@ -243,7 +243,13 @@ export function tenantScopedSchema<T = unknown>(
         type: Schema.Types.ObjectId,
         required: true,
         immutable: true,
-        index: true,
+        // Deliberately NOT `index: true`. A standalone index here would collide with any
+        // schema needing a UNIQUE index on `hospitalId` alone — MongoDB refuses two indexes
+        // over the same key pattern with different options, so `PatientCounter`'s "exactly
+        // one counter per hospital" constraint could not exist while this index did.
+        //
+        // It was redundant anyway: the `{ hospitalId, createdAt }` index declared below
+        // answers a query on `hospitalId` alone using its leading field.
       },
     },
     {

@@ -124,6 +124,16 @@ export const AUDIT_ACTIONS = {
   MEMBERSHIP_CREATED: 'membership.created',
   MEMBERSHIP_REVOKED: 'membership.revoked',
   PERMISSIONS_CHANGED: 'membership.permissions_changed',
+  MEMBERSHIP_STATUS_CHANGED: 'membership.status_changed',
+
+  // Hospital administration (Phase 5)
+  HOSPITAL_PROFILE_UPDATED: 'hospital.profile_updated',
+  HOSPITAL_SETTINGS_UPDATED: 'hospital.settings_updated',
+  DEPARTMENT_CREATED: 'department.created',
+  DEPARTMENT_UPDATED: 'department.updated',
+  DOCTOR_PROFILE_CREATED: 'doctor_profile.created',
+  DOCTOR_PROFILE_UPDATED: 'doctor_profile.updated',
+  SCHEDULE_UPDATED: 'doctor.schedule_updated',
 
   /**
    * A user account was activated or suspended from the platform side.

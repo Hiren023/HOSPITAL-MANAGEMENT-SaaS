@@ -17,7 +17,15 @@ export interface RequestContext {
   membershipId: MembershipId
   role: Role
   hospitalId: HospitalId
-  permissions: ReadonlySet<Permission>
+  /**
+   * The caller's effective permissions, as a plain array.
+   *
+   * An array rather than the `Set` that `resolvePermissions` returns, so this matches
+   * the shape the login response already sends to the browser. A `Set` here is a trap:
+   * `.has` works but `.includes` and `.map` do not, so the first consumer written the
+   * other way fails with "…is not a function" far from where the value was built.
+   */
+  permissions: Permission[]
   ip: string
   userAgent: string
 }

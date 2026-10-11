@@ -21,6 +21,41 @@ export const ROLES = [
 
 export type Role = (typeof ROLES)[number]
 
+/**
+ * Roles a hospital administrator may assign to a member of their own hospital.
+ *
+ * `SUPER_ADMIN` is excluded, and `PATIENT` too: a patient is the subject of care, not
+ * a member of staff who can be given a staff account. Both exclusions are enforced in
+ * this shared list rather than only in the API's validation schema, so the client's role
+ * picker offers only assignable roles and cannot drift from what the server accepts.
+ *
+ * `SUPER_ADMIN` also cannot appear here even by accident — a hospital has no membership
+ * that a platform operator could be attached to, and granting one would mint an account
+ * that can suspend every hospital on the platform.
+ */
+export const HOSPITAL_ASSIGNABLE_ROLES = [
+  'HOSPITAL_ADMIN',
+  'DOCTOR',
+  'RECEPTIONIST',
+  'STAFF',
+  'PHARMACIST',
+  'ACCOUNTANT',
+] as const
+
+export type HospitalAssignableRole = (typeof HOSPITAL_ASSIGNABLE_ROLES)[number]
+
+export function isHospitalAssignableRole(value: unknown): value is HospitalAssignableRole {
+  return (
+    typeof value === 'string' &&
+    (HOSPITAL_ASSIGNABLE_ROLES as readonly string[]).includes(value)
+  )
+}
+
+/** True for roles that may never be granted by a hospital, whatever the request says. */
+export function isPlatformOnlyRole(value: string): boolean {
+  return !isHospitalAssignableRole(value)
+}
+
 export function isRole(value: unknown): value is Role {
   return typeof value === 'string' && (ROLES as readonly string[]).includes(value)
 }
@@ -70,6 +105,20 @@ export const PERMISSIONS = [
   // Clinical organisation
   'department:read',
   'department:write',
+
+  /**
+   * Doctors and their professional profiles.
+   *
+   * Distinct from `user:read`: a doctor's registration number, qualifications and
+   * consultation fee are professional records, not account records, and the two are not
+   * the same audience.
+   */
+  'doctor:read',
+  'doctor:write',
+
+  /** Working schedules and availability. */
+  'schedule:read',
+  'schedule:write',
 
   // Patients
   'patient:read',
@@ -123,6 +172,10 @@ const HOSPITAL_MANAGEMENT_PERMISSIONS = [
   'user:permissions:manage',
   'department:read',
   'department:write',
+  'doctor:read',
+  'doctor:write',
+  'schedule:read',
+  'schedule:write',
   'patient:read',
   'patient:write',
   'appointment:read',
@@ -174,6 +227,9 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, ReadonlySet<Permission>>> =
   DOCTOR: new Set<Permission>([
     'hospital:read',
     'department:read',
+    'doctor:read',
+    'schedule:read',
+    'schedule:write',
     'patient:read',
     'patient:write',
     'appointment:read',
@@ -195,6 +251,11 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, ReadonlySet<Permission>>> =
   RECEPTIONIST: new Set<Permission>([
     'hospital:read',
     'department:read',
+    // Reception books appointments, which requires knowing who the doctors are and
+    // when they work. Read-only: a receptionist has no business editing a doctor's
+    // professional record or their schedule.
+    'doctor:read',
+    'schedule:read',
     'patient:read',
     'patient:write',
     'appointment:read',

@@ -113,10 +113,18 @@ export async function authenticate(
     }
 
     const role = (membership['role'] as Role) ?? claims.role
-    const permissions = resolvePermissions(
-      role,
-      (membership['grantedPermissions'] as string[]) ?? [],
-    )
+
+    // `resolvePermissions` returns a `Set`. Normalised to an array here, once, so every
+    // consumer of `req.auth.permissions` can treat it as a list.
+    //
+    // Leaving it a `Set` is a trap that fails late and unhelpfully: `.includes` and
+    // `.map` do not exist on it, so the error surfaces as "…is not a function" from
+    // whichever service happens to touch it first, rather than at the point the value
+    // was built. `requirePermission` got away with it because it only ever tests
+    // membership of the set.
+    const permissions = [
+      ...resolvePermissions(role, (membership['grantedPermissions'] as string[]) ?? []),
+    ]
 
     const context: RequestContext = {
       ...common,
@@ -153,7 +161,7 @@ export function requirePermission(...required: Permission[]) {
       return next(ApiError.forbidden('This operation is not available to platform administrators'))
     }
 
-    const missing = required.filter((permission) => !context.permissions.has(permission))
+    const missing = required.filter((permission) => !context.permissions.includes(permission))
 
     if (missing.length > 0) {
       return next(ApiError.forbidden('You do not have permission to perform this action'))

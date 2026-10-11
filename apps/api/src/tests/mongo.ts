@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdirSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -35,7 +35,7 @@ function state(): GlobalMongoState {
 }
 
 /**
- * A STABLE data directory, deleted when the process exits.
+ * A STABLE, self-healing data directory.
  *
  * Without this, `MongoMemoryServer.create()` allocates a fresh `mongo-mem-XXXX` temp
  * directory per run and never removes it. Those accumulate at roughly 150 MB each; a
@@ -43,14 +43,23 @@ function state(): GlobalMongoState {
  * opaque `fassert() failure` and every database-backed test silently SKIPS. That is a
  * genuinely misleading failure — the suite reports "skipped" rather than "broken".
  *
- * A fixed directory plus an exit handler keeps the footprint at one database instead of
- * hundreds, and it is removed whether the run passed, failed or was interrupted.
+ * The directory is named after THIS process id, which makes two concurrent test runs
+ * independent rather than fighting over one path. Crucially, the exit handler alone is
+ * not enough: an exit handler does not run when the process is killed outright (a
+ * truncated CI pipe, a cancelled run, an OOM kill), and every such run leaks a
+ * directory. So on startup we also sweep directories left by processes that no longer
+ * exist. Cleanup therefore does not depend on the run finishing tidily.
  */
 function stableDataPath(): string {
   const store = state()
   if (store.dbPath) return store.dbPath
 
-  store.dbPath = mkdtempSync(join(tmpdir(), 'igc-test-db-'))
+  sweepAbandonedDataPaths()
+
+  store.dbPath = join(tmpdir(), `igc-test-db-${process.pid}`)
+  rmSync(store.dbPath, { recursive: true, force: true })
+  mkdirSync(store.dbPath, { recursive: true })
+
   process.once('exit', () => {
     try {
       if (store.dbPath) rmSync(store.dbPath, { recursive: true, force: true })
@@ -61,6 +70,45 @@ function stableDataPath(): string {
   })
 
   return store.dbPath
+}
+
+/** Remove `igc-test-db-*` directories whose owning process is gone. */
+function sweepAbandonedDataPaths(): void {
+  const prefix = 'igc-test-db-'
+  let entries: string[]
+
+  try {
+    entries = readdirSync(tmpdir())
+  } catch {
+    return
+  }
+
+  for (const entry of entries) {
+    if (!entry.startsWith(prefix)) continue
+
+    const pid = Number(entry.slice(prefix.length))
+    if (!Number.isInteger(pid) || pid <= 0) continue
+
+    // Our own directory belongs to this process; leave it alone.
+    if (pid === process.pid) continue
+
+    try {
+      // Signal 0 performs the permission/existence check without delivering anything.
+      // A dead process reports ESRCH, so this is a safe liveness test that works
+      // identically on Windows and POSIX.
+      process.kill(pid, 0)
+      continue
+    } catch (error) {
+      // EPERM means the process exists but belongs to another user — also alive.
+      if ((error as NodeJS.ErrnoException).code === 'EPERM') continue
+    }
+
+    try {
+      rmSync(join(tmpdir(), entry), { recursive: true, force: true })
+    } catch {
+      // Still locked by a dying process; the next run will sweep it.
+    }
+  }
 }
 
 export async function startTestDatabase(): Promise<string> {

@@ -46,7 +46,7 @@ function contextFor(hospitalId: mongoose.Types.ObjectId): RequestContext {
     membershipId: new mongoose.Types.ObjectId() as RequestContext['membershipId'],
     role: 'HOSPITAL_ADMIN',
     hospitalId: hospitalId as unknown as RequestContext['hospitalId'],
-    permissions: new Set(['patient:read', 'patient:write'] as const),
+    permissions: ['patient:read', 'patient:write'],
     ip: '127.0.0.1',
     userAgent: 'vitest',
   }

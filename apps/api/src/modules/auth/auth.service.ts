@@ -731,7 +731,7 @@ export async function getCurrentUser(context: {
   role: Role
   hospitalId: string | null
   membershipId: string | null
-  permissions: ReadonlySet<string>
+  permissions: readonly string[]
 }): Promise<CurrentUser> {
   const user = await userModel()
     .findById(context.userId)

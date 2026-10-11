@@ -26,7 +26,7 @@ function tenantContext(overrides: Partial<RequestContext> = {}): RequestContext 
     membershipId: 'mem-1' as RequestContext['membershipId'],
     role: 'DOCTOR',
     hospitalId: 'hospital-a' as RequestContext['hospitalId'],
-    permissions: new Set(['patient:read'] as const),
+    permissions: ['patient:read'],
     ip: '127.0.0.1',
     userAgent: 'vitest',
     ...overrides,

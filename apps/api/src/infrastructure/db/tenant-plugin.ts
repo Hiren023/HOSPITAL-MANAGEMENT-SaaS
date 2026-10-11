@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { Schema } from 'mongoose'
+import { Schema, Types } from 'mongoose'
 // A Mongoose query has many generic parameters; alias the loose shape used by hooks so
 // the signatures below stay readable and do not break when generics change.
 type Query = {
@@ -151,8 +151,21 @@ function injectTenantScope(schema: Schema, modelName: string): void {
       }
 
       // Prepend the match so a later pipeline stage cannot remove the restriction.
+      //
+      // `hospitalId` must be a real ObjectId here, NOT the string carried on the context.
+      // An aggregation is handed to the driver as-is and gets no casting, so
+      // `{ hospitalId: '6acb…' }` never matches the stored ObjectId. That failure is
+      // silent and total — the query succeeds, returns nothing, and looks exactly like an
+      // empty table. The Query path above is immune because Mongoose casts string ids for
+      // typed paths, which is why only the aggregate routes were affected.
+      if (!Types.ObjectId.isValid(context.hospitalId)) {
+        throw new Error(
+          `Tenant context for "${modelName}" carries a hospitalId that is not an ObjectId.`,
+        )
+      }
+
       const pipeline = this.pipeline() as unknown[]
-      pipeline.unshift({ $match: { hospitalId: context.hospitalId } })
+      pipeline.unshift({ $match: { hospitalId: new Types.ObjectId(context.hospitalId) } })
     },
   )
 }
@@ -218,7 +231,10 @@ function requireTenantOnCreate(schema: Schema): void {
 export function tenantScopedSchema<T = unknown>(
   modelName: string,
   definition: Record<string, unknown> = {},
-  options: { timestamps?: boolean; strict?: boolean } = {},
+  // `strictQuery` is included so tenant-scoped schemas can reject query fields that do
+  // not exist, matching the identity models. Without it a typo in a filter is silently
+  // ignored and the query returns MORE rows than intended, not fewer.
+  options: { timestamps?: boolean; strict?: boolean; strictQuery?: boolean } = {},
 ): Schema<T> {
   const schema = new Schema<T>(
     {

@@ -39,6 +39,10 @@ import type { Model } from 'mongoose'
  *
  * **Rule: any filter using an operator on a typed path goes through `aggregate`.**
  * Equality filters and top-level `$or` are fine in a Query and should stay there.
+ *
+ * This applies to PLAIN schemas too, not only tenant-scoped ones — `User.find({_id:
+ * {$in: ids}})` fails identically. It is a Mongoose 9 behaviour, not something the
+ * isolation plugin introduces.
  */
 
 type Document = Record<string, unknown>

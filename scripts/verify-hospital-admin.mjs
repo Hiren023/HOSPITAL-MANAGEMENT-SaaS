@@ -389,11 +389,27 @@ async function main() {
   })
 
   if (audit.status === 200) {
-    const serialised = JSON.stringify(audit.body?.data ?? {})
+    const events = audit.body?.data?.items ?? []
+
+    // Only the EVENTS are searched — not the whole `data` object.
+    //
+    // The audit response also carries `nextCursor`, an opaque base64url token. It begins
+    // "eyJ" because it encodes a JSON object (`{"` → `eyJ`), so scanning the whole payload
+    // for a JWT prefix matches the cursor on every single call. That is a check which
+    // always fails and teaches everyone to ignore it. A leaked token would be inside an
+    // event, so that is where the search belongs.
+    const serialised = JSON.stringify(events)
+
     checkThat('the registration number never appears', !serialised.includes(registration))
-    checkThat('no password hash appears', !serialised.includes('argon2'))
-    checkThat('no refresh token appears', !serialised.includes('refresh'))
-    line('events returned', audit.body?.data?.items?.length)
+    // Match the SHAPE of a secret, not a word. Checking for the string "refresh" looks like
+    // security and finds nothing: the audit log legitimately records actions named
+    // `auth.refreshed`, so that check fails on correct behaviour — and a check that cries
+    // wolf is worse than no check, because it teaches everyone to ignore it.
+    // A JWT is recognisable by its `eyJ` header; an Argon2 hash by its own marker.
+    checkThat('no JWT appears in any event', !serialised.includes('eyJ'))
+    checkThat('no password hash appears', !serialised.includes('$argon2'))
+    checkThat('no bcrypt hash appears', !serialised.includes('$2b$'))
+    line('events returned', events.length)
   } else {
     line('audit read', `${audit.status} — ${audit.body?.error?.message ?? ''}`)
   }

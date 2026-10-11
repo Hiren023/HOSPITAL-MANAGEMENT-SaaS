@@ -67,7 +67,7 @@ function toDrafts(blocks: ScheduleBlock[]): DayDraft[] {
 /**
  * Professional details form.
  *
- * Mounted with `key={doctor.id}` by the page, so it takes its initial state straight from
+ * Mounted with a `profile-`-prefixed key by the page, so it takes its initial state straight from
  * the loaded doctor instead of copying it into state via an effect. That is both the
  * idiomatic React shape and the one that cannot desynchronise: remounting on a new
  * doctor resets every field, where an effect has to be guarded against re-seeding and
@@ -601,9 +601,20 @@ export function DoctorProfilePage() {
           </CardBody>
         </Card>
 
+        {/*
+          Both keys are prefixed, and that is load-bearing rather than cosmetic. These two
+          components are siblings under the same parent, and `doctor.id` IS `profileId` —
+          the very same string. Keying both on the bare id made React report "two children
+          with the same key" on every render, which is the warning that precedes children
+          being duplicated or dropped.
+
+          The remount itself is deliberate: each editor takes its initial state from props,
+          so after a save the fresh record must REPLACE the component rather than merge
+          with the stale state it is already holding.
+        */}
         {canEdit ? (
           <ProfileEditor
-            key={doctor.id}
+            key={`profile-${doctor.id}`}
             doctor={doctor}
             departments={departmentOptions}
             canEdit={canEdit}
@@ -636,7 +647,7 @@ export function DoctorProfilePage() {
           </Card>
         ) : (
           <ScheduleEditor
-            key={profileId}
+            key={`schedule-${profileId}`}
             profileId={profileId}
             blocks={schedule.data?.blocks ?? []}
             canEdit={canEditSchedule}

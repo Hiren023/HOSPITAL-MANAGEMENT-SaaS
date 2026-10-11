@@ -1,10 +1,12 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Route, Routes } from 'react-router-dom'
 import { ROLE_PERMISSIONS, type Permission } from '@infinigrow/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DepartmentsPage } from './DepartmentsPage.js'
 import { DoctorsPage } from './DoctorsPage.js'
+import { DoctorProfilePage } from './DoctorProfilePage.js'
 import { StaffPage } from './StaffPage.js'
 import { HospitalProfilePage } from './HospitalProfilePage.js'
 import { formatInr, formatMinute, parseInr, parseMinute } from './api.js'
@@ -387,6 +389,119 @@ describe('hospital screen', () => {
     expect(screen.getByRole('button', { name: /save profile/i })).toBeDefined()
     // hospital:write must not imply hospital:settings:manage.
     expect(screen.queryByRole('button', { name: /save settings/i })).toBeNull()
+  })
+})
+
+describe('doctor profile screen', () => {
+  const PROFILE = {
+    id: '507f1f77bcf86cd7994390e1',
+    userId: '507f1f77bcf86cd7994390e2',
+    fullName: 'Arjun Mehta',
+    email: 'arjun.mehta@example.test',
+    phone: null,
+    accountStatus: 'ACTIVE',
+    departmentId: '507f1f77bcf86cd7994390d1',
+    registrationNumber: 'GMC/2026/4471',
+    registrationNumberMasked: false,
+    specialities: ['Cardiology'],
+    qualifications: ['MBBS'],
+    yearsOfExperience: 12,
+    consultationFeeInPaise: 150000,
+    bio: null,
+    isAcceptingNewPatients: true,
+    schedule: [],
+    createdAt: '2026-10-01T09:00:00.000Z',
+    updatedAt: '2026-10-01T09:00:00.000Z',
+  }
+
+  const SCHEDULE = {
+    doctorProfileId: PROFILE.id,
+    blocks: [
+      { weekday: 1, startMinute: 540, endMinute: 780, slotDurationMinutes: 20, isActive: true },
+    ],
+  }
+
+  /**
+   * The profile page reads its id from the route, so it must be rendered inside one.
+   *
+   * `renderApp` rather than a hand-rolled provider stack: the page calls `useAuth`, and
+   * rebuilding the providers here would be a second, subtly different version of them.
+   */
+  function renderProfile() {
+    return renderApp(
+      <Routes>
+        <Route path="/doctors/:profileId" element={<DoctorProfilePage />} />
+      </Routes>,
+      { route: `/doctors/${PROFILE.id}` },
+    )
+  }
+
+  const profileRoutes = {
+    [`GET /api/v1/doctors/${PROFILE.id}`]: { data: PROFILE },
+    [`GET /api/v1/doctors/${PROFILE.id}/schedule`]: { data: SCHEDULE },
+    'GET /api/v1/departments': { data: page(DEPARTMENTS) },
+  }
+
+  it('renders the profile and the saved schedule', async () => {
+    mockApi({
+      ...sessionRoutes(hospitalUser()),
+      ...profileRoutes,
+    })
+
+    const { container } = renderProfile()
+
+    expect(await screen.findByText('Weekly schedule')).toBeDefined()
+    expect(within(container).getAllByText('Arjun Mehta').length).toBeGreaterThan(0)
+    // 540 minutes must arrive as "09:00", not as a raw integer in the time input.
+    expect((screen.getByLabelText('Monday start time') as HTMLInputElement).value).toBe('09:00')
+  })
+
+  /**
+   * Regression: the profile editor and the schedule editor are siblings, and `doctor.id`
+   * is the very same string as the `:profileId` route param. Keying both on the bare id
+   * made React log "two children with the same key" on every render — the warning that
+   * precedes children being duplicated or dropped. No mocked assertion caught it, because
+   * none of them looked at the console.
+   */
+  it('logs no React warning while rendering both editors', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    mockApi({
+      ...sessionRoutes(hospitalUser()),
+      ...profileRoutes,
+    })
+
+    const { container } = renderProfile()
+    await screen.findByText('Weekly schedule')
+    await within(container).findByRole('button', { name: /save schedule/i })
+
+    const messages = consoleError.mock.calls.map((call) => call.map(String).join(' '))
+    expect(messages.filter((m) => m.includes('same key'))).toEqual([])
+
+    consoleError.mockRestore()
+  })
+
+  it('reports a schedule that ends before it starts, naming the day', async () => {
+    const user = userEvent.setup()
+
+    mockApi({
+      ...sessionRoutes(hospitalUser()),
+      ...profileRoutes,
+      [`PUT /api/v1/doctors/${PROFILE.id}/schedule`]: { data: SCHEDULE },
+    })
+
+    renderProfile()
+    await screen.findByText('Weekly schedule')
+
+    const start = screen.getByLabelText('Monday start time')
+    await user.clear(start)
+    await user.type(start, '17:00')
+
+    await user.click(screen.getByRole('button', { name: /save schedule/i }))
+
+    expect(
+      await screen.findByText('Monday: the finish time must be after the start time.'),
+    ).toBeDefined()
   })
 })
 

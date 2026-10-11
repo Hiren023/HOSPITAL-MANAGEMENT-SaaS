@@ -49,6 +49,8 @@ Copy-Item .env.example .env
 | `npm run build` | Build shared → api → web |
 | `npm run demo:flow` | Registration → approval → sign-in against a running API |
 | `npm run verify:proxy-auth` | The browser's own request path, through the dev proxy |
+| `npm run verify:platform-console` | Phase 4 platform console, end to end against a running API |
+| `npm run verify:hospital-admin` | Phase 5 hospital administration, end to end against a running API |
 | `npm run keys:jwt` | Generate an EdDSA signing pair for `.env` |
 | `npm run format` | Prettier write |
 | `npm run check:workspace-path` | Warn about a path containing spaces |
@@ -72,6 +74,33 @@ npm run build:shared     # then the watcher restarts the API automatically
 
 This is a build-ordering problem, not a code problem. Do not "fix" it by editing the
 consuming module to work around a missing export.
+
+### Database-backed tests skip, or `mongod` will not start
+
+**Symptom.** Every database-backed test reports as *skipped* rather than failed, or the
+run fails with `Data directory … not found` / `fassert() failure`.
+
+**Cause.** The test harness runs a real `mongod` from `mongodb-memory-server` with its
+data directory under the system temp folder. Each run's directory is roughly 150 MB, and
+if an earlier run was killed — a truncated CI pipe, a cancelled run, an OOM kill — the
+process exit handler never fires and the directory leaks. Enough of them fill the disk,
+and `mongod` then aborts at startup. The suite reports "skipped", which reads as "nothing
+to test" rather than "the environment is broken".
+
+The harness now names its directory after the process id and sweeps directories left by
+processes that no longer exist, so the footprint is bounded and self-healing. It should
+not recur; if it does, the sweep is broken.
+
+**Fix.**
+
+```powershell
+# Clear leaked directories and confirm free space
+Get-ChildItem $env:TEMP -Directory -Filter 'igc-test-db-*' | Remove-Item -Recurse -Force
+Get-PSDrive C | Select-Object @{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}}
+```
+
+A run needs a couple of gigabytes free. If a suite suddenly skips wholesale, check disk
+space before looking at the code.
 
 ### First run
 

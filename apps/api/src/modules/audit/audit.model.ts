@@ -155,6 +155,29 @@ export const AUDIT_ACTIONS = {
   APPOINTMENT_NO_SHOW: 'appointment.no_show',
   APPOINTMENT_VIEWED: 'appointment.viewed',
 
+  // Clinical records.
+  //
+  // Metadata carries identifiers only — never clinical narrative. The audit trail is
+  // readable by `audit:read`, which is deliberately a wider group than
+  // `consultation:read`, and a log is a far easier place for a medical record to leak
+  // out of than the record itself is.
+  CONSULTATION_CREATED: 'consultation.created',
+  CONSULTATION_UPDATED: 'consultation.updated',
+  CONSULTATION_AMENDED: 'consultation.amended',
+  CONSULTATION_FINALIZED: 'consultation.finalized',
+  CONSULTATION_VIEWED: 'consultation.viewed',
+  PRESCRIPTION_CREATED: 'prescription.created',
+  PRESCRIPTION_ISSUED: 'prescription.issued',
+  PRESCRIPTION_VIEWED: 'prescription.viewed',
+  PRESCRIPTION_DOCUMENT_DOWNLOADED: 'prescription.document_downloaded',
+
+  // Attendance.
+  ATTENDANCE_CHECKED_IN: 'attendance.checked_in',
+  ATTENDANCE_CHECKED_OUT: 'attendance.checked_out',
+  ATTENDANCE_CORRECTION_REQUESTED: 'attendance.correction_requested',
+  ATTENDANCE_CORRECTION_APPROVED: 'attendance.correction_approved',
+  ATTENDANCE_CORRECTION_REJECTED: 'attendance.correction_rejected',
+
   /**
    * A user account was activated or suspended from the platform side.
    *

@@ -81,7 +81,7 @@ describe('permission-driven navigation', () => {
 
     expect(labels).toContain('Patients')
     expect(labels).toContain('Appointments')
-    expect(labels).not.toContain('Consultations')
+    expect(labels).not.toContain('My queue')
     expect(labels).not.toContain('Prescriptions')
   })
 
@@ -91,15 +91,19 @@ describe('permission-driven navigation', () => {
     expect(labels).toContain('Billing')
     expect(labels).toContain('Payments')
     expect(labels).toContain('Reports')
-    expect(labels).not.toContain('Consultations')
+    expect(labels).not.toContain('My queue')
     expect(labels).not.toContain('Prescriptions')
   })
 
   it('hides finance from a doctor', () => {
     const labels = visibleLabels(identityFor('DOCTOR'))
 
-    expect(labels).toContain('Consultations')
-    expect(labels).toContain('Prescriptions')
+    // The clinical entry is the clinician's own queue — a doctor holds `consultation:read`,
+    // which means "my records", so it can only ever show their own work.
+    expect(labels).toContain('My queue')
+    // There is no standalone "Prescriptions" entry: a prescription only exists as part of
+    // a consultation, so there is no list for such a link to lead to.
+    expect(labels).not.toContain('Prescriptions')
     expect(labels).not.toContain('Billing')
     expect(labels).not.toContain('Payments')
     // A doctor has report:read but not report:financial, and there is no separate
@@ -123,7 +127,7 @@ describe('permission-driven navigation', () => {
     expect(labels).toContain('Attendance')
     expect(labels).not.toContain('Patients')
     expect(labels).not.toContain('Appointments')
-    expect(labels).not.toContain('Consultations')
+    expect(labels).not.toContain('My queue')
     expect(labels).not.toContain('Billing')
     expect(labels).not.toContain('Staff & users')
   })
@@ -136,8 +140,7 @@ describe('permission-driven navigation', () => {
         'Dashboard',
         'Patients',
         'Appointments',
-        'Consultations',
-        'Prescriptions',
+        'My queue',
         'Departments',
         'Doctors',
         'Billing',
@@ -217,7 +220,7 @@ describe('permission-driven navigation', () => {
       permissions: [...ROLE_PERMISSIONS.RECEPTIONIST, 'consultation:read'],
     })
 
-    expect(visibleLabels(user)).toContain('Consultations')
+    expect(visibleLabels(user)).toContain('My queue')
   })
 
   it('removes an entry when a permission is withdrawn', () => {
@@ -227,7 +230,7 @@ describe('permission-driven navigation', () => {
 
     const labels = visibleLabels(user)
     expect(labels).toContain('Patients')
-    expect(labels).not.toContain('Consultations')
+    expect(labels).not.toContain('My queue')
     expect(labels).not.toContain('Billing')
   })
 

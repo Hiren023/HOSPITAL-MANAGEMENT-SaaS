@@ -12,6 +12,7 @@ import { LoadingState } from '../../components/states/LoadingState.js'
 import { ApiClientError } from '../../lib/api-client.js'
 import { useAuth } from '../../auth/auth-context.js'
 import { hasPermission } from '../../auth/session.js'
+import { PatientClinicalSummary } from '../clinical/PatientClinicalSummary.js'
 
 import {
   ageFrom,
@@ -39,6 +40,7 @@ export function PatientDetailPage() {
 
   const canReadAppointments =
     user !== null && hasPermission(user, 'appointment:read')
+  const canReadClinical = user !== null && hasPermission(user, 'consultation:read')
 
 
   const patient = useQuery({
@@ -159,7 +161,6 @@ export function PatientDetailPage() {
       }
     >
       <div className="space-y-5">
-
         <Card>
           <CardHeader
             title={`${data.firstName} ${data.lastName}`}
@@ -306,6 +307,25 @@ export function PatientDetailPage() {
             />
           )}
         </Card>
+      {/*
+          Clinical history is a SEPARATE card from the appointment history above, and is
+          rendered only for callers the API would let read clinical records at all. A
+          receptionist sees the booking history and is told plainly that the clinical
+          record is not available to them, rather than being shown an empty section that
+          looks like missing data.
+        */}
+        {canReadClinical ? (
+          <PatientClinicalSummary patientId={data.id} />
+        ) : (
+          <Card>
+            <CardBody>
+              <EmptyState
+                title="Clinical history is not available to you"
+                description="Reading consultations requires consultation:read. You can still see this patient's demographics and appointment history."
+              />
+            </CardBody>
+          </Card>
+        )}
       </div>
     </AppShell>
   )

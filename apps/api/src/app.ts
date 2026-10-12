@@ -26,6 +26,8 @@ import { platformRouter } from './modules/platform/platform.routes.js'
 import { hospitalAdminRouter } from './modules/hospital-admin/hospital-admin.routes.js'
 import { patientsRouter } from './modules/patients/patients.routes.js'
 import { appointmentsRouter } from './modules/appointments/appointments.routes.js'
+import { clinicalRouter } from './modules/clinical/clinical.routes.js'
+import { attendanceRouter } from './modules/attendance/attendance.routes.js'
 import { healthRouter } from './modules/health/health.routes.js'
 
 /**
@@ -161,6 +163,13 @@ export function createApp(): Express {
   // widening scheduling access cannot quietly widen patient access, or the reverse.
   app.use(`${API_BASE_PATH}`, patientsRouter)
   app.use(`${API_BASE_PATH}`, appointmentsRouter)
+  // Clinical records and attendance follow the same rule, and are kept on their own
+  // routers for the same reason: a future change to who can book an appointment must not
+  // be able to reach who can read a consultation, or who can see a colleague's
+  // attendance. Separate routers make that separation a property of the wiring rather
+  // than of someone's memory when adding a route.
+  app.use(`${API_BASE_PATH}`, clinicalRouter)
+  app.use(`${API_BASE_PATH}`, attendanceRouter)
   // Public registration stays on its own router; everything else platform-scoped lives
   // on `platformRouter`, where every route is authenticated and platform-permissioned by
   // construction rather than by each handler remembering to add the middleware.

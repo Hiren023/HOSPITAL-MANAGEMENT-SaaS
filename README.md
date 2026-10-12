@@ -5,10 +5,20 @@
 Cloud-based, multi-tenant Hospital Management SaaS for clinics, small hospitals and large
 multispecialty hospitals. Built by **Infinigrow Softech**.
 
-> **Status: Phase 6 (Patients & Appointments) complete.** Registration, authentication, the
-> platform console, hospital administration, the patient register and appointment
-> scheduling are implemented and tested. Clinical modules are **not yet implemented** —
+> **Status: Phase 7 (Clinical Workflow & Attendance) complete.** Registration, authentication,
+> the platform console, hospital administration, patients, appointments, clinical
+> records, prescriptions with printable PDFs, and staff attendance are implemented and
+> tested. Billing and the remaining clinical modules are **not yet implemented** —
 > see the roadmap below.
+
+> **Clinical scope, stated plainly.** This product does **not** diagnose, and does not
+> recommend treatment or medication. There is no endpoint that infers, suggests or completes
+> any clinical value; every field on a consultation and every medicine on a prescription was
+> authored by a clinician and is attributed to them. The record models are structurally sound
+> and covered by tests, but they have **not** been clinically validated — nothing in this
+> repository is a claim of regulatory compliance or clinical safety assurance, and deploying
+> it for real clinical use needs independent clinical and regulatory review. See
+> [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §3.10.
 
 ---
 
@@ -168,8 +178,7 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | 4 | Super Admin SaaS management: tenants, lifecycle, plans, users, audit, reports | ✅ Complete |
 | 5 | Hospital administration: profile, departments, doctors, schedules, staff | ✅ Complete |
 | 6 | Patients & appointments: register, search, booking, conflicts, day view | ✅ Complete |
-| 7 | Consultations, prescriptions, PDFs | Planned |
-| 8 | Staff attendance | Planned |
+| 7 | Clinical workflow: queue, consultations, prescriptions, PDFs, attendance | ✅ Complete |
 | 9 | Billing & payments | Planned |
 | 10 | Reports, notifications, audit UI for hospitals | Planned |
 | 11 | Hardening, deployment, backups, monitoring | Planned |

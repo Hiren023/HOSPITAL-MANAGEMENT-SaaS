@@ -66,6 +66,21 @@ const REDACTED_FIELDS = [
   'prescription',
   'medication',
   'notes',
+  // Phase 7 clinical fields.
+  //
+  // `symptoms`, `assessment`, `plan` and `clinicalData` are exactly the kind of thing
+  // that gets added to a log call as a debugging aid and then ships. A consultation is
+  // the most sensitive record this system holds, and a log line is the least protected
+  // place it could end up.
+  'symptoms',
+  'assessment',
+  'plan',
+  'clinicalData',
+  'items',
+  'drugName',
+  'dose',
+  'frequency',
+  'followUpAt',
 ]
 
 const REDACTION_PLACEHOLDER = '[REDACTED]'

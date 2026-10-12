@@ -139,14 +139,27 @@ export const PERMISSIONS = [
   'appointment:write:any',
 
   // Clinical records
+  //
+  // The bare permissions mean "my own records". The `:any` variants mean "every
+  // clinician's records in this hospital" and are what an administrator or a medical
+  // director holds. A doctor deliberately does NOT hold them by default: clinical notes
+  // are written by a named person about a person they saw, and opening them to every
+  // colleague by default would make attribution decorative.
   'consultation:read',
   'consultation:write',
+  'consultation:read:any',
+  'consultation:write:any',
   'prescription:read',
   'prescription:write',
 
   // Attendance
+  //
+  // Same shape: `attendance:read` / `attendance:write` are self-scoped, `:any` is the
+  // whole team, and `attendance:approve` is the authority that applies a correction.
   'attendance:read',
   'attendance:write',
+  'attendance:read:any',
+  'attendance:write:any',
   'attendance:approve',
 
   // Billing and finance
@@ -194,10 +207,14 @@ const HOSPITAL_MANAGEMENT_PERMISSIONS = [
   'appointment:write:any',
   'consultation:read',
   'consultation:write',
+  'consultation:read:any',
+  'consultation:write:any',
   'prescription:read',
   'prescription:write',
   'attendance:read',
   'attendance:write',
+  'attendance:read:any',
+  'attendance:write:any',
   'attendance:approve',
   'billing:read',
   'billing:write',

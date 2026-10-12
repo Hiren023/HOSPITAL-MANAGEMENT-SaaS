@@ -178,6 +178,86 @@ not identify a moment, and around a DST transition some local times do not exist
 The full policy, including the two `Intl` traps this had to handle, is in
 [`TIMEZONE.md`](./TIMEZONE.md).
 
+### 3.8 Signed clinical records are amended, never rewritten (Phase 7)
+
+A consultation is a `DRAFT` or a `FINALIZED` record. A draft is a clinician's own scratch
+work and edits in place. Finalizing seals it, and from that moment `PATCH` requires a
+written `amendmentReason` and appends an immutable entry to `amendments[]` carrying the
+**before** value, the **after** value, who changed it, when, and why.
+
+Keeping `before` is the part that matters. An amendment that recorded only the new text
+would be indistinguishable, a year later, from an ordinary edit — and a clinical record that
+can be quietly rewritten is not evidence of what anyone believed at the time. The server
+refuses a silent edit with `409`; the UI hides the editor on a sealed record and offers the
+amendment path instead, so a clinician is never told "you cannot do this" after writing a
+careful paragraph.
+
+There is deliberately no "un-finalize". Un-sealing a signed record looks exactly like never
+having signed it.
+
+### 3.9 Generated documents are private by construction (Phase 7)
+
+A prescription PDF is stored under an opaque key and referenced by that key, never by a URL.
+Three alternatives were rejected explicitly:
+
+- **A public URL** is readable by anyone who has it, forever, including people who should
+  never have seen the patient.
+- **An "unguessable" public path** is not access control. A 128-bit filename leaks through a
+  shared link, a browser history, a proxy log or a screenshot, and none of those can be
+  revoked.
+- **A signed URL as the primary mechanism** expires, but until it does it has the same
+  problem, and it moves the authorization decision out of the application where it can be
+  audited.
+
+So the only way out is `GET /prescriptions/:id/document`, which re-checks permission on the
+underlying prescription *at the moment of download* and responds `private, no-store` with
+`nosniff`. Revoking someone's access takes effect on their next request. The wire format
+carries a boolean (`documentAvailable`) precisely so there is nothing addressable to leak.
+`file-store.ts` is an interface with a local-disk implementation, so object storage can
+replace it without touching a route.
+
+The PDF itself is written by hand rather than by a library — one document type does not
+justify the dependency, and the only subtlety is the cross-reference table's byte offsets.
+The test asserts `%PDF-`, `startxref` and `%%EOF` are present, which proves the bytes are
+genuinely a PDF rather than merely starting with the right four characters.
+
+### 3.10 Nothing here generates a clinical value (Phase 7)
+
+There is no endpoint that infers, suggests, summarises or completes a diagnosis, an
+assessment or a medication. This is a scope decision, recorded here because it is the kind
+of thing that erodes without anyone deciding to change it: the patient schema has no
+clinical field at all and `.strict()` refuses an unexpected key, the consultation schema has
+no `suggestedDiagnosis`, and every medicine on a prescription requires a clinician-supplied
+dose, route and frequency.
+
+A test asserts that no suggestion-shaped route exists. It is a weak test — it will not catch
+a route named something unexpected — but it fails loudly the day somebody adds one, which is
+more than nothing.
+
+The models are structurally sound and covered by tests. **They have not been clinically
+validated, and nothing in this repository is a claim of regulatory compliance or clinical
+safety assurance.** Deploying this for real clinical use requires independent clinical and
+regulatory review, which is not something code or a test suite can establish.
+
+### 3.11 Attendance corrections are a workflow, and so is the API surface (Phase 7)
+
+An attendance record is evidence of where a person was, so it cannot be adjustable by the
+person it describes. There is no `PATCH` on the resource. A change is *requested* with a
+reason and applied only by a holder of `attendance:approve`, who cannot decide their own
+request. Both values are kept afterwards, so the record shows what was claimed and what was
+authorised — the same principle as a clinical amendment, applied to time.
+
+Two supporting decisions:
+
+- **Check-in accepts no timestamp.** The server clock is the only source. One record per
+  person per day is enforced by a unique index rather than a lookup, for the same
+  check-then-insert race reason as the appointment slot grid.
+- **Self-service and team views are separate resources.** `/attendance/me` and
+  `/attendance`. A single route with a `userId` filter would have meant a caller who omitted
+  the filter got their own records while believing they had the team's — a report that looks
+  authoritative and is wrong about everyone but one person. Separate resources put the scope
+  in the URL where it cannot be misread.
+
 ## 4. Authorisation
 
 ### 4.1 Roles
@@ -353,10 +433,10 @@ Being explicit so nothing is mistaken for a working feature:
 
 | Area | Status |
 | --- | --- |
-| Consultations, prescriptions, PDFs | Phase 7 — **not implemented** |
 | Billing, payments, reports, notifications for hospitals | Phase 9–10 — **not implemented** |
-| Attendance | Phase 8 — **not implemented** |
+| Hospital-level audit browsing | Phase 8 — **not implemented**. The trail is written and readable at `/platform/audit` only; a hospital administrator cannot yet browse their own hospital's trail |
 | Patient portal, pharmacy, ABDM/ABHA | Phase 12+ — **not implemented** |
+| Clinical validity of the record models | **Not claimed.** Structurally sound and tested; not clinically validated, and no compliance claim is made anywhere in this repository |
 | Payment gateway, invoicing, proration, auto-suspension | Deliberately out of scope — plan assignment only |
 | Email delivery (password reset, invitations) | Not implemented. Staff accounts set their own password on first sign-in |
 | OpenAPI spec generation from Zod | Phase 1 (library choice to confirm) |

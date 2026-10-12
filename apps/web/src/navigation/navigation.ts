@@ -2,7 +2,6 @@ import type { Permission } from '@infinigrow/shared'
 import {
   Bed,
   CalendarDays,
-  ClipboardList,
   FileText,
   LayoutDashboard,
   Receipt,
@@ -90,23 +89,24 @@ const HOSPITAL_NAV: NavSection[] = [
     items: [
       { label: 'Patients', to: '/patients', icon: Users, requires: ['patient:read'] },
       {
+        // The Phase 3 "Consultations" placeholder, now a real screen: a clinician's own
+        // day. ONE entry only — `Sidebar` keys on `to`, and two entries pointing at
+        // `/queue` produce a duplicate React key, which React resolves by silently
+        // dropping or duplicating a menu item.
+        //
+        // Gated on the plain `consultation:read`, which means "my own records", so this
+        // can only ever show the signed-in clinician their own work.
+        label: 'My queue',
+        to: '/queue',
+        icon: Stethoscope,
+        requires: ['consultation:read'],
+      },
+      {
         // The real schedule, which replaces the `/appointments` placeholder from Phase 3.
         label: 'Appointments',
         to: '/schedule',
         icon: CalendarDays,
         requires: ['appointment:read'],
-      },
-      {
-        label: 'Consultations',
-        to: '/consultations',
-        icon: Stethoscope,
-        requiresAny: ['consultation:read'],
-      },
-      {
-        label: 'Prescriptions',
-        to: '/prescriptions',
-        icon: ClipboardList,
-        requiresAny: ['prescription:read'],
       },
       { label: 'Departments', to: '/departments', icon: Bed, requires: ['department:read'] },
       { label: 'Doctors', to: '/doctors', icon: Stethoscope, requires: ['doctor:read'] },

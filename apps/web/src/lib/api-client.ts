@@ -135,6 +135,19 @@ export class ApiClient {
     return this.fetchImpl ?? globalThis.fetch.bind(globalThis)
   }
 
+  /**
+   * The current access token, for the rare call that cannot go through `request`.
+   *
+   * Downloading a generated PDF is the only one: the response is binary, so it needs a real
+   * `fetch` with an Authorization header rather than a JSON request. Exposing the token
+   * lets that call authenticate without putting the token in a URL — which would leak it
+   * into browser history, a proxy log and a Referer header — and without giving up the
+   * shared base-URL and refresh handling this class exists to centralise.
+   */
+  accessToken(): string | null {
+    return this.getAccessToken()
+  }
+
   async request<TData>(path: string, options: RequestOptions = {}): Promise<TData> {
     const headers: Record<string, string> = {
       Accept: 'application/json',

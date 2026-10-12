@@ -27,6 +27,9 @@ import { StaffPage } from './features/hospital/StaffPage.js'
 import { PatientsPage } from './features/clinic/PatientsPage.js'
 import { PatientDetailPage } from './features/clinic/PatientDetailPage.js'
 import { SchedulePage } from './features/clinic/SchedulePage.js'
+import { QueuePage } from './features/clinical/QueuePage.js'
+import { ConsultationPage } from './features/clinical/ConsultationPage.js'
+import { AttendancePage } from './features/clinical/AttendancePage.js'
 import { NotFoundPage } from './pages/NotFoundPage.js'
 import type { Permission } from '@infinigrow/shared'
 
@@ -271,6 +274,51 @@ function AuthenticatedRoutes() {
             <RequireTenantScope>
               <RequirePermission permission="appointment:read">
                 <SchedulePage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+
+      {/*
+        Clinical workflow. The queue and the consultation record are separate routes
+        because they have different permissions in spirit: the queue is "my day", the
+        record is "a patient's clinical notes". Each guard names the permission the API
+        will demand, so the client and the server cannot disagree about who may open what.
+      */}
+      <Route
+        path="/queue"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="consultation:read">
+                <QueuePage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/consultations/:consultationId"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="consultation:read">
+                <ConsultationPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/attendance"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              {/* Read-only: the record is open to anyone who may keep attendance, and
+                  every mutating action on it is checked again by the server. */}
+              <RequirePermission permission="attendance:read">
+                <AttendancePage />
               </RequirePermission>
             </RequireTenantScope>
           </RequireAuth>

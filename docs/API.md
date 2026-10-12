@@ -229,6 +229,82 @@ book it.
 A duplicate-key error *is* the conflict; see [`ARCHITECTURE.md`](./ARCHITECTURE.md) for why
 an application-level check is not sufficient.
 
+### Clinical endpoints
+
+Tenant-scoped. `consultation:read` / `consultation:write` mean **my own records**; the
+`:any` variants mean every clinician's in this hospital. A doctor does not hold `:any` by
+default. `prescription:*` follow the same clinical split.
+
+| Method | Path | Required permission | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/consultations/queue` | `consultation:read` | The clinician's day. `date` is the **hospital-local** calendar day |
+| `GET` | `/api/v1/consultations` | `consultation:read` | List. `patientId`, `appointmentId`, `doctorUserId`, `status`, `from`, `to` |
+| `POST` | `/api/v1/consultations` | `consultation:write` | Create a **draft** |
+| `GET` | `/api/v1/consultations/:id` | `consultation:read` | One record, with its amendments and prescriptions |
+| `PATCH` | `/api/v1/consultations/:id` | `consultation:write` | Edit. A **draft** edits in place; a **finalized** record requires `amendmentReason` |
+| `POST` | `/api/v1/consultations/:id/finalize` | `consultation:write` | Seal it. One-way. Requires `attestation: true` |
+| `GET` | `/api/v1/patients/:id/clinical-summary` | `consultation:read` | Authorized history, scoped to what the caller may read |
+| `POST` | `/api/v1/prescriptions` | `prescription:write` | Draft against a **finalized** consultation |
+| `GET` | `/api/v1/prescriptions/:id` | `prescription:read` | One prescription |
+| `POST` | `/api/v1/prescriptions/:id/issue` | `prescription:write` | Seal it and generate the PDF. Requires `attestation: true` |
+| `GET` | `/api/v1/prescriptions/:id/document` | `prescription:read` | **Authorized** download of the generated PDF |
+
+**Nothing here generates anything.** There is no endpoint that infers, suggests, summarises
+or completes a clinical value. Every field on a consultation and every medicine on a
+prescription was authored by a person, and the API records who. The patient schema has no
+clinical field at all, and `.strict()` refuses an unexpected key — so `diagnosis` cannot be
+smuggled in through a property nobody thought to model.
+
+**A finalized consultation is never overwritten.** `PATCH` on one returns `409` without an
+`amendmentReason`; with one, the change is appended to `amendments[]` carrying the **before**
+and **after** values, who, when and why. The original wording stays readable. There is no
+`un-finalize` — un-sealing a signed record is indistinguishable, to anyone reading the
+history, from never having signed it.
+
+**`dose`, `route` and `frequency` are required on every prescribed item.** This is a
+completeness check, not a safety judgement — nothing in this codebase can assess whether a
+drug is appropriate for a patient, and nothing tries. What it prevents is a drug name
+reaching a patient with no dose or no route, which is not a prescription at all.
+
+**Documents are not addresses.** `GET .../document` is the only route through which those
+bytes leave the system. It re-checks permission on the underlying prescription at the moment
+of download and responds `Cache-Control: private, no-store` with `nosniff`. A prescription
+payload carries a boolean (`documentAvailable`), never a URL or a storage key — a URL is a
+capability that outlives the authorization decision behind it.
+
+The generated PDF names its prescriber, states on its face that it is a clinician-authored
+document, and carries the hospital reference. Verify clinically before dispensing.
+
+### Attendance endpoints
+
+Tenant-scoped. `attendance:read` / `attendance:write` are **self-scoped**; `:any` reaches the
+whole team; `attendance:approve` is the authority that decides a correction. Only a hospital
+administrator holds `:any` by default.
+
+| Method | Path | Required permission | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/attendance/check-in` | `attendance:write` | Record arrival. **Takes no body** |
+| `POST` | `/api/v1/attendance/check-out` | `attendance:write` | Record departure. **Takes no body** |
+| `GET` | `/api/v1/attendance/me` | `attendance:read` | My own records |
+| `GET` | `/api/v1/attendance` | `attendance:read:any` | The team for a `workDate` |
+| `POST` | `/api/v1/attendance/:id/correction-requests` | `attendance:write` | Ask for a change. Does **not** change the record |
+| `POST` | `/api/v1/attendance/:id/correction-requests/:decision/decision` | `attendance:approve` | `approve` or `reject` a pending correction |
+
+**Check-in takes no timestamp.** The server clock is the only source; a client able to state
+its own arrival time could claim an eight-hour shift by setting a device back. One record
+per person per day is enforced by a **unique index**, not a lookup — check-then-insert has a
+race window that two reception desks would lose.
+
+**Corrections are a workflow, not an edit.** There is no `PATCH` on an attendance record,
+deliberately: a time that can be adjusted by the person it describes proves nothing. A
+correction is *requested* with a reason (min 10 characters) and applied only by a holder of
+`attendance:approve`, who cannot decide their own request. Both the original and the
+requested value stay on the record afterwards. A rejection changes nothing, including the
+status — marking a rejected record `CORRECTED` would claim a change happened when none did.
+
+`workDate` is the hospital's **local** calendar day. A night shift belongs to the local day,
+and deriving that from a UTC timestamp would put it on the wrong day for anyone not on UTC.
+
 ### Tenant scoping
 
 > `hospitalId` is **never** read from a request. It is resolved from the caller's active
@@ -317,11 +393,13 @@ duplicated copy that can drift.
 
 ---
 
-## Planned surface (Phase 6+)
+## Planned surface (Phase 9+)
 
-Listed for planning only — **not implemented**: `/auth/switch-hospital`, `/patients`,
-`/appointments`, `/consultations`, `/prescriptions`, `/attendance`, `/billing`,
+Listed for planning only — **not implemented**: `/auth/switch-hospital`, `/billing`,
 `/payments`, `/reports`.
+
+Delivered so far: `/auth`, `/platform`, hospital administration, `/patients`,
+`/appointments`, `/consultations`, `/prescriptions`, `/attendance`.
 
 ---
 

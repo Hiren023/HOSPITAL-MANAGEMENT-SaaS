@@ -44,6 +44,9 @@ const db = await tryStartTestDatabase()
 const TEST_PASSWORD = 'correct-horse-battery-staple'
 const API = '/api/v1'
 
+/** The hospital's own timezone, matching HOSPITAL_DEFAULTS. */
+const HOSPITAL_TIMEZONE = 'Asia/Kolkata'
+
 
 
 function ist(dateKey: string, hour: number, minute = 0): string {
@@ -51,8 +54,24 @@ function ist(dateKey: string, hour: number, minute = 0): string {
   return `${dateKey}T${pad(hour)}:${pad(minute)}:00+05:30`
 }
 
+/**
+ * Today in the HOSPITAL's calendar, not UTC.
+ *
+ * The service stamps `workDate` with the hospital's local day, so a test that asks for the
+ * UTC day is asking for a different day for roughly a third of the day. That is not a
+ * theoretical difference: at 18:37 UTC this is the 13th in Asia/Kolkata and the 12th in UTC,
+ * and the test would quietly pass or fail depending on what time of day it ran.
+ *
+ * This is precisely the confusion `docs/TIMEZONE.md` exists to prevent, and the first
+ * version of these tests made exactly that mistake.
+ */
 function todayKey(): string {
-  return new Date().toISOString().slice(0, 10)
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: HOSPITAL_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
 }
 
 /** A local date key days from today. */

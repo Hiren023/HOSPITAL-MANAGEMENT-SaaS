@@ -28,6 +28,8 @@ import { patientsRouter } from './modules/patients/patients.routes.js'
 import { appointmentsRouter } from './modules/appointments/appointments.routes.js'
 import { clinicalRouter } from './modules/clinical/clinical.routes.js'
 import { attendanceRouter } from './modules/attendance/attendance.routes.js'
+import { billingRouter } from './modules/billing/billing.routes.js'
+import { reportsRouter } from './modules/reports/reports.routes.js'
 import { healthRouter } from './modules/health/health.routes.js'
 
 /**
@@ -170,6 +172,12 @@ export function createApp(): Express {
   // than of someone's memory when adding a route.
   app.use(`${API_BASE_PATH}`, clinicalRouter)
   app.use(`${API_BASE_PATH}`, attendanceRouter)
+  // Billing and reports share a reason for separation: a change to who may raise an
+  // invoice must not be able to reach who may see the hospital's turnover. Reports are
+  // their own router because their permission tiers are their own (`report:read` for
+  // operational facts, `report:financial` for money).
+  app.use(`${API_BASE_PATH}`, billingRouter)
+  app.use(`${API_BASE_PATH}`, reportsRouter)
   // Public registration stays on its own router; everything else platform-scoped lives
   // on `platformRouter`, where every route is authenticated and platform-permissioned by
   // construction rather than by each handler remembering to add the middleware.

@@ -189,7 +189,7 @@ prescriptionSchema.index({ hospitalId: 1, patientId: 1, authoredAt: -1 })
 // ─────────────────────── generated documents (private) ───────────────────────
 
 /**
- * A generated clinical document.
+ * A generated document — a prescription, or an invoice.
  *
  * Holds `storageKey` and never a public URL. Download is always through an authorized
  * route that re-checks the caller's permission on the underlying record, so revoking
@@ -199,7 +199,7 @@ const clinicalDocumentSchema = tenantScopedSchema(
   'ClinicalDocument',
   {
     /** Which record this documents, and of what kind. */
-    resourceType: { type: String, enum: ['PRESCRIPTION'], required: true },
+    resourceType: { type: String, enum: ['PRESCRIPTION', 'INVOICE'], required: true },
     resourceId: { type: Schema.Types.ObjectId, required: true },
 
     /** Opaque key into private storage. Never exposed to a client. */

@@ -258,6 +258,77 @@ Two supporting decisions:
   authoritative and is wrong about everyone but one person. Separate resources put the scope
   in the URL where it cannot be misread.
 
+### 3.12 Money is integers, and the client cannot send a total (Phase 8)
+
+Every amount is an integer count of the currency's minor unit. `0.1 + 0.2` is
+`0.30000000000000004`, and a patient overcharged by four ten-thousandths of a rupee cannot
+dispute it. Every amount is validated as a safe integer before it reaches the database.
+
+Rounding is half away from zero, applied once per line, and the invoice total is the exact sum
+of the already-rounded line totals. That is not an implementation detail — it is what makes a
+printed invoice add up to itself. Recomputing a total from unrounded lines and rounding again
+produces a figure that disagrees with its own arithmetic by a paisa.
+
+A request carries line items and **nothing else**. There is no field in which a client's
+arithmetic could arrive, so the strongest form of "never trust the frontend's total" is
+making it unrepresentable: a schema that *accepted* a total and overwrote it would invite
+someone to "fix" a discrepancy by using the client's value.
+
+Full rules, and the accounting assumptions that need a qualified review, are in
+[`MONEY.md`](./MONEY.md).
+
+### 3.13 Manual money is not verified money (Phase 8)
+
+Every payment carries `source` (who says it happened: a person, or a provider) and
+`verification` (whether that has been confirmed). They are constrained: `MANUAL` is always
+`UNVERIFIED`, because no system confirmed it and calling it anything else would be dishonest;
+`GATEWAY` starts `PENDING` and only becomes `VERIFIED` through an explicit call that names who
+performed it.
+
+**Revenue reports do not return one total.** They return the amount by verification status.
+Summing them would present an unreconciled provider claim as cash, and a receivables report
+built on that number would be wrong in the direction that *hides money* — which is the
+failure mode a financial report should be most careful about, not least.
+
+The same split survives CSV export. A spreadsheet that collapsed it would reintroduce exactly
+the misreading the report avoids, one download later.
+
+### 3.14 Idempotency by unique index, not by check-then-insert (Phase 8)
+
+`POST /payments` honours an `Idempotency-Key`, enforced by a unique index rather than a
+lookup. Check-then-insert has a race window, and "two reception desks press the button at the
+same moment" is a real situation rather than a theoretical one: both requests read "no such
+key", both insert, and one customer is charged twice.
+
+The index makes the loser come back as a replay instead. A pre-check exists only to give a
+clearer answer, never as the guarantee. The same key with a *different* payload is a `409`:
+silently replaying would confirm money that was never taken.
+
+### 3.15 Issued invoices are voided, not edited or deleted (Phase 8)
+
+An issued invoice is a document somebody has been handed. Editing it in place would mean the
+copy they hold no longer matches the system, so the only correction is **void with a recorded
+reason** and a fresh invoice. Voiding is refused while any payment exists against it, because
+that would leave the payment pointing at nothing.
+
+A voided invoice stays in the ledger. The money may already have been reported on, and
+deleting the document would make a previously-true report false retroactively. This is the
+same principle as amendments on a sealed clinical record, applied to money.
+
+Refunds are **new** payments referencing what they reverse, never mutations, and cannot
+exceed what was taken.
+
+### 3.16 CSV export is an attack surface (Phase 8)
+
+A value beginning `=`, `+`, `-` or `@` is prefixed with a tab before it is written, and a
+UTF-8 BOM is emitted so Excel opens the file correctly. Without the first, opening an export
+in a spreadsheet **executes** a patient name that happens to begin with `=` — which is how CSV
+exports become an injection path rather than a data export. Commas, quotes and newlines are
+quoted so a name with a comma does not shift every column after it.
+
+Every export is audited. An export is the easiest way to take data out of the system in bulk,
+so "someone exported the revenue report" should be an event you can answer for.
+
 ## 4. Authorisation
 
 ### 4.1 Roles

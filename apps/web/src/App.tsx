@@ -30,6 +30,9 @@ import { SchedulePage } from './features/clinic/SchedulePage.js'
 import { QueuePage } from './features/clinical/QueuePage.js'
 import { ConsultationPage } from './features/clinical/ConsultationPage.js'
 import { AttendancePage } from './features/clinical/AttendancePage.js'
+import { ServicesPage } from './features/billing/ServicesPage.js'
+import { InvoiceDetailPage, InvoicesPage } from './features/billing/InvoicesPage.js'
+import { RevenuePage } from './features/billing/RevenuePage.js'
 import { NotFoundPage } from './pages/NotFoundPage.js'
 import type { Permission } from '@infinigrow/shared'
 
@@ -319,6 +322,62 @@ function AuthenticatedRoutes() {
                   every mutating action on it is checked again by the server. */}
               <RequirePermission permission="attendance:read">
                 <AttendancePage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+
+      {/*
+        Billing and money. Each entry names the permission the API will demand.
+
+        Revenue is gated on `report:financial`, deliberately NOT `report:read`: a doctor
+        holds the operational permission and must not be able to derive a hospital's
+        turnover from operational data and arithmetic.
+      */}
+      <Route
+        path="/services"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="billing:read">
+                <ServicesPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/invoices"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="billing:read">
+                <InvoicesPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/invoices/:invoiceId"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="billing:read">
+                <InvoiceDetailPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/reports/revenue"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="report:financial">
+                <RevenuePage />
               </RequirePermission>
             </RequireTenantScope>
           </RequireAuth>

@@ -108,6 +108,15 @@ const HOSPITAL_NAV: NavSection[] = [
         icon: CalendarDays,
         requires: ['appointment:read'],
       },
+      {
+        // The real price list. `Sidebar` keys on `to`, so there must be exactly ONE entry
+        // pointing at `/services` or React sees a duplicate key and may silently drop a
+        // menu item.
+        label: 'Service catalogue',
+        to: '/services',
+        icon: Receipt,
+        requires: ['billing:read'],
+      },
       { label: 'Departments', to: '/departments', icon: Bed, requires: ['department:read'] },
       { label: 'Doctors', to: '/doctors', icon: Stethoscope, requires: ['doctor:read'] },
     ],
@@ -115,7 +124,16 @@ const HOSPITAL_NAV: NavSection[] = [
   {
     title: 'Finance',
     items: [
-      { label: 'Billing', to: '/billing', icon: Receipt, requires: ['billing:read'] },
+      { label: 'Invoices', to: '/invoices', icon: Receipt, requires: ['billing:read'] },
+      {
+        // Gated on `report:financial`, not `report:read`. A doctor holds the operational
+        // permission and must not be able to derive a hospital's turnover from operational
+        // data and arithmetic.
+        label: 'Revenue',
+        to: '/reports/revenue',
+        icon: TrendingUp,
+        requires: ['report:financial'],
+      },
       { label: 'Payments', to: '/payments', icon: Wallet, requires: ['payment:read'] },
       { label: 'Reports', to: '/reports', icon: TrendingUp, requires: ['report:read'] },
     ],

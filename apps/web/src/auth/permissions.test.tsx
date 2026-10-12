@@ -88,7 +88,13 @@ describe('permission-driven navigation', () => {
   it('hides clinical notes from an accountant', () => {
     const labels = visibleLabels(identityFor('ACCOUNTANT'))
 
-    expect(labels).toContain('Billing')
+    // Money yes, clinical no. An ACCOUNTANT holds billing, payment and report permissions
+    // but deliberately not `patient:write` or any consultation permission: billing staff
+    // can attach a charge to the right person without being able to register new ones or
+    // read anybody's notes.
+    expect(labels).toContain('Invoices')
+    expect(labels).toContain('Service catalogue')
+    expect(labels).toContain('Revenue')
     expect(labels).toContain('Payments')
     expect(labels).toContain('Reports')
     expect(labels).not.toContain('My queue')
@@ -104,10 +110,13 @@ describe('permission-driven navigation', () => {
     // There is no standalone "Prescriptions" entry: a prescription only exists as part of
     // a consultation, so there is no list for such a link to lead to.
     expect(labels).not.toContain('Prescriptions')
-    expect(labels).not.toContain('Billing')
+    expect(labels).not.toContain('Invoices')
+    expect(labels).not.toContain('Service catalogue')
     expect(labels).not.toContain('Payments')
-    // A doctor has report:read but not report:financial, and there is no separate
-    // financial menu entry — the Reports item covers operational reporting only.
+    // A doctor has `report:read` but NOT `report:financial`, so Revenue is hidden while
+    // the operational Reports entry stays. That distinction is the whole reason the
+    // permission pair exists: operational facts about time are not facts about money.
+    expect(labels).not.toContain('Revenue')
     expect(labels).toContain('Reports')
   })
 
@@ -128,7 +137,8 @@ describe('permission-driven navigation', () => {
     expect(labels).not.toContain('Patients')
     expect(labels).not.toContain('Appointments')
     expect(labels).not.toContain('My queue')
-    expect(labels).not.toContain('Billing')
+    expect(labels).not.toContain('Invoices')
+    expect(labels).not.toContain('Revenue')
     expect(labels).not.toContain('Staff & users')
   })
 
@@ -141,9 +151,11 @@ describe('permission-driven navigation', () => {
         'Patients',
         'Appointments',
         'My queue',
+        'Service catalogue',
         'Departments',
         'Doctors',
-        'Billing',
+        'Invoices',
+        'Revenue',
         'Payments',
         'Reports',
         'Staff & users',
@@ -163,7 +175,8 @@ describe('permission-driven navigation', () => {
       expect(route.startsWith('/platform')).toBe(true)
     }
     expect(labels).not.toContain('Patients')
-    expect(labels).not.toContain('Billing')
+    expect(labels).not.toContain('Invoices')
+    expect(labels).not.toContain('Revenue')
     expect(labels).not.toContain('Hospital settings')
   })
 
@@ -231,7 +244,8 @@ describe('permission-driven navigation', () => {
     const labels = visibleLabels(user)
     expect(labels).toContain('Patients')
     expect(labels).not.toContain('My queue')
-    expect(labels).not.toContain('Billing')
+    expect(labels).not.toContain('Invoices')
+    expect(labels).not.toContain('Revenue')
   })
 
   it('identifies a platform operator by scope, not by permission list', () => {

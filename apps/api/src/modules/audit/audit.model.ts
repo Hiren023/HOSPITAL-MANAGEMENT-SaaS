@@ -155,6 +155,24 @@ export const AUDIT_ACTIONS = {
   APPOINTMENT_NO_SHOW: 'appointment.no_show',
   APPOINTMENT_VIEWED: 'appointment.viewed',
 
+  // Billing.
+  //
+  // Amounts are recorded as integer minor units with the currency alongside them.
+  // Nothing identifying about a patient is: the trail is readable by `audit:read`, which
+  // is a wider group than `billing:read`, and a financial log should not become a second
+  // copy of the patient register.
+  SERVICE_CREATED: 'service.created',
+  SERVICE_UPDATED: 'service.updated',
+  INVOICE_CREATED: 'invoice.created',
+  INVOICE_ISSUED: 'invoice.issued',
+  INVOICE_VOIDED: 'invoice.voided',
+  INVOICE_VIEWED: 'invoice.viewed',
+  PAYMENT_RECORDED: 'payment.recorded',
+  PAYMENT_REFUNDED: 'payment.refunded',
+  PAYMENT_VERIFIED: 'payment.verified',
+  REPORT_VIEWED: 'report.viewed',
+  REPORT_EXPORTED: 'report.exported',
+
   // Clinical records.
   //
   // Metadata carries identifiers only — never clinical narrative. The audit trail is

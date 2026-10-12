@@ -305,6 +305,83 @@ status — marking a rejected record `CORRECTED` would claim a change happened w
 `workDate` is the hospital's **local** calendar day. A night shift belongs to the local day,
 and deriving that from a UTC timestamp would put it on the wrong day for anyone not on UTC.
 
+### Billing endpoints
+
+Tenant-scoped. `billing:read` to look, `billing:write` to charge. Payment recording needs
+`payment:write` — deliberately a **different permission**, so a role can raise an invoice
+without being able to record that it was paid. Conflating them would mean anyone who can
+bill can write off a balance by marking it settled.
+
+Every amount is an integer count of the currency's minor unit (`*Minor`, e.g. `50000` =
+₹500.00). See [`MONEY.md`](./MONEY.md) for the rounding rules and for the accounting
+assumptions that need professional review.
+
+| Method | Path | Required permission | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/services` | `billing:read` | The catalogue. `q`, `category`, `isActive` |
+| `POST` | `/api/v1/services` | `billing:write` | Add a priced service |
+| `PATCH` | `/api/v1/services/:serviceId` | `billing:write` | Change price, tax or active flag |
+| `GET` | `/api/v1/invoices` | `billing:read` | List. `patientId`, `status`, `from`, `to` |
+| `POST` | `/api/v1/invoices` | `billing:write` | Create a **draft** from line items |
+| `GET` | `/api/v1/invoices/:invoiceId` | `billing:read` | One invoice, with its payments and balance |
+| `POST` | `/api/v1/invoices/:invoiceId/issue` | `billing:write` | Seal it. One-way |
+| `POST` | `/api/v1/invoices/:invoiceId/void` | `billing:write` | Void with a reason. Refused while money is on it |
+| `GET` | `/api/v1/invoices/:invoiceId/document` | `billing:read` | **Authorized** PDF download |
+| `GET` | `/api/v1/payments` | `payment:read` | List. `invoiceId`, `patientId`, `method`, `source`, `verification`, `from`, `to` |
+| `POST` | `/api/v1/payments` | `payment:write` | Record a payment or refund. Honours `Idempotency-Key` |
+| `POST` | `/api/v1/payments/:paymentId/verify` | `payment:write` | Mark a gateway payment reconciled |
+
+**A client cannot send a total.** No request schema has a field for one. `.strict()` refuses
+it with `422`. The server recomputes every figure from the lines, and there is nothing here
+that could be mistaken for a total the client believes in.
+
+**No payment credential is accepted or stored.** There is no `cardNumber`, `cvv`, `expiry`,
+`pan` or `accountNumber` field; sending one is a `422`. `reference` carries a receipt number,
+UPI reference or cheque number.
+
+**`Idempotency-Key` makes a retry safe.** First request `201` with `replayed: false`; the same
+key with the same payload `200` with `replayed: true` and the original payment; the same key
+with a *different* payload `409`, because silently replaying would confirm money that was
+never taken. Backed by a unique index, so it holds under concurrency.
+
+**`source` and `verification` are separate facts.** A `MANUAL` payment is always `UNVERIFIED` —
+a person asserted it and no system confirmed it. A `GATEWAY` payment starts `PENDING` and only
+becomes `VERIFIED` through the explicit verify call, which names who did it.
+
+### Report endpoints
+
+Two permission tiers, deliberately.
+
+| Method | Path | Required permission | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/reports/revenue` | **`report:financial`** | Revenue, split by verification status |
+| `GET` | `/api/v1/reports/revenue.csv` | **`report:financial`** | The same, as CSV |
+| `GET` | `/api/v1/reports/appointments` | `report:read` | Counts by status, attendance and no-show rates |
+| `GET` | `/api/v1/reports/appointments.csv` | `report:read` | As CSV |
+| `GET` | `/api/v1/reports/attendance` | `report:read` | Days and hours per person |
+| `GET` | `/api/v1/reports/attendance.csv` | `report:read` | As CSV |
+
+A doctor holds `report:read` but **not** `report:financial`, and must not be able to derive a
+hospital's turnover from operational data and arithmetic. That is the distinction the pair
+exists for: operational facts about time are not facts about money.
+
+Revenue returns `from`, `to`, `granularity` (`daily` | `monthly`) and a `series` with one
+bucket per period. Buckets are generated for the whole range, so a day with no takings is
+still a row — a missing day reads as "no data" when it should read as "nothing taken".
+
+**Revenue never returns a single total.** It returns `manualTotalMinor`,
+`verifiedGatewayTotalMinor`, `pendingGatewayTotalMinor`, `refundedMinor` and a
+`settledTotalMinor` that is the sum of the first two less refunds. Collapsing them would
+present an unreconciled provider claim as money in hand.
+
+Buckets follow the **hospital's local calendar day** (`settings.timezone`), not UTC, so a
+day's takings stay in one column.
+
+**CSV export neutralises spreadsheet formulas.** A value beginning `=`, `+`, `-` or `@` is
+prefixed with a tab, and a UTF-8 BOM is written so Excel opens it correctly. Without the
+first, opening an export executes a formula — which is how CSV exports become an attack path.
+Every export is recorded in the audit trail.
+
 ### Tenant scoping
 
 > `hospitalId` is **never** read from a request. It is resolved from the caller's active

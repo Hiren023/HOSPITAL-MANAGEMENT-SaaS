@@ -5,12 +5,20 @@
 Cloud-based, multi-tenant Hospital Management SaaS for clinics, small hospitals and large
 multispecialty hospitals. Built by **Infinigrow Softech**.
 
-> **Status: Phase 7 (Clinical Workflow & Attendance) complete.** Registration, authentication,
-> the platform console, hospital administration, patients, appointments, clinical
-> records, prescriptions with printable PDFs, and staff attendance are implemented and
-> tested. Billing and the remaining clinical modules are **not yet implemented** —
-> see the roadmap below.
+> **Status: Phase 8 (Billing & Reporting) complete.** Registration, authentication, the
+> platform console, hospital administration, patients, appointments, clinical records,
+> prescriptions, attendance, and billing with revenue reporting are implemented and tested.
+> Payment gateways, chargebacks and the remaining modules are **not yet implemented** — see
+> the roadmap below.
 
+> **Money is integers, and the accounting needs a professional.** Every amount is an integer
+> count of a currency's minor unit; no float touches a monetary value. The server computes
+> every total — there is no request field in which a client’s arithmetic could arrive. Manual
+> payments and unreconciled gateway claims are kept **separate** in every report rather than
+> summed into one "revenue" figure. Rounding rules, currency assumptions and the tax
+> treatment are written up in [`docs/MONEY.md`](docs/MONEY.md), including an explicit list of
+> the accounting judgements **that have not been professionally reviewed**. Nothing in this
+> repository is a claim of tax, accounting or regulatory compliance.
 > **Clinical scope, stated plainly.** This product does **not** diagnose, and does not
 > recommend treatment or medication. There is no endpoint that infers, suggests or completes
 > any clinical value; every field on a consultation and every medicine on a prescription was
@@ -179,7 +187,7 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | 5 | Hospital administration: profile, departments, doctors, schedules, staff | ✅ Complete |
 | 6 | Patients & appointments: register, search, booking, conflicts, day view | ✅ Complete |
 | 7 | Clinical workflow: queue, consultations, prescriptions, PDFs, attendance | ✅ Complete |
-| 9 | Billing & payments | Planned |
+| 8 | Billing & reporting: catalogue, invoices, payments, PDFs, revenue and CSV | ✅ Complete |
 | 10 | Reports, notifications, audit UI for hospitals | Planned |
 | 11 | Hardening, deployment, backups, monitoring | Planned |
 | 12+ | Pharmacy, patient portal, ABDM/ABHA | Planned |

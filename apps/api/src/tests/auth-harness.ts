@@ -1,12 +1,14 @@
 import { generateKeyPairSync } from 'node:crypto'
 import type { Express } from 'express'
-import mongoose, { type Model } from 'mongoose'
 import supertest from 'supertest'
+import mongoose, { Types, type Model } from 'mongoose'
 
 import { createApp } from '../app.js'
 import { connectToDatabase } from '../infrastructure/db/connection.js'
 import { ensureIndexes } from '../infrastructure/db/indexes.js'
+import { withPlatformScope } from '../infrastructure/db/tenant-plugin.js'
 import { hashPassword } from '../modules/identity/password.util.js'
+import { SubscriptionModel } from '../modules/subscriptions/subscription.models.js'
 import {
   HospitalModel,
   MembershipModel,
@@ -94,7 +96,33 @@ async function createHospital(name: string, slug: string): Promise<string> {
     status: 'APPROVED',
     contactEmail: `contact@${slug}.example.test`,
   })
-  return String(hospital['_id'])
+
+  const hospitalId = String(hospital['_id'])
+
+  // ── Every approved hospital has a subscription ─────────────────────────────────
+  //
+  // This mirrors what `approveHospital` does in production. Without it every tenant
+  // route is refused: the entitlement gate fails closed when there is no subscription
+  // row, which is the correct behaviour and is asserted directly in
+  // `phase9-subscriptions.test.ts`.
+  //
+  // Seeding it here rather than in each test file is deliberate. Eight suites were
+  // individually failing with "subscription has expired" before this existed, and the
+  // error names a subscription — so a reader debugging it would go looking at billing
+  // rather than at the fixture. The fixture should look like production.
+  await withPlatformScope(async () => {
+    await (SubscriptionModel as Model<Record<string, unknown>>).create({
+      hospitalId: new Types.ObjectId(hospitalId),
+      plan: 'HOSPITAL',
+      status: 'ACTIVE',
+      currentPeriodStartsAt: new Date(),
+      currentPeriodEndsAt: new Date(Date.now() + 30 * 86_400_000),
+      paymentState: 'NONE',
+      history: [],
+    })
+  })
+
+  return hospitalId
 }
 
 async function createMembership(input: {

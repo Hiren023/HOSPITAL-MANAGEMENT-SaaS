@@ -2,6 +2,7 @@ import type { Permission } from '@infinigrow/shared'
 import {
   Bed,
   CalendarDays,
+  CreditCard,
   FileText,
   LayoutDashboard,
   Receipt,
@@ -148,6 +149,16 @@ const HOSPITAL_NAV: NavSection[] = [
         to: '/hospital',
         icon: Settings,
         requires: ['hospital:read'],
+      },
+      {
+        // Gated on `subscription:read`, not `hospital:read`, which every tenant role
+        // holds. A doctor has no reason to see what the hospital pays the platform, and
+        // the cost of showing them is a support conversation about a number they cannot
+        // act on.
+        label: 'Your plan',
+        to: '/subscription',
+        icon: CreditCard,
+        requires: ['subscription:read'],
       },
       { label: 'Audit trail', to: '/audit', icon: ScrollText, requires: ['audit:read'] },
     ],

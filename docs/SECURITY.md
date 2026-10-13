@@ -333,6 +333,79 @@ can misbehave.
 (`--strict`). Verified working for Node, npm, Vite, Vitest and Git in Phase 0. Renaming to
 `C:\dev\infinigrow-hospital-cloud` remains the recommended option.
 
+### R22 - Subscription entitlements could become a privilege-escalation path — **Medium**
+
+A feature entitlement is a commercial decision, not an authorisation one. If a request could
+declare what a hospital has bought, the subscription API would be a self-service upgrade
+button and a Starter tenant could grant itself `BILLING`.
+
+**Mitigation:** no request schema in the subscription module contains an `entitlements`
+field, a `seatLimit`, a price, or a `status`. All of them are `.strict()`, so a body carrying
+those keys is a `422` rather than a quietly ignored extra — the guarantee is enforced by the
+schema, not by convention. Entitlements are derived from `PLAN_DEFINITIONS` in the shared
+package and are read-only.
+
+Permissions stay separate from entitlements: a permission says who you are, an entitlement
+says what the hospital bought, and the two are enforced by different mechanisms. The tenant
+subscription API is **read-only**, so a hospital cannot renew, upgrade, cancel or un-suspend
+itself. The only payment state a tenant can reach is the one it already has.
+
+**Verified by:** `apps/api/src/tests/phase9-subscriptions.test.ts` — a request smuggling
+`entitlements`, a `status`, or a body-supplied `hospitalId` is rejected, and a tenant
+administrator is refused on every platform subscription route.
+
+### R23 - Entitlement gate failing open — **Medium**
+
+A gate that denies on the happy path and allows on the error path is worse than no gate,
+because the error path is the one nobody tests.
+
+**Mitigation:** the gate **fails closed** on a missing subscription, an unreadable one, and a
+module key outside the union. It is applied by `createTenantRouter({ module })` rather than
+per-route, so a new route cannot skip it. Every platform operation that lifts tenant scoping
+goes through one `asPlatform()` helper that forces the scope lift and the
+`PLATFORM_SCOPE_USED` audit entry to happen together, so reading across tenants always
+leaves a trace.
+
+**Verified by:** `phase9-subscriptions.test.ts` — a hospital with no subscription row is
+refused on every module route; an unknown module key throws; the registrar gate cannot be
+bypassed by adding a route.
+
+### R24 - Suspension being mistaken for data loss — **Medium**
+
+Locking a hospital out of its own records over a billing dispute is a patient-safety problem,
+not a commercial one. So does suspending mean anything is gone? If someone reasonably
+believes it does, the pressure to restore access at any cost goes up — which is exactly the
+situation where a bypass gets built.
+
+**Mitigation:** suspension **never deletes data**, and it **never blocks reads** — only
+writes. `EXPIRED` and `CANCELLED` deny both, because the subscription genuinely ended. The
+tenant-facing screen states in plain words that nothing has been deleted, and the error
+messages on refused writes say the same. No code path in the module removes records.
+
+**Verified by:** `phase9-subscriptions.test.ts` asserts records survive a suspension cycle,
+that a suspended tenant can still read its patient list, and that the UI banner says
+"Nothing has been deleted".
+
+### R25 - A provider reporting success without a human — **Medium**
+
+A payment provider asserting that money arrived is a **claim**. A system that promotes a
+claim to settled cash inherits the lie into every downstream report, and by then the
+correction is expensive.
+
+**Mitigation:** `VERIFIED` is reachable only through the reconciliation route, which is a
+person pressing a button after looking at a bank statement. The `PaymentProvider` interface
+has **no method that returns a verified state**, and the default `nullPaymentProvider` sends
+nothing and reports `PENDING`. There is no webhook, no callback and no provider-driven state
+transition. Reactivating a suspended tenant does not mark it paid — it goes to `PAST_DUE` and
+runs its own grace period.
+
+This is the Phase 8 invoice-payment rule stated once and enforced twice.
+
+**Verified by:** `phase9-subscriptions.test.ts` — a structural assertion on the adapter's
+method set (so adding a `markPaid()` fails at the point of addition, not one release later),
+an adapter that claims success and is shown not to move the state, and reactivation asserted
+not to reach `VERIFIED`.
+
 **Verified by:** the script itself, plus Phase 0 execution on this machine.
 
 ---

@@ -31,6 +31,8 @@ import { attendanceRouter } from './modules/attendance/attendance.routes.js'
 import { billingRouter } from './modules/billing/billing.routes.js'
 import { reportsRouter } from './modules/reports/reports.routes.js'
 import { healthRouter } from './modules/health/health.routes.js'
+import { subscriptionRouter } from './modules/subscriptions/subscription.routes.js'
+import { platformSubscriptionRouter } from './modules/subscriptions/subscription.platform.routes.js'
 
 /**
  * Builds the Express application.
@@ -182,7 +184,17 @@ export function createApp(): Express {
   // on `platformRouter`, where every route is authenticated and platform-permissioned by
   // construction rather than by each handler remembering to add the middleware.
   app.use(`${API_BASE_PATH}/platform`, registrationRouter)
+  // Subscriptions split across two routers because the two audiences are genuinely
+  // different: the platform side lets an operator sell and reconcile, and the tenant side
+  // lets a hospital see what it bought. The tenant side is read-only, so a hospital can
+  // never upgrade or un-suspend itself — the only payment state it can reach is the one
+  // it already has.
+  //
+  // Mounted before `platformRouter` so that `platformRouter.use(authenticate)` does not
+  // run first and then fall through — one verification per request, not two.
+  app.use(`${API_BASE_PATH}/platform/subscriptions`, platformSubscriptionRouter)
   app.use(`${API_BASE_PATH}/platform`, platformRouter)
+  app.use(`${API_BASE_PATH}`, subscriptionRouter)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

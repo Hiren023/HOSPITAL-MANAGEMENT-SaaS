@@ -1,4 +1,5 @@
 import { Types, type Model } from 'mongoose'
+import { DEFAULT_PLAN } from '@infinigrow/shared'
 
 import { ApiError } from '../../infrastructure/api-error.js'
 import { hashPassword } from '../identity/password.util.js'
@@ -190,6 +191,38 @@ export async function approveHospital(input: {
   )
 
   if (!updated) throw ApiError.notFound()
+
+  // Provision the subscription.
+  //
+  // Without this an approved hospital is immediately locked out of its own patients,
+  // staff and appointments: every tenant route sits behind a plan entitlement that fails
+  // closed, and there is no subscription row to satisfy it. A hospital that registers,
+  // is approved, and then cannot add a single patient is not a pricing decision — it is a
+  // broken product.
+  //
+  // The row is created on the default plan with a trial where the plan has one. It is
+  // deliberately NOT created at registration time: a `PENDING` hospital has nobody who
+  // could sign in to be confused by it, and creating a subscription for a tenant that
+  // may never be approved leaves a billing record for a customer who never existed.
+  //
+  // The operator can change the plan from the platform console afterwards. What this
+  // guarantees is only that an approved hospital has somewhere to start.
+  const { assignPlan } = await import('../subscriptions/subscription.service.js')
+  await assignPlan(
+    { userId: input.actor.userId, role: input.actor.role, hospitalId: '', permissions: [] },
+    {
+      ip: input.meta.ip,
+      requestId: input.meta.requestId,
+      actorUserId: input.actor.userId,
+      actorRole: input.actor.role,
+    },
+    input.hospitalId,
+    {
+      plan: DEFAULT_PLAN,
+      startTrial: true,
+      reason: 'Provisioned on approval',
+    },
+  )
 
   // Activate the owner's account so they can sign in.
   //

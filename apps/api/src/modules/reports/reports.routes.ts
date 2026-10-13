@@ -33,7 +33,7 @@ import {
  * Every export is audited. An export is the easiest way to take data out of the system in
  * bulk, so "someone exported the revenue report" is an event worth being able to answer.
  */
-const { router: reportsRouter, route } = createTenantRouter()
+const { router: reportsRouter, route } = createTenantRouter({ module: 'REPORTS' })
 
 function actorOf(req: Request): ReportActor {
   const auth = req.auth as unknown as ReportActor

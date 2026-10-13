@@ -47,7 +47,7 @@ import { localFileStore } from '../clinical/file-store.js'
  * Conflating them would mean anyone who can bill can also write off a balance by marking
  * it settled.
  */
-const { router: billingRouter, route } = createTenantRouter()
+const { router: billingRouter, route } = createTenantRouter({ module: 'BILLING' })
 
 export { billingRouter }
 

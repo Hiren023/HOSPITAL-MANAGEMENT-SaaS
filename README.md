@@ -5,11 +5,16 @@
 Cloud-based, multi-tenant Hospital Management SaaS for clinics, small hospitals and large
 multispecialty hospitals. Built by **Infinigrow Softech**.
 
-> **Status: Phase 8 (Billing & Reporting) complete.** Registration, authentication, the
+> **Status: Phase 9 (Subscriptions) complete.** Registration, authentication, the
 > platform console, hospital administration, patients, appointments, clinical records,
-> prescriptions, attendance, and billing with revenue reporting are implemented and tested.
-> Payment gateways, chargebacks and the remaining modules are **not yet implemented** — see
-> the roadmap below.
+> prescriptions, attendance, billing with revenue reporting, and tenant subscription
+> management are implemented and tested. Payment gateways, notifications, pharmacy and
+> the remaining modules are **not yet implemented** - see the roadmap below.
+
+> **Feature access is enforced by the server, and it fails closed.** A hospital on a plan
+> that does not include a module gets `403` from the API - not a hidden button. Suspending
+> a tenant stops writes and **never deletes anything**; it also never blocks reads, because
+> a hospital in a billing dispute must still be able to open its own patient list.
 
 > **Money is integers, and the accounting needs a professional.** Every amount is an integer
 > count of a currency's minor unit; no float touches a monetary value. The server computes
@@ -164,7 +169,7 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | --- | --- |
 | [`docs/PROJECT_PROPOSAL.md`](docs/PROJECT_PROPOSAL.md) | Architecture, security model, roadmap |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Implemented decisions and layering rules |
-| [`docs/SECURITY.md`](docs/SECURITY.md) | 21-item risk register with mitigations and verification |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | 25-item risk register with mitigations and verification |
 | [`docs/API.md`](docs/API.md) | Conventions, error codes, current endpoints |
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | Operations, deployment, incident procedures |
 | [`docs/AUTH.md`](docs/AUTH.md) | Session design, trade-offs, rejected alternatives |
@@ -188,9 +193,23 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | 6 | Patients & appointments: register, search, booking, conflicts, day view | ✅ Complete |
 | 7 | Clinical workflow: queue, consultations, prescriptions, PDFs, attendance | ✅ Complete |
 | 8 | Billing & reporting: catalogue, invoices, payments, PDFs, revenue and CSV | ✅ Complete |
-| 10 | Reports, notifications, audit UI for hospitals | Planned |
+| 9 | Subscriptions: plans, entitlements, trials, grace periods, limits | ✅ Complete |
+| 9b | Module A — Notifications (spec written, awaiting approval) | Spec only |
+| 9c | Module B — Pharmacy (spec written, awaiting approval) | Spec only |
+| 10 | Hospital audit UI, notifications | Planned |
 | 11 | Hardening, deployment, backups, monitoring | Planned |
-| 12+ | Pharmacy, patient portal, ABDM/ABHA | Planned |
+| 12+ | Laboratory, patient portal, ABDM/ABHA | Planned |
+
+Each of 9b and 9c ships as its own change. A and B were approved together, but they are
+built separately so a problem in one cannot destabilise the MVP — see
+`docs/specs/phase9-subscriptions.md`,
+`docs/specs/phase9-module-a-notifications.md` and
+`docs/specs/phase9-module-b-pharmacy.md`.
+
+**No payment gateway is wired.** The `PaymentProvider` interface has no method that can
+report a verified payment, and `VERIFIED` is reachable only by a person reconciling against
+a bank statement. A provider saying "paid" is a claim, not a fact — the same rule Phase 8
+applies to invoice payments, stated once and enforced twice.
 
 ---
 

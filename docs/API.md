@@ -470,13 +470,102 @@ duplicated copy that can drift.
 
 ---
 
+### Subscriptions (Phase 9)
+
+Read-only on the tenant side. A hospital can see what it bought, what it has used and
+when it renews. It **cannot** renew, upgrade, cancel or un-suspend itself — those are
+platform-operator actions, and the only payment state a tenant can reach is the one it
+already has.
+
+#### Tenant
+
+| Method | Path | Permission | Notes |
+| --- | --- | --- | --- |
+| `GET` | `/hospital/subscription` | `subscription:read` | Plan, status, entitlements, live usage, renewal |
+| `GET` | `/hospital/entitlements` | `hospital:read` | Just the module keys, for the shell |
+
+Neither route sits behind the subscription gate, which would be self-defeating: a tenant
+whose subscription has just lapsed would get a `403` telling it to renew, from the one
+screen that shows the renewal date. Both answer `200` with `mayRead: false` and a
+`denied` reason instead.
+
+#### Platform
+
+All require `platform:plan:manage` and a SUPER_ADMIN identity.
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| `GET` | `/platform/subscriptions/plans` | Catalogue: entitlements, limits, integer minor-unit prices |
+| `GET` | `/platform/subscriptions/hospitals/:hospitalId` | Full state including append-only history |
+| `PUT` | `/platform/subscriptions/hospitals/:hospitalId` | Create or replace. `{ plan, startTrial?, periodDays?, reason? }` |
+| `PATCH` | `/platform/subscriptions/hospitals/:hospitalId` | `{ plan?, cancelAtPeriodEnd?, cancelNow?, reactivate?, reason? }` |
+| `POST` | `/platform/subscriptions/hospitals/:hospitalId/payment` | **The only route that can set `VERIFIED`.** A person, not a callback. |
+| `POST` | `/platform/subscriptions/hospitals/:hospitalId/evaluate` | Run the status rules now. Idempotent. `?at=` to backdate. |
+
+Every request schema is `.strict()` and **none of them accept an entitlement**. There is
+no `entitlements` field, no `seatLimit`, no `status`. A body containing them is a `422`,
+not a quietly ignored extra — otherwise this endpoint would be a self-service upgrade
+button and the entitlement mechanism would be theatre.
+
+#### Entitlement enforcement
+
+Every tenant router declares the module it serves, and the registrar prepends the check:
+
+| Router | Module |
+| --- | --- |
+| patients, appointments, clinical, hospital administration | `CLINICAL` |
+| attendance | `ATTENDANCE` |
+| billing | `BILLING` |
+| reports | `REPORTS` |
+| subscription | *(ungated — it is what explains the gate)* |
+
+A plan without the module gets `403`, and the message names the plan and the fix:
+
+```
+"The Starter plan does not include billing. Upgrade to enable it."
+```
+
+Write methods additionally require a writable subscription, which is what stops a
+suspended tenant from creating records while still reading them.
+
+#### Status
+
+`TRIAL | ACTIVE | PAST_DUE | SUSPENDED | EXPIRED | CANCELLED`
+
+**Derived, not typed in.** `evaluate()` computes it from dates plus `paymentState`, so a
+status can never disagree with the dates that justify it. A sweep only advances states —
+it never un-suspends a `SUSPENDED`, `EXPIRED` or `CANCELLED` tenant, because those are
+terminal until a person acts.
+
+| State | Reads | Writes |
+| --- | --- | --- |
+| `TRIAL` / `ACTIVE` / `PAST_DUE` | yes | yes |
+| `SUSPENDED` | **yes** | no |
+| `EXPIRED` / `CANCELLED` | no | no |
+
+A suspended hospital keeps read access deliberately. A hospital in a billing dispute must
+be able to look at its own patients; suspending must never be indistinguishable from
+losing them. **Suspension never deletes data** under any circumstance.
+
+#### Payment state
+
+`NONE | PENDING | VERIFIED | FAILED`
+
+`VERIFIED` is reachable only through the reconcile route, which is a person pressing a
+button after looking at a bank statement. The `PaymentProvider` interface has **no method
+that returns a verified state**, so no adapter can grant itself one — the same rule
+Phase 8 applies to invoice payments, stated once and enforced twice. See
+`docs/specs/phase9-subscriptions.md` section 7.
+
 ## Planned surface (Phase 9+)
 
-Listed for planning only — **not implemented**: `/auth/switch-hospital`, `/billing`,
-`/payments`, `/reports`.
+Listed for planning only — **not implemented**: `/auth/switch-hospital`, module A
+(Notifications) and module B (Pharmacy). Their specifications are written and awaiting
+approval in `docs/specs/`.
 
 Delivered so far: `/auth`, `/platform`, hospital administration, `/patients`,
-`/appointments`, `/consultations`, `/prescriptions`, `/attendance`.
+`/appointments`, `/consultations`, `/prescriptions`, `/attendance`, billing, reports,
+subscriptions.
 
 ---
 

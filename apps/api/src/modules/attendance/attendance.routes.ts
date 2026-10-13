@@ -45,7 +45,7 @@ import {
  * it requires a reason and a second person.
  */
 
-const { router: attendanceRouter, route } = createTenantRouter()
+const { router: attendanceRouter, route } = createTenantRouter({ module: 'ATTENDANCE' })
 
 function actorOf(req: Request): AttendanceActor {
   const auth = req.auth as unknown as {

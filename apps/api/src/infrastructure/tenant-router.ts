@@ -1,6 +1,9 @@
 import { Router, type RequestHandler } from 'express'
 
+import type { ModuleKey } from '@infinigrow/shared'
+
 import { authenticate, requireTenantScope } from '../middleware/auth.js'
+import { requireModule } from '../modules/subscriptions/entitlement.middleware.js'
 
 /**
  * A router whose every route is authenticated and tenant-scoped before it runs.
@@ -40,11 +43,44 @@ export interface TenantRouter {
   ) => void
 }
 
-export function createTenantRouter(): TenantRouter {
+/**
+ * Create a tenant router, optionally behind a subscription entitlement.
+ *
+ * ── The module gate belongs here, not on each route ───────────────────────────
+ *
+ * A hospital's plan decides which modules it may use, and that check has to run on the
+ * server. Putting `requireModule('BILLING')` on 30 individual billing routes would work
+ * right up until somebody adds a 31st and forgets it — and the failure would be silent,
+ * because the missing gate looks exactly like a working route until a tenant on the
+ * Starter plan reaches it.
+ *
+ * So the gate is a property of the *router*, not of each route. A router is created for
+ * a module, and every route registered on it inherits the check by construction. Adding
+ * a route cannot skip it, and there is no list of handlers to keep in sync.
+ *
+ * It stays inside `route()` rather than becoming `router.use(...)` for the reason set out
+ * above: `router.use` also runs for paths that match no route, which would turn a 404
+ * into a 403 and leak the fact that a module exists at all.
+ *
+ * ── Write methods additionally require a writable subscription ─────────────────
+ *
+ * Derived from the HTTP method rather than declared per route, because the same "did this
+ * change anything?" question applies to every module and deriving it means a new POST
+ * route is write-gated without anyone remembering. There are no side-effecting GETs in
+ * this API; if one is ever added it needs a documented exception here, not a silent
+ * hole.
+ */
+export function createTenantRouter(options: { module?: ModuleKey } = {}): TenantRouter {
   const router = Router()
+  const gate = options.module
 
   const route: TenantRouter['route'] = (method, path, ...handlers) => {
-    router[method](path, authenticate, requireTenantScope, ...handlers)
+    const entitlement =
+      gate === undefined
+        ? []
+        : [requireModule(gate, { write: method !== 'get' })]
+
+    router[method](path, authenticate, requireTenantScope, ...entitlement, ...handlers)
   }
 
   return { router, route }

@@ -1,9 +1,19 @@
 # Specification — Subscription management
 
-**Status: awaiting approval. No code written.**
-Phase 9, Change 1 of 3. Modules A (Notifications) and B (Pharmacy) follow as separate changes.
+**Status: IMPLEMENTED.** Phase 9, Change 1 of 3. 46 tests in
+`apps/api/src/tests/phase9-subscriptions.test.ts`, 14 in
+`apps/web/src/features/hospital/subscription.test.tsx`.
 
-Everything below is a proposal. Nothing is implemented.
+Modules A (Notifications) and B (Pharmacy) follow as separate changes.
+
+**Decisions confirmed and implemented:** plan limits **refuse** rather than report overage;
+suspension **allows reads** and refuses writes; 14-day trial on Starter and Hospital, none
+on Enterprise. The commercial question in §9.1 — whether per-module gating is realistic — is
+noted below rather than assumed away.
+
+The sections below are the **specification as written before coding**. Where
+implementation corrected a claim, the correction is recorded in place rather than edited
+out; see §1.
 
 ---
 
@@ -13,8 +23,16 @@ Phase 4 added **plan assignment only**: `PUT /platform/hospitals/:id/plan` write
 `planChangedAt` to the hospital document, and `PLAN_DEFINITIONS` in
 `packages/shared/src/types/plan.ts` carries a seat limit and a department limit per plan.
 
-**Enforced today:** `seatLimit`, on staff assignment. `departmentLimit` is *displayed* but
-**not enforced** — that is a gap this change should close.
+**Not enforced today:** `seatLimit` **or** `departmentLimit`. Both were carried in
+`PLAN_DEFINITIONS` from Phase 4 and both were only ever *displayed* — the plan card said
+"3 seats" while nothing stopped a fourth invitation, and "2 departments" while nothing
+stopped a third. Nothing in the codebase counted either. Both gaps close in this change.
+
+> **Correction.** An earlier draft of this document claimed `seatLimit` was "enforced today,
+> on staff assignment". That was wrong. A grep for `seatLimit` across `apps/api/src` found
+> it only in three response builders and one test assertion, and no check anywhere on a
+> write path. The number was a decoration. It is recorded here rather than quietly
+> corrected because the same wrong claim is easy to make twice.
 
 **Not present:** feature entitlements, subscription status, trial, renewal, grace periods,
 suspension-on-non-payment, usage, or any payment-provider integration.
@@ -31,7 +49,7 @@ This change extends that foundation rather than replacing it. `PLANS` and
 | --- | --- |
 | S1 | A subscription has a plan, a status, a trial window, a renewal date and a history of changes. |
 | S2 | **Feature entitlements are enforced on the backend.** A tenant on a plan without pharmacy gets `403` from the API — not a hidden button. |
-| S3 | Plan limits are enforced server-side, including `departmentLimit` which is currently unenforced. |
+| S3 | Plan limits are enforced server-side, including `seatLimit` and `departmentLimit`, neither of which is enforced today. |
 | S4 | Trial: a period during which a tenant has full access, with an explicit end. Expiry is visible and does not silently destroy data. |
 | S5 | Suspension on non-payment is a **rule**, not an action someone must remember: past `gracePeriodDays`, the subscription becomes `SUSPENDED` and access is refused. |
 | S6 | Suspension **never deletes data.** A suspended tenant's records remain, readable on reactivation. |
@@ -89,10 +107,22 @@ them.
 
 Indexes: `{hospitalId}` unique, `{status}`, `{currentPeriodEndsAt}`.
 
-### 3.3 `UsageCounter` (new, tenant-scoped)
+### 3.3 Usage
 
-`{hospitalId, moduleKey, used, limit, periodStart, periodEnd}`, unique on
-`{hospitalId, moduleKey}`. Absent for unlimited.
+**As originally specified:** a `UsageCounter` collection, `{hospitalId, moduleKey, used,
+limit, periodStart, periodEnd}`, unique on `{hospitalId, moduleKey}`.
+
+**As implemented: removed.** A stored counter has to be updated on *every* path that changes
+what it counts — new staff, deleted staff, a deactivated membership, a role change, a
+reactivation. Miss one and the cache disagrees with reality, and the screen says "3 of 3
+seats" while four people hold seats. Two indexed `countDocuments` calls on one screen is not
+a performance problem; a usage figure that can be wrong is worse than a slightly slow one,
+because it is presented with the same confidence either way.
+
+Usage is now counted live and keyed by the resource being limited (`seats`, `departments`)
+rather than by module, so the client renders a label it already has instead of looking up
+which module happens to own the seat count. `docs/ARCHITECTURE.md` §3.22 has the full
+reasoning, and a test asserts that deactivating a membership moves the figure.
 
 ### 3.4 `PaymentProvider` (interface only)
 
@@ -133,6 +163,17 @@ A middleware reads the subscription and attaches
 `{ plan, status, entitlements, suspended }`. Services call
 `requireEntitlement(ctx, 'PHARMACY')`, which throws `403 ENTITLEMENT_REQUIRED` with the
 plans that do include it.
+
+**As implemented, slightly differently and for a better reason:** the gate is applied by
+`createTenantRouter({ module })` — a property of the *router*, not a line repeated on each
+route. Listing `requireModule('BILLING')` on 30 billing routes would work right up until
+somebody added a 31st and forgot, and the failure is silent because a missing gate looks
+exactly like a working route until a tenant on the Starter plan reaches it. See
+`docs/ARCHITECTURE.md` §3.18.
+
+The refusal message names the plan and the fix rather than just closing the door:
+
+> The Starter plan does not include billing. Upgrade to enable it.
 
 ---
 
@@ -185,7 +226,7 @@ claim, not a fact — Phase 8 already learned that lesson and it applies identic
 | Area | Cases |
 | --- | --- |
 | Entitlements | each module refused on a plan without it; granted on one with it; **unknown module fails closed** |
-| Limits | `departmentLimit` enforced (today it is not); seats at the boundary |
+| Limits | `departmentLimit` enforced (today it is not); `seatLimit` enforced (today it is not); seats at the boundary; unlimited plans unaffected |
 | Trial | active during trial; expiry status; **trial expiry never deletes data** |
 | Suspension | `PAST_DUE` → grace → `SUSPENDED`; reads still work, writes refused |
 | Upgrade/downgrade | immediate change; `cancelAtPeriodEnd` takes effect at renewal |

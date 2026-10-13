@@ -284,7 +284,13 @@ export async function hospitalDetail(actor: Actor, hospitalId: string, meta: Met
     planLabel: definition.label,
     seatLimit: definition.seatLimit,
     departmentLimit: definition.departmentLimit,
-    indicativeMonthlyPriceInr: definition.indicativeMonthlyPriceInr,
+    // Integer minor units per docs/MONEY.md. There is no float anywhere in this
+    // payload, and the entitlements are included because "which plan" is only meaningful
+    // alongside "what that plan actually lets you do".
+    monthlyPriceMinor: definition.monthlyPriceMinor,
+    entitlements: definition.entitlements,
+    trialDays: definition.trialDays,
+    gracePeriodDays: definition.gracePeriodDays,
     approvedBy: row['approvedBy'] ? String(row['approvedBy']) : null,
     reactivatedAt: row['reactivatedAt'] ?? null,
     planChangedAt: row['planChangedAt'] ?? null,

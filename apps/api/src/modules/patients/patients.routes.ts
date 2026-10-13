@@ -37,7 +37,7 @@ import {
  * the permission split controls disclosure as well as access.
  */
 
-const { router: patientsRouter, route } = createTenantRouter()
+const { router: patientsRouter, route } = createTenantRouter({ module: 'CLINICAL' })
 
 function actorOf(req: Request): PatientActor {
   // `requireTenantScope` guarantees `hospitalId` is a string here, which the type cannot

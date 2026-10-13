@@ -271,7 +271,37 @@ function NewInvoiceDialog({
       ),
   })
 
-  const valid = patientId !== '' && serviceId !== ''
+  /**
+ * Keep the chosen patient visible even once the filter excludes them.
+ *
+ * A `<select>` bound to a value with no matching `<option>` displays the first option, so
+ * typing one more character into the filter would silently wipe the selection and show
+ * somebody else's name. That reads as "the box is not showing what I picked", and it is the
+ * worst possible place for it: you are about to bill the wrong person.
+ */
+const patientOptions = (() => {
+  const listed = (patients.data?.items ?? []).map((patient) => ({
+    value: patient.id,
+    label: `${patient.patientNumber} — ${patient.firstName} ${patient.lastName}`,
+  }))
+
+  if (patientId === '' || listed.some((option) => option.value === patientId)) {
+    return listed
+  }
+
+  const chosen = patients.data?.items.find((patient) => patient.id === patientId)
+  if (!chosen) return listed
+
+  return [
+    {
+      value: chosen.id,
+      label: `${chosen.patientNumber} — ${chosen.firstName} ${chosen.lastName}`,
+    },
+    ...listed,
+  ]
+})()
+
+const valid = patientId !== '' && serviceId !== ''
 
   return (
     <Modal
@@ -310,10 +340,7 @@ function NewInvoiceDialog({
               <Select
                 aria-label="Choose a patient"
                 placeholder={patients.isPending ? 'Loading patients…' : 'Select a patient'}
-                options={(patients.data?.items ?? []).map((patient) => ({
-                  value: patient.id,
-                  label: `${patient.patientNumber} — ${patient.firstName} ${patient.lastName}`,
-                }))}
+                options={patientOptions}
                 value={patientId}
                 onChange={(event) => setPatientId(event.target.value)}
               />

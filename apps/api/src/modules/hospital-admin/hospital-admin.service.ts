@@ -30,6 +30,7 @@ import {
   DoctorProfileModel,
   ScheduleModel,
 } from './hospital-admin.models.js'
+import { checkLimit } from '../subscriptions/subscription.service.js'
 
 /**
  * Hospital administration services.
@@ -329,6 +330,24 @@ export async function readDepartment(actor: Actor, departmentId: string) {
 
 export async function createDepartment(actor: Actor, input: Row, meta: Meta) {
   const code = String(input['code']).toUpperCase()
+
+  // ── Plan limit, enforced server-side ──────────────────────────────────────────
+  //
+  // `departmentLimit` was in `PLAN_DEFINITIONS` from Phase 4 and was only ever
+  // *displayed*. Nothing counted departments against it, so a hospital on a 2-department
+  // Starter plan could create as many as it liked and the number on the plan card was a
+  // decoration. This closes that gap.
+  //
+  // `checkLimit` reads the subscription rather than `Hospital.plan`, because the plan a
+  // hospital is *on* and the subscription it actually *holds* are two things that can
+  // disagree — and the subscription is the one that decides what it may do.
+  //
+  // The message names the limit and the current count because "limit reached" tells a
+  // hospital administrator nothing about what to do next.
+  const limit = await checkLimit(actor.hospitalId, 'DEPARTMENTS', 1)
+  if (!limit.allowed) {
+    throw ApiError.forbidden(limit.message ?? 'This plan does not allow more departments.')
+  }
 
   // Checked before the write so the failure is a clear 409 rather than a raw duplicate
   // key error, and so the message can name what clashed.
@@ -833,6 +852,20 @@ export async function listStaff(actor: Actor, query: ListQuery, meta: Meta) {
 export async function createStaffAccount(actor: Actor, input: Row, meta: Meta) {
   const role = assertAssignableRole(input['role'])
   const email = String(input['email']).toLowerCase()
+
+  // ── Plan seat limit, enforced server-side ─────────────────────────────────────
+  //
+  // `seatLimit` has been in `PLAN_DEFINITIONS` since Phase 4 and, like
+  // `departmentLimit`, was only ever **displayed** — the plan card showed "3 of 3 seats"
+  // while nothing stopped a fourth invitation. Both are enforced here now.
+  //
+  // Checked before any write, so an over-limit request creates no orphaned user account.
+  // Creating the user first and refusing afterwards would leave an account with a
+  // membership-less record that nobody can sign in to and nobody knows exists.
+  const seatLimit = await checkLimit(actor.hospitalId, 'SEATS', 1)
+  if (!seatLimit.allowed) {
+    throw ApiError.forbidden(seatLimit.message ?? 'This plan does not allow more staff seats.')
+  }
 
   const existing = await userModel().findOne({ email }).lean().exec()
   if (existing) {

@@ -98,6 +98,20 @@ export const PERMISSIONS = [
   'hospital:read',
   'hospital:write',
   'hospital:settings:manage',
+
+  /**
+   * See this hospital's own subscription: plan, status, entitlements, usage, renewal date.
+   *
+   * Distinct from `hospital:read`, which every tenant role holds. A doctor or a
+   * pharmacist has no reason to know what the hospital pays the platform, and the cost of
+   * telling them is a support conversation about a number they cannot act on.
+   *
+   * Read-only by design. A tenant cannot renew, upgrade or suspend itself — that is the
+   * platform operator's action, and the only payment state a tenant can reach is the one
+   * it already has. See `docs/specs/phase9-subscriptions.md` section 5.
+   */
+  'subscription:read',
+
   'user:read',
   'user:write',
   'user:permissions:manage',
@@ -190,6 +204,7 @@ const HOSPITAL_MANAGEMENT_PERMISSIONS = [
   'hospital:read',
   'hospital:write',
   'hospital:settings:manage',
+  'subscription:read',
   'user:read',
   'user:write',
   'user:permissions:manage',
@@ -337,6 +352,9 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, ReadonlySet<Permission>>> =
     'report:financial',
     'attendance:read',
     'attendance:write',
+    // An accountant reconciles the hospital's bills with the platform's, so the plan and
+    // its renewal date are their business. Nobody else's are.
+    'subscription:read',
     'notification:read',
   ]),
 

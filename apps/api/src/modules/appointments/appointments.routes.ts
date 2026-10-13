@@ -48,7 +48,7 @@ import {
  * neither is treated as though it were.
  */
 
-const { router: appointmentsRouter, route } = createTenantRouter()
+const { router: appointmentsRouter, route } = createTenantRouter({ module: 'CLINICAL' })
 
 function actorOf(req: Request): AppointmentActor {
   const auth = req.auth as unknown as {

@@ -56,6 +56,7 @@ async function build(): Promise<void> {
     import('../../modules/hospital-admin/hospital-admin.models.js'),
     import('../../modules/patients/patients.models.js'),
     import('../../modules/appointments/appointments.models.js'),
+    import('../../modules/subscriptions/subscription.models.js'),
   ])
 
   for (const model of Object.values(mongoose.models) as Model<Record<string, unknown>>[]) {

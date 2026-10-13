@@ -33,6 +33,13 @@ pnpm-debug.log*
 .local/
 storage/
 
+# Test-run artefacts from the private file store (Phase 7 PDFs).
+#
+# Written by the local storage adapter when a test generates an invoice or clinical
+# document. Build output, never source — and committing it would put generated files into
+# the repository for no reason.
+.tmp-test-storage/
+
 # Editor / OS
 .vscode/*
 !.vscode/extensions.json

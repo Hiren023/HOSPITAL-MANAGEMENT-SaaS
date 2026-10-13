@@ -329,6 +329,118 @@ quoted so a name with a comma does not shift every column after it.
 Every export is audited. An export is the easiest way to take data out of the system in bulk,
 so "someone exported the revenue report" should be an event you can answer for.
 
+### 3.17 An entitlement is not a permission (Phase 9)
+
+A **permission** says who you are. An **entitlement** says what this hospital bought.
+They are separate types, separately enforced, and deliberately not conflated.
+
+Conflating them would mean a plan purchase could grant clinical access, and a role change
+could silently remove billing. Neither should be reachable by a commercial decision, so
+`entitlements` lives in the shared plan catalogue and **no request ever carries one**.
+
+A tenant administrator cannot renew, upgrade, suspend or un-suspend itself. The tenant
+side of the subscription API is read-only. The only payment state a tenant can reach is
+the one it already has — the same rule Phase 8 applies to an invoice, lifted one level up.
+
+### 3.18 The entitlement gate fails closed, and lives in the registrar (Phase 9)
+
+A missing subscription, an unreadable one, or a module key outside the union all **DENY**.
+There is no code path that allows access it cannot positively prove, which is the property
+that makes this safe to put in front of a paid-for module.
+
+The check is applied by `createTenantRouter({ module })`, not written on each route.
+Listing `requireModule('BILLING')` on 30 billing routes would work right up until somebody
+adds a 31st and forgets — and the failure is silent, because a missing gate looks exactly
+like a working route until a tenant on the Starter plan reaches it. Making the gate a
+property of the *router* means a new route cannot skip it, and there is no list of handlers
+to keep in sync.
+
+It stays inside `route()` rather than becoming `router.use(...)` for the same reason the
+registrar exists at all: `router.use` also runs for paths that match no route, which would
+turn a `404` into a `403` and leak the fact that a module exists.
+
+Write methods additionally require a writable subscription, derived from the HTTP method so
+a new `POST` route is write-gated without anyone remembering. There are no side-effecting
+`GET`s in this API; if one is ever added it needs a documented exception, not a silent hole.
+
+### 3.19 Suspension stops writes, never reads, and never deletes (Phase 9)
+
+`SUSPENDED` blocks every write and blocks **no reads**. `EXPIRED` and `CANCELLED` block
+both, because the subscription has genuinely ended and the tenant should be told to renew
+rather than left browsing a stale copy.
+
+The asymmetry is the point. A hospital in a billing dispute must be able to look at its own
+patients, its own stock and its own books. A suspended tenant with an unreadable patient
+list is a patient-safety problem, not a billing one — and suspending must never be
+indistinguishable from losing the data.
+
+**No code path in this module deletes a tenant's records.** Suspension changes an access
+decision and nothing else. That is asserted by a test that counts records before and after
+a suspension cycle.
+
+The tenant subscription screen and the entitlements endpoint are deliberately **outside**
+the gate, because they are the screen that explains why the gate closed. Gating them would
+return `403 renewal required` from the page that shows the renewal date.
+
+### 3.20 Status is derived from dates, never typed in by hand (Phase 9)
+
+Trial expiry, overdue and suspension are all consequences of `trialEndsAt`,
+`currentPeriodEndsAt`, `gracePeriodEndsAt` and `paymentState`. `deriveStatus()` computes
+them, so a stored status can never disagree with the dates that justify it — which is
+otherwise the first question asked after a billing dispute.
+
+Two rules follow:
+
+- **A sweep only advances.** `SUSPENDED`, `EXPIRED` and `CANCELLED` are terminal until a
+  person acts, so a sweep must not quietly un-suspend a cancelled tenant.
+- **`evaluate()` is idempotent.** It is invoked from a sweep, from a platform button and
+  by an operator refreshing the page, and an endpoint that behaved differently on its
+  second call would be impossible to reason about during an incident.
+
+Reactivating clears the suspension but deliberately does **not** restore `ACTIVE`: the
+tenant goes to `PAST_DUE` and runs its own grace period, because somebody still has to
+confirm money arrived. **Un-suspending is not paying.**
+
+### 3.21 Nothing in the payment adapter can report success (Phase 9)
+
+`PaymentProvider` has no method that returns `VERIFIED`. `confirmCheckout` may return
+`PENDING` or `FAILED` and nothing else. `VERIFIED` is reachable only through the
+reconciliation route, which is a person pressing a button after looking at a bank
+statement.
+
+This is the Phase 8 rule — a `MANUAL` invoice payment is always `UNVERIFIED` — stated once
+and enforced twice, because one rule is easier to keep honest than two invented separately.
+A provider saying "paid" is a claim, not a fact, and a system that treats a claim as cash
+inherits the lie into every downstream report.
+
+The interface assertion is a test, not a convention: if somebody adds `markPaid()` returning
+`'VERIFIED'`, the structural test fails at the point of addition rather than one release
+later once somebody writes the adapter.
+
+### 3.22 Usage is counted, not cached (Phase 9)
+
+`seatLimit` and `departmentLimit` were in `PLAN_DEFINITIONS` from Phase 4 and were only ever
+**displayed** — nothing counted anything. Both are now enforced server-side, with a message
+naming the limit and the current count, because "limit reached" tells a hospital
+administrator nothing about what to do next. Both checks run before any write, so an
+over-limit request creates no orphaned user record.
+
+Usage started as a stored `UsageCounter` collection written on plan assignment and was
+removed. A counter has to be updated on **every** path that changes what it counts — new
+staff, deleted staff, a deactivated membership, a role change, a reactivation. Miss one and
+the cache disagrees with reality, and the screen says "3 of 3 seats" while four people hold
+seats. Two indexed `countDocuments` calls on one screen is not a performance problem; a
+usage figure that can be wrong is worse than a slightly slow one, because it is presented
+with the same confidence either way.
+
+Enforcement is a check in the service, **not** an atomic database decrement. This differs
+deliberately from the Phase 6 slot grid and the Phase 8 medicine stock, where two
+simultaneous requests genuinely race for the same unit. Exceeding a seat limit by one seat
+is a commercial overshoot, not a safety or financial event, and the alternative — a
+`$gte` conditional decrement on a membership row — would make "deactivate a staff member"
+and "free a seat" the same operation. The distinction is recorded here because the three
+cases look identical until you ask what happens when both requests succeed.
+
 ## 4. Authorisation
 
 ### 4.1 Roles
@@ -504,11 +616,14 @@ Being explicit so nothing is mistaken for a working feature:
 
 | Area | Status |
 | --- | --- |
-| Billing, payments, reports, notifications for hospitals | Phase 9–10 — **not implemented** |
+| Notifications (module A), pharmacy (module B) | Specifications written and awaiting approval — `docs/specs/`. **Not implemented** |
+| Billing, payments, reports | Phase 8 — **implemented and tested** |
+| Subscriptions, entitlements, plan limits | Phase 9 — **implemented and tested**. No payment gateway: `VERIFIED` is a human reconciliation, and no adapter can set it |
+| Recurring subscription billing, proration, dunning | Deliberately out of scope. No provider is wired, and wiring one requires a security review (`docs/SECURITY.md` R16) |
+| Automatic status sweep | `evaluate()` and its endpoint exist; **no scheduler runs them.** A status change happens when someone opens the console, not on a timer |
 | Hospital-level audit browsing | Phase 8 — **not implemented**. The trail is written and readable at `/platform/audit` only; a hospital administrator cannot yet browse their own hospital's trail |
-| Patient portal, pharmacy, ABDM/ABHA | Phase 12+ — **not implemented** |
+| Patient portal, ABDM/ABHA | Phase 12+ — **not implemented** |
 | Clinical validity of the record models | **Not claimed.** Structurally sound and tested; not clinically validated, and no compliance claim is made anywhere in this repository |
-| Payment gateway, invoicing, proration, auto-suspension | Deliberately out of scope — plan assignment only |
 | Email delivery (password reset, invitations) | Not implemented. Staff accounts set their own password on first sign-in |
 | OpenAPI spec generation from Zod | Phase 1 (library choice to confirm) |
 | Dockerfiles, deployment pipeline | Phase 11 |

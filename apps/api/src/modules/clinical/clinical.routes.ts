@@ -53,7 +53,7 @@ import {
  * here decide only what the interface offers — the server is the boundary either way.
  */
 
-const { router: clinicalRouter, route } = createTenantRouter()
+const { router: clinicalRouter, route } = createTenantRouter({ module: 'CLINICAL' })
 
 function actorOf(req: Request): ClinicalActor {
   const auth = req.auth as unknown as {

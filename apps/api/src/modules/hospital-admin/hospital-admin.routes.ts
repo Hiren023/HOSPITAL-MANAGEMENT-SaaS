@@ -63,7 +63,7 @@ import {
 // authenticated and tenant-scoped before it runs. See `infrastructure/tenant-router.ts`
 // for why this is a registrar rather than `router.use()` � the short version is that
 // `router.use` at the API root leaks the boundary onto every unmatched path.
-const { router: hospitalAdminRouter, route: tenantRoute } = createTenantRouter()
+const { router: hospitalAdminRouter, route: tenantRoute } = createTenantRouter({ module: 'CLINICAL' })
 
 
 export { hospitalAdminRouter }

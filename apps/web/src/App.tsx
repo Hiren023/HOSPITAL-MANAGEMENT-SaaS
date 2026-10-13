@@ -24,6 +24,7 @@ import { DepartmentsPage } from './features/hospital/DepartmentsPage.js'
 import { DoctorsPage } from './features/hospital/DoctorsPage.js'
 import { DoctorProfilePage } from './features/hospital/DoctorProfilePage.js'
 import { StaffPage } from './features/hospital/StaffPage.js'
+import { SubscriptionPage } from './features/hospital/SubscriptionPage.js'
 import { PatientsPage } from './features/clinic/PatientsPage.js'
 import { PatientDetailPage } from './features/clinic/PatientDetailPage.js'
 import { SchedulePage } from './features/clinic/SchedulePage.js'
@@ -199,6 +200,24 @@ function AuthenticatedRoutes() {
             <RequireTenantScope>
               <RequirePermission permission="department:read">
                 <DepartmentsPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      {/*
+        The plan screen, and the one tenant route that is NOT behind the subscription
+        gate — which it cannot be, because it is the screen that explains why the gate
+        closed. `RequirePermission` is a UI courtesy only; the server enforces the same
+        rule independently, so a crafted link changes nothing.
+      */}
+      <Route
+        path="/subscription"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="subscription:read">
+                <SubscriptionPage />
               </RequirePermission>
             </RequireTenantScope>
           </RequireAuth>

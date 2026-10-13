@@ -134,6 +134,51 @@ Production will refuse to start if:
 
 ## 3. Database
 
+### Migrations
+
+There is no migration runner. Indexes are built on boot by `ensureIndexes()`, and schema
+changes that need data movement are one-off scripts in `scripts/`, run deliberately and
+recorded here.
+
+#### Phase 8 -> Phase 9 — backfill subscriptions ⚠️ REQUIRED BEFORE DEPLOYING
+
+Phase 9 puts a subscription entitlement in front of every tenant route, and the gate
+**fails closed**: a hospital with no subscription row is refused everything.
+
+**Any hospital that existed before this release will therefore be locked out of its own
+records the moment the API restarts.** Sign-in still succeeds; every screen returns `403`
+with *"This hospital's subscription has expired"*. It reads as a broken product rather
+than as a migration that has not been run.
+
+Run this **before** deploying the API:
+
+```
+npx tsx scripts/backfill-subscriptions.ts            # dry run — lists what would change
+npx tsx scripts/backfill-subscriptions.ts --apply    # writes
+```
+
+Idempotent — a hospital that already has a subscription is skipped, so it is safe to
+re-run. A second invocation reports `Nothing to do`.
+
+Hospitals whose recorded `plan` is not a known plan (rows written before Phase 4, which
+introduced plans) are backfilled as **ENTERPRISE**, not as the strictest plan. Those
+hospitals predate the plan concept and had every module before Phase 4, so backfilling them
+to STARTER would silently remove capabilities they were using. Give a hospital more than it
+should pay for and the cost is visible in the console; take billing away from a hospital
+that had it and the cost is invisible. Override with `--plan=HOSPITAL` when the commercial
+answer is known.
+
+Automatic provisioning at boot was rejected deliberately: a gate that quietly creates the
+thing it checks for is not a gate, and it would make "no subscription" unreachable — which
+is precisely the state that proves the gate fails closed. New tenants are unaffected,
+because `approveHospital` provisions a subscription at approval time.
+
+**Verify after deploying:**
+
+```
+npx tsx scripts/backfill-subscriptions.ts    # must report: Missing: 0
+```
+
 ### Development
 
 A MongoDB Atlas **M0 (free tier)** cluster is adequate for development. ⚠️ **M0 must never

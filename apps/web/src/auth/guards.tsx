@@ -1,9 +1,14 @@
 import type { Permission } from '@infinigrow/shared'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, Link, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 
 import { useAuth } from './auth-context.js'
-import { hasAnyPermission, hasPermission, isPlatformUser } from './session.js'
+import {
+  hasAnyPermission,
+  hasPermission,
+  homePathFor,
+  isPlatformUser,
+} from './session.js'
 
 /**
  * Route guards.
@@ -38,6 +43,15 @@ export function UnauthorizedState({
 }: {
   message?: string
 }) {
+  const { user } = useAuth()
+  const home = homePathFor(user)
+
+  // `user` is genuinely nullable here: the guards above normally guarantee a session, but
+  // `UnauthorizedState` is also rendered directly (its own test does exactly that), and
+  // reading `user.role` on null threw a TypeError that replaced the 403 with a blank
+  // screen. A cast would have hidden this while still crashing at runtime.
+  const isPlatform = user !== null && isPlatformUser(user)
+
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center px-6 py-20 text-center">
       <div
@@ -50,15 +64,34 @@ export function UnauthorizedState({
       <p role="alert" className="mt-2 text-sm text-ink-muted">
         {message}
       </p>
+
+      {/*
+        The advice depends on WHO is signed in.
+
+        Telling a hospital user to "ask a hospital administrator" is right for them. Telling
+        a Super Admin that is actively misleading — there is no hospital administrator who
+        could help, and their only route is back to the platform console. The old wording
+        was unconditional, so a platform operator who ended up here was given advice that
+        could not possibly apply.
+      */}
       <p className="mt-1 text-sm text-ink-subtle">
-        If you need this, ask a hospital administrator to update your role.
+        {isPlatform
+          ? 'Platform administrators do not belong to any hospital, so hospital screens are closed to them by design.'
+          : 'If you need this, ask a hospital administrator to update your role.'}
       </p>
-      <a
-        href="/dashboard"
+
+      {/*
+        A `Link`, not an `<a href>`. A hardcoded href is a full page reload that throws away
+        the in-memory session and re-fetches it, and — when it pointed at `/dashboard` for a
+        platform admin — landed on another route they cannot open. The loop was invisible
+        because each step looked like it had worked.
+      */}
+      <Link
+        to={home}
         className="mt-6 text-sm font-medium text-brand-700 underline underline-offset-4 hover:text-brand-800"
       >
-        Return to your dashboard
-      </a>
+        Return to {isPlatform ? 'the platform console' : 'your dashboard'}
+      </Link>
     </div>
   )
 }

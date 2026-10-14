@@ -311,8 +311,15 @@ export const ROLE_PERMISSIONS: Readonly<Record<Role, ReadonlySet<Permission>>> =
     'attendance:read',
     'attendance:write',
     'notification:read',
+    // Sending an appointment reminder is reception's job, not an administrator's. Without
+    // this the module has no obvious user in a hospital that is not one person.
+    //
+    // Granted narrowly on purpose: `notification:send` queues messages from the reviewed
+    // template set and cannot compose one, so the worst case is an unwanted reminder
+    // rather than a disclosure. DOCTOR, PHARMACIST, STAFF and ACCOUNTANT deliberately do
+    // NOT get it — see `docs/ARCHITECTURE.md` section 3.24.
+    'notification:send',
   ]),
-
   /** Baseline staff: attendance and notifications only, unless explicitly granted more. */
   STAFF: new Set<Permission>([
     'hospital:read',

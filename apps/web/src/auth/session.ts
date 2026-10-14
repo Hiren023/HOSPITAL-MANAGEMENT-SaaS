@@ -90,3 +90,35 @@ export function hasPermission(user: SessionUser, permission: Permission): boolea
 export function hasAnyPermission(user: SessionUser, permissions: Permission[]): boolean {
   return permissions.some((permission) => hasPermission(user, permission))
 }
+
+/**
+ * The screen this identity belongs on.
+ *
+ * A platform operator has no hospital, so `/dashboard` is not merely unhelpful for one —
+ * it is a route their scope cannot open. `UnauthorizedState` used to hardcode a link to it,
+ * which meant a Super Admin who hit the wrong screen clicked "Return to your dashboard"
+ * and arrived at the same error again, forever.
+ */
+export function homePathFor(user: SessionUser | null): string {
+  if (user === null) return '/login'
+  return isPlatformUser(user) ? '/platform' : '/dashboard'
+}
+
+/**
+ * Can this identity open a path at all?
+ *
+ * ── Scope, not permission ──────────────────────────────────────────────────────
+ *
+ * This answers "is this the right *world* for this person", not "do they hold a
+ * particular permission". Permission is `RequirePermission`'s job, and it has better
+ * error wording and no opinion about where the user should be sent.
+ *
+ * It exists because `RequireAuth` stores the attempted URL so sign-in can return someone
+ * to where they were going — and `LoginPage` honoured that unconditionally. Signing in as
+ * a Super Admin after touching a hospital link therefore dumped them onto a route their
+ * own scope cannot open, with nothing but a 403 and no way out.
+ */
+export function scopeCanOpenPath(user: SessionUser, path: string): boolean {
+  const isPlatformPath = path === '/platform' || path.startsWith('/platform/')
+  return isPlatformPath === isPlatformUser(user)
+}

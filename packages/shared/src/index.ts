@@ -11,6 +11,7 @@
 
 export * from './types/ids.js'
 export * from './types/money.js'
+export * from './types/notification.js'
 export * from './types/role.js'
 export * from './types/plan.js'
 export * from './api/errors.js'

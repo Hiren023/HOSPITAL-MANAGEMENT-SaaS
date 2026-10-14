@@ -12,7 +12,6 @@ import {
 import { LandingPage } from './features/landing/LandingPage.js'
 import { LoginPage } from './features/auth/LoginPage.js'
 import { RegisterHospitalPage } from './features/auth/RegisterHospitalPage.js'
-import { SuperAdminDashboard } from './features/platform/SuperAdminDashboard.js'
 import { PlatformOverviewPage } from './features/platform/PlatformOverviewPage.js'
 import { PlatformHospitalsPage } from './features/platform/PlatformHospitalsPage.js'
 import { PlatformHospitalDetailPage } from './features/platform/PlatformHospitalDetailPage.js'
@@ -25,6 +24,7 @@ import { DoctorsPage } from './features/hospital/DoctorsPage.js'
 import { DoctorProfilePage } from './features/hospital/DoctorProfilePage.js'
 import { StaffPage } from './features/hospital/StaffPage.js'
 import { SubscriptionPage } from './features/hospital/SubscriptionPage.js'
+import { NotificationsPage } from './features/notifications/NotificationsPage.js'
 import { PatientsPage } from './features/clinic/PatientsPage.js'
 import { PatientDetailPage } from './features/clinic/PatientDetailPage.js'
 import { SchedulePage } from './features/clinic/SchedulePage.js'
@@ -74,22 +74,20 @@ function AuthenticatedRoutes() {
 
   return (
     <Routes>
-      {/* Platform administration — SUPER_ADMIN only, no hospital scope. */}
-      <Route
-        path="/platform"
-        element={
-          <RequireAuth>
-            <RequirePlatform>
-              <SuperAdminDashboard />
-            </RequirePlatform>
-          </RequireAuth>
-        }
-      />
-
       {/*
-        Platform console. Each screen is wrapped by both `RequirePlatform` and the guard
-        for the specific permission the underlying API demands, so the interface and the
-        server cannot disagree about who may open what.
+        Platform console. `/platform` is the overview, matching the nav label.
+
+        ── Why there is exactly ONE `/platform` route here ────────────────────────
+        There used to be two: `SuperAdminDashboard` and `PlatformOverviewPage`, both
+        declared at `/platform`. React Router matches the FIRST match and silently ignores
+        the rest, so the overview page was unreachable and the older dashboard won —
+        even after it had been left behind by the server-side pagination added to
+        `/platform/hospitals`, at which point it crashed on `.slice()` of `undefined`
+        and rendered a blank screen. Nothing in the test suite caught it, because the
+        component's own test mocked the endpoint in the shape it had when it was written.
+
+        Tenant approval and reactivation live at `/platform/hospitals`, which is where the
+        nav points for them, so removing the dead route loses no capability.
       */}
       <Route
         path="/platform"
@@ -218,6 +216,23 @@ function AuthenticatedRoutes() {
             <RequireTenantScope>
               <RequirePermission permission="subscription:read">
                 <SubscriptionPage />
+              </RequirePermission>
+            </RequireTenantScope>
+          </RequireAuth>
+        }
+      />
+      {/*
+        Notifications (module A). Gated on `notification:read`, which every tenant role
+        holds — a receptionist who cannot see why a reminder did not go out has no way to
+        fix it. Sending is a separate permission and is enforced separately.
+      */}
+      <Route
+        path="/notifications"
+        element={
+          <RequireAuth>
+            <RequireTenantScope>
+              <RequirePermission permission="notification:read">
+                <NotificationsPage />
               </RequirePermission>
             </RequireTenantScope>
           </RequireAuth>

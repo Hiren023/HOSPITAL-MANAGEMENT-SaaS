@@ -33,6 +33,8 @@ import { reportsRouter } from './modules/reports/reports.routes.js'
 import { healthRouter } from './modules/health/health.routes.js'
 import { subscriptionRouter } from './modules/subscriptions/subscription.routes.js'
 import { platformSubscriptionRouter } from './modules/subscriptions/subscription.platform.routes.js'
+import { notificationsRouter } from './modules/notifications/notification.routes.js'
+import { notificationSweepRouter } from './modules/notifications/notification.sweep.routes.js'
 
 /**
  * Builds the Express application.
@@ -194,7 +196,12 @@ export function createApp(): Express {
   // run first and then fall through — one verification per request, not two.
   app.use(`${API_BASE_PATH}/platform/subscriptions`, platformSubscriptionRouter)
   app.use(`${API_BASE_PATH}/platform`, platformRouter)
+  // Notifications are the platform's to sweep, not a tenant's. `NullNotificationProvider`
+  // sends nothing, so today this only moves rows through their queue; it exists so that
+  // wiring a real provider is a config change rather than a scheduling change.
+  app.use(`${API_BASE_PATH}/platform`, notificationSweepRouter)
   app.use(`${API_BASE_PATH}`, subscriptionRouter)
+  app.use(`${API_BASE_PATH}`, notificationsRouter)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

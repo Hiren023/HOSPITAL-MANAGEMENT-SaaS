@@ -1,6 +1,7 @@
 import type { Permission } from '@infinigrow/shared'
 import {
   Bed,
+  Bell,
   CalendarDays,
   CreditCard,
   FileText,
@@ -136,6 +137,15 @@ const HOSPITAL_NAV: NavSection[] = [
         requires: ['report:financial'],
       },
       { label: 'Payments', to: '/payments', icon: Wallet, requires: ['payment:read'] },
+      {
+        // The delivery log, not "sent messages". The table deliberately includes messages
+        // the system refused to send, because "we did not contact this patient" has to be
+        // answerable after an incident — and a log of only what went out cannot answer it.
+        label: 'Notifications',
+        to: '/notifications',
+        icon: Bell,
+        requires: ['notification:read'],
+      },
       { label: 'Reports', to: '/reports', icon: TrendingUp, requires: ['report:read'] },
     ],
   },

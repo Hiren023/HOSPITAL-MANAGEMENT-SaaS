@@ -204,6 +204,17 @@ export const AUDIT_ACTIONS = {
    */
   USER_STATUS_CHANGED: 'user.status_changed',
 
+  // Notifications (module A).
+  //
+  // The metadata on these entries carries the template key and the outcome, never the
+  // rendered message. The audit trail is the most widely readable log in the system, so a
+  // copy of a message body there would undo the preview rule for every message ever sent.
+  NOTIFICATION_ENQUEUED: 'notification.enqueued',
+  NOTIFICATION_RETRIED: 'notification.retried',
+  NOTIFICATION_SWEEP: 'notification.sweep',
+  NOTIFICATION_CONSENT_GRANTED: 'notification.consent_granted',
+  NOTIFICATION_CONSENT_REVOKED: 'notification.consent_revoked',
+
   // Authorisation
   ACCESS_DENIED: 'access.denied',
   CROSS_TENANT_ATTEMPT: 'access.cross_tenant_attempt',

@@ -13,6 +13,7 @@ import { ApiClientError } from '../../lib/api-client.js'
 import { useAuth } from '../../auth/auth-context.js'
 import { hasPermission } from '../../auth/session.js'
 import { PatientClinicalSummary } from '../clinical/PatientClinicalSummary.js'
+import { PatientConsentCard } from '../notifications/PatientConsentCard.js'
 
 import {
   ageFrom,
@@ -41,6 +42,13 @@ export function PatientDetailPage() {
   const canReadAppointments =
     user !== null && hasPermission(user, 'appointment:read')
   const canReadClinical = user !== null && hasPermission(user, 'consultation:read')
+  // Reading a consent record needs `patient:read`, which is how you got here. Changing one
+  // additionally needs `notification:send` — messaging a patient is not implied by being
+  // able to open their record.
+  const canManageConsent =
+    user !== null &&
+    hasPermission(user, 'patient:read') &&
+    hasPermission(user, 'notification:send')
 
 
   const patient = useQuery({
@@ -326,6 +334,10 @@ export function PatientDetailPage() {
             </CardBody>
           </Card>
         )}
+        {/* Consent lives on the patient record rather than in the notification settings:
+            it is a fact about this patient, and a clinician deciding whether to leave a
+            message should see it in front of them rather than go looking for it. */}
+        <PatientConsentCard patientId={patientId} canManage={canManageConsent} />
       </div>
     </AppShell>
   )

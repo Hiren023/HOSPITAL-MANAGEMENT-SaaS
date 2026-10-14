@@ -5,11 +5,22 @@
 Cloud-based, multi-tenant Hospital Management SaaS for clinics, small hospitals and large
 multispecialty hospitals. Built by **Infinigrow Softech**.
 
-> **Status: Phase 9 (Subscriptions) complete.** Registration, authentication, the
+> **Status: Phase 10 (Production Readiness Review) complete. NOT approved for production
+> deployment.** Phases 0-9 are implemented and tested - registration, authentication, the
 > platform console, hospital administration, patients, appointments, clinical records,
-> prescriptions, attendance, billing with revenue reporting, and tenant subscription
-> management are implemented and tested. Payment gateways, notifications, pharmacy and
-> the remaining modules are **not yet implemented** - see the roadmap below.
+> prescriptions, attendance, billing with revenue reporting, subscriptions and
+> notifications. **1,052 tests pass.**
+>
+> A full review found **one Critical and three High findings** that block production. The
+> Critical one - a compiler OOM that meant `npm run typecheck` had never actually completed -
+> is **fixed**. The others (no CSP on the web app, no React error boundary, no backup and
+> restore procedure) are specified with remediation in
+> [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md).
+>
+> **No penetration test, legal review, regulatory approval, or production backup restore
+> has been performed or is claimed.** See §9 of that document for the full list of
+> limitations. Deployment guidance is in
+> [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md); nothing has been provisioned or deployed.
 
 > **Feature access is enforced by the server, and it fails closed.** A hospital on a plan
 > that does not include a module gets `403` from the API - not a hidden button. Suspending
@@ -172,6 +183,8 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | [`docs/SECURITY.md`](docs/SECURITY.md) | 25-item risk register with mitigations and verification |
 | [`docs/API.md`](docs/API.md) | Conventions, error codes, current endpoints |
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | Operations, deployment, incident procedures |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Environments, deploy, managed Mongo, HTTPS, object storage, monitoring, DR, rollback, release checklist |
+| [`docs/PRODUCTION-READINESS.md`](docs/PRODUCTION-READINESS.md) | Phase 10 review: findings with severity, evidence and remediation |
 | [`docs/AUTH.md`](docs/AUTH.md) | Session design, trade-offs, rejected alternatives |
 | [`docs/SUPERADMIN-BOOTSTRAP.md`](docs/SUPERADMIN-BOOTSTRAP.md) | Creating the first Super Admin without a hardcoded password |
 | [`docs/FRONTEND.md`](docs/FRONTEND.md) | Web client architecture, design system, accessibility decisions |
@@ -194,17 +207,22 @@ Web (Vite) reads only `VITE_*` variables: `VITE_API_BASE_URL` (default `/api/v1`
 | 7 | Clinical workflow: queue, consultations, prescriptions, PDFs, attendance | ✅ Complete |
 | 8 | Billing & reporting: catalogue, invoices, payments, PDFs, revenue and CSV | ✅ Complete |
 | 9 | Subscriptions: plans, entitlements, trials, grace periods, limits | ✅ Complete |
-| 9b | Module A — Notifications (spec written, awaiting approval) | Spec only |
-| 9c | Module B — Pharmacy (spec written, awaiting approval) | Spec only |
-| 10 | Hospital audit UI, notifications | Planned |
-| 11 | Hardening, deployment, backups, monitoring | Planned |
+| 9b | Module A — Notifications: templates, consent, retry, delivery log | ✅ Complete |
+| 9c | Module B — Pharmacy | Spec only — awaiting approval |
+| 10 | **Production readiness review: audit, deployment and DR guidance** | ✅ Complete — **4 findings block deploy** |
+| 11 | Close Phase 10 findings; hospital audit UI; monitoring | Blocked on 10 |
 | 12+ | Laboratory, patient portal, ABDM/ABHA | Planned |
 
 Each of 9b and 9c ships as its own change. A and B were approved together, but they are
 built separately so a problem in one cannot destabilise the MVP — see
-`docs/specs/phase9-subscriptions.md`,
-`docs/specs/phase9-module-a-notifications.md` and
-`docs/specs/phase9-module-b-pharmacy.md`.
+`docs/specs/phase9-subscriptions.md` and `docs/specs/phase9-module-b-pharmacy.md`.
+
+**Notifications are the one place a patient can be contacted at all**, and the design is
+built around that being dangerous. Message bodies are code — there is no request schema
+field that accepts text — so no clinical detail can reach a handset. Consent is required
+and re-checked at send time, a refusal is recorded rather than hidden, and no message is
+ever recorded as delivered, because most SMS gateways cannot tell the difference between
+accepted and received.
 
 **No payment gateway is wired.** The `PaymentProvider` interface has no method that can
 report a verified payment, and `VERIFIED` is reachable only by a person reconciling against

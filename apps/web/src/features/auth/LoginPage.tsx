@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AlertCircle } from 'lucide-react'
 
 import { useAuth } from '../../auth/auth-context.js'
-import { isPlatformUser } from '../../auth/session.js'
+import { homePathFor, isPlatformUser } from '../../auth/session.js'
 import { ApiClientError } from '../../lib/api-client.js'
 import { Alert } from '../../components/ui/Alert.js'
 import { Button } from '../../components/ui/Button.js'
@@ -78,9 +78,27 @@ export function LoginPage() {
     setSubmitting(true)
     try {
       const user = await signIn({ email: email.trim(), password })
-      navigate(destination ?? (isPlatformUser(user) ? '/platform' : '/dashboard'), {
-        replace: true,
-      })
+
+      // ── The return destination is checked against the signer's own scope ──────
+      //
+      // `RequireAuth` remembers the URL somebody was trying to reach, so sign-in can put
+      // them back there. Honouring it unconditionally means a Super Admin who touched a
+      // hospital link before signing in is dropped onto a route their scope cannot open —
+      // and the only thing they see is a 403 they have no way out of.
+      //
+      // So the destination is used only when it belongs to this identity's world. A path
+      // they could not have opened is not "where they were going"; it is a stale intent
+      // from before they were signed in at all.
+      const home = homePathFor(user)
+      const wantsPlatformPath =
+        destination === '/platform' || (destination?.startsWith('/platform/') ?? false)
+
+      const target =
+        destination !== undefined && wantsPlatformPath === isPlatformUser(user)
+          ? destination
+          : home
+
+      navigate(target, { replace: true })
     } catch (error) {
       if (error instanceof ApiClientError) {
         // Server-side field errors map back onto the inputs.

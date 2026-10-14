@@ -57,10 +57,19 @@ HOST=0.0.0.0
 # Full replica-set URI with credentials. MUST NOT be the dev localhost URI.
 MONGODB_URI=mongodb+srv://APPUSER:PASSWORD@CLUSTER.mongodb.net/?retryWrites=true&w=majority
 MONGODB_DB_NAME=infinigrow_prod
+
+# Indexes are built explicitly on boot by `ensureIndexes()` regardless of this flag, so
+# leave it false — `autoIndex` would try to build them on every connection instead.
 MONGODB_AUTO_INDEX=false
+# Fail fast when the database is unreachable, rather than buffering for 30s per request.
+MONGODB_SERVER_SELECTION_TIMEOUT_MS=5000
 
 # Ed25519. Generate per environment; never reuse across environments.
 #   node scripts/generate-jwt-keys.mjs
+#
+# These are COMMENTED OUT in `.env.example`, so copying that file gives you an API that
+# boots and then fails every authenticated request with "JWT signing keys are not
+# configured". They are the two values most often missed. Uncomment them.
 JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 JWT_ISSUER=https://api.example.com
@@ -69,9 +78,48 @@ JWT_AUDIENCE=infinigrow-web
 # Exact origins. Never a wildcard in production.
 CORS_ORIGINS=https://app.example.com
 
-LOG_LEVEL=warn
-ENABLE_API_DOCS=false
+# ⚠️ TRUST_PROXY and TRUST_PROXY_HOPS MUST be set together.
+#
+# `config/env.ts` REFUSES TO BOOT in production when `TRUST_PROXY=true` and
+# `TRUST_PROXY_HOPS=0`, because trusting zero hops means trusting whatever the client
+# sent — which lets anyone spoof `X-Forwarded-For` and defeat IP rate limiting. Setting
+# `TRUST_PROXY=true` alone, as an earlier draft of this document did, produces:
+#
+#   Refusing to start in production with unsafe configuration:
+#     - TRUST_PROXY is true but TRUST_PROXY_HOPS is 0, which defeats proxy trust
+#
+# Set TRUST_PROXY_HOPS to the number of proxies in front of the app. One nginx or one
+# ALB = 1. Two (CDN + nginx) = 2. Getting this wrong in the permissive direction is how a
+# rate limiter stops working; getting it wrong in the strict direction gets everyone
+# sharing one IP bucket.
 TRUST_PROXY=true
+TRUST_PROXY_HOPS=1
+
+LOG_LEVEL=warn
+LOG_PRETTY=false
+ENABLE_API_DOCS=false
+
+# Max accepted request body. Raise only alongside a body-validation audit.
+REQUEST_BODY_LIMIT=1mb
+
+# Where generated PDFs are written. MUST be a path the service can write to, and must
+# match the systemd `ReadWritePaths` below.
+#
+# Left unset, it defaults to `<cwd>/.private-storage` — which `ProtectSystem=strict`
+# makes read-only, so an unset value fails the first invoice write rather than at boot.
+CLINICAL_STORAGE_DIR=/var/lib/infinigrow/documents
+```
+
+### 2.3a Verify before the first deploy
+
+```bash
+# Keys present and parseable
+node -e "console.log(new (require('crypto').webcrypto) ? 'ok' : '')" 2>/dev/null
+grep -c '^JWT_PRIVATE_KEY' .env   # must be >= 1, and NOT commented
+
+# The API refuses unsafe production config rather than starting quietly — confirm by
+# reading config/env.ts, and do not "fix" a refusal by setting the variable it names to a
+# weaker value.
 ```
 
 **Rotate the JWT key pair per environment.** A shared key means a staging compromise forges
@@ -153,7 +201,22 @@ RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ReadWritePaths=/var/lib/infinigrow
+ProtectHome=true
+# MUST match CLINICAL_STORAGE_DIR, and must be writable by User=infinigrow.
+#
+# The document store defaults to `<cwd>/.private-storage`, and ProtectSystem=strict makes
+# everything outside these paths read-only — so with CLINICAL_STORAGE_DIR unset the
+# service starts cleanly and then fails the FIRST invoice or prescription PDF with a
+# permission error. A storage failure that only appears on write is the worst moment to
+# discover it.
+ReadWritePaths=/var/lib/infinigrow/documents
+```
+
+Verify the directory before the first start:
+
+```bash
+install -d -o infinigrow -g infinigrow -m 0750 /var/lib/infinigrow/documents
+sudo -u infinigrow test -w /var/lib/infinigrow/documents && echo writable
 ```
 
 `ProtectSystem=strict` matters: the API should have no reason to write anywhere except its
@@ -242,15 +305,40 @@ hash-based policy can be made to work.
 
 The CSRF posture depends on this. See `PRODUCTION-READINESS.md` §4.1.
 
-**Recommended — same origin.** One hostname, reverse proxy:
+**Recommended — same origin.** One hostname, reverse proxy. **The `proxy_pass` block below
+is the load-bearing part; without it there is no same origin and the cookie design in §4.4
+does not hold.**
 
-```
-https://app.example.com/        → static web build
-https://app.example.com/api/*    → API on :4000
-```
+```nginx
+server {
+  listen 443 ssl http2;
+  server_name app.example.com;
 
-The browser sees one origin, CORS never applies, and the `HttpOnly, SameSite=Strict`
-refresh cookie remains correct. The Vite dev proxy already mirrors this shape.
+  root /srv/infinigrow/apps/web/dist;
+  index index.html;
+
+  # API, same origin. `Host` is forwarded so the app can build absolute URLs.
+  location /api/ {
+    proxy_pass http://127.0.0.1:4000;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    # ⚠️ REQUIRED when the API runs with TRUST_PROXY=true. Without it the API cannot see
+    # the client IP, every request appears to come from 127.0.0.1, and the login rate
+    # limiter (10 per 15 minutes) becomes a global limit for the whole clinic.
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 30s;
+    client_max_body_size 2m;   # must be >= REQUEST_BODY_LIMIT
+  }
+
+  # Health check. Not behind auth, so keep it cheap and unauthenticated.
+  location = /health { proxy_pass http://127.0.0.1:4000/health; access_log off; }
+
+  # History fallback for client-side routing.
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
 
 **Alternative — separate origins.** `app.` and `api.` on different hosts. Then the refresh
 cookie is cross-site: `SameSite=Strict` stops it being sent at all, and relaxing it to
@@ -513,7 +601,10 @@ overwrite it.
 
 ### Before
 
-- [ ] `npm run verify` green: lint, typecheck, **1,052 tests**, build
+- [ ] `npm run verify` green: lint, typecheck, **1,056 tests**, build
+- [ ] **`npx tsx scripts/check-production-env.ts` green** — proves §2.2 boots against the
+      real production guards. A deployment guide that names values the guards reject is
+      worse than no guide: the operator follows it and the service will not start
 - [ ] `npm audit` clean
 - [ ] No secrets in the diff: `gitleaks detect --no-git`
 - [ ] Migrations reviewed for **destructiveness** — if any is destructive, a rollback is not

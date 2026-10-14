@@ -125,6 +125,25 @@ const rawEnvSchema = z.object({
 
   /** Serves the OpenAPI explorer. Force-disabled in production by the schema below. */
   ENABLE_API_DOCS: booleanFromEnv.default(true),
+
+  /**
+   * Ed25519 signing keys, read from the environment and used by
+   * `modules/identity/access-token.util.ts`.
+   *
+   * Declared here so they are VALIDATED like every other setting rather than read raw.
+   * They used to be absent from this schema entirely, which meant a placeholder key booted
+   * cleanly and then failed at the first authenticated request with a crypto parse error —
+   * a symptom that reads as "login is broken" and sends the operator looking at
+   * authentication instead of at their environment file.
+   *
+   * Optional here and required in production by `applyEnvironmentRules`, so a test or a
+   * developer running locally is not forced to generate a key pair to boot. The PEM bodies
+   * contain newlines, so they arrive as `\n`-escaped strings in a `.env` file.
+   */
+  JWT_PRIVATE_KEY: z.string().optional(),
+  JWT_PUBLIC_KEY: z.string().optional(),
+  JWT_ISSUER: z.string().optional(),
+  JWT_AUDIENCE: z.string().optional(),
 })
 
 export type RawEnv = z.infer<typeof rawEnvSchema>
@@ -143,6 +162,26 @@ function applyEnvironmentRules(env: RawEnv): RawEnv {
   if (PLACEHOLDER_PATTERN.test(env.MONGODB_URI)) {
     problems.push('MONGODB_URI still contains a placeholder value')
   }
+  // The signing keys get the same placeholder check, and this gap was found by the
+  // Phase 10 deployment review rather than by reasoning about it.
+  //
+  // A placeholder JWT key boots cleanly and then fails at the FIRST authenticated
+  // request with a crypto parse error, so the symptom appears as "login is broken" long
+  // after the actual mistake, and the operator debugs authentication instead of their
+  // environment file. MONGODB_URI already refuses placeholder values; the keys are a
+  // more important secret and deserve the same treatment.
+  //
+  // Only the private key is checked. The public key is not a secret, and pushing an
+  // operator to store it in a secret manager where it does not belong would be worse
+  // than the problem this solves.
+  if (env.JWT_PRIVATE_KEY && PLACEHOLDER_PATTERN.test(env.JWT_PRIVATE_KEY)) {
+    problems.push('JWT_PRIVATE_KEY still contains a placeholder value')
+  }
+  // A value that is not a PEM at all is the same mistake wearing a different hat.
+  if (env.JWT_PRIVATE_KEY && !env.JWT_PRIVATE_KEY.includes('PRIVATE KEY')) {
+    problems.push('JWT_PRIVATE_KEY does not look like a PEM key')
+  }
+
   if (!isMongoUri(env.MONGODB_URI)) {
     problems.push('MONGODB_URI must start with mongodb:// or mongodb+srv://')
   }

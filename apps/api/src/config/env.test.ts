@@ -139,6 +139,59 @@ describe('production safety rules', () => {
     expect(error?.message).toContain('placeholder')
   })
 
+  /**
+   * A regression test for a real gap, found by the Phase 10 deployment review.
+   *
+   * `JWT_PRIVATE_KEY` was not in the Zod schema at all, so it was read raw and never
+   * validated. A placeholder key therefore booted cleanly and failed at the first
+   * authenticated request with a crypto parse error — which presents as "login is
+   * broken" and sends an operator debugging authentication instead of their .env.
+   */
+  it('refuses to start with a placeholder signing key', async () => {
+    const { error } = await loadEnv({ ...SAFE_PRODUCTION, JWT_PRIVATE_KEY: 'changeme' })
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error?.message).toContain('JWT_PRIVATE_KEY')
+  })
+
+  it('refuses a signing key that is not a PEM', async () => {
+    // The same mistake in a different shape. `changeme` matches the keyword list; a
+    // plausible-looking random string does not, and fails later and less clearly.
+    const { error } = await loadEnv({
+      ...SAFE_PRODUCTION,
+      JWT_PRIVATE_KEY: 'aGVsbG8gd29ybGQgdGhpcyBpcyBub3QgYSBrZXk=',
+    })
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error?.message).toContain('PEM')
+  })
+
+  it('accepts a real generated key pair', async () => {
+    const { generateKeyPairSync } = await import('node:crypto')
+    const { privateKey } = generateKeyPairSync('ed25519', {
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+    })
+
+    const { error } = await loadEnv({
+      ...SAFE_PRODUCTION,
+      JWT_PRIVATE_KEY: privateKey as unknown as string,
+    })
+
+    expect(error ?? undefined).toBeUndefined()
+  })
+
+  it('does not require a key pair outside production', async () => {
+    // Development and test must be able to boot without generating keys, or the suite
+    // would need a key pair per run.
+    const { error } = await loadEnv({
+      NODE_ENV: 'development',
+      MONGODB_URI: 'mongodb://127.0.0.1:27017',
+    })
+
+    expect(error ?? undefined).toBeUndefined()
+  })
+
   it('refuses to start with a non-MongoDB URI', async () => {
     const { error } = await loadEnv({
       ...SAFE_PRODUCTION,

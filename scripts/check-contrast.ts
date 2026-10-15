@@ -107,6 +107,22 @@ const PAIRS: Pair[] = [
   { where: 'primary button label', fg: 'white', bg: 'infini-700', kind: 'normal' },
   { where: 'primary button label, hover', fg: 'white', bg: 'infini-800', kind: 'normal' },
   { where: 'primary button label, pressed', fg: 'infini-900', bg: 'white', kind: 'normal' },
+
+  /*
+   * Gradient buttons.
+   *
+   * A vertical face gradient is judged on its LIGHTEST stop, because that is where the
+   * top of the label sits. Testing only the `to` stop passes a button whose upper half is
+   * unreadable — the label has a single colour and it meets the face at its faintest
+   * point, so the faintest point is what sets the real ratio.
+   *
+   * `--color-infini-600` is the top of the primary face and the bottom of the pressed
+   * face, so it has to hold white text at AA in both directions' worst case.
+   */
+  { where: 'primary button gradient, lightest stop', fg: 'white', bg: 'infini-600', kind: 'normal' },
+  { where: 'danger button gradient, lightest stop', fg: 'white', bg: 'danger', kind: 'normal' },
+  { where: 'secondary button gradient, darkest stop', fg: 'ink-800', bg: 'line', kind: 'normal' },
+
   { where: 'danger button label', fg: 'white', bg: 'danger', kind: 'normal' },
   { where: 'success badge', fg: 'white', bg: 'success', kind: 'normal' },
   { where: 'warning badge', fg: 'white', bg: 'warning', kind: 'normal' },

@@ -212,10 +212,16 @@ export function HospitalDashboard() {
                 description="Your account does not yet hold any permissions in this hospital. Ask an administrator to assign a role."
               />
             ) : (
+              /*
+               * The index feeds the stagger. Without it six module tiles arrive as one
+               * flat block and the motion adds nothing; with it they assemble left to
+               * right, which is the only thing that tells the eye these are six
+               * independent entries rather than one dense grid.
+               */
               <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {available.map((module) => (
+                {available.map((module, index) => (
                   <li key={module.to}>
-                    <ModuleTile module={module} />
+                    <ModuleTile module={module} stagger={index} />
                   </li>
                 ))}
               </ul>
@@ -267,9 +273,21 @@ export function HospitalDashboard() {
   )
 }
 
-function ModuleTile({ module }: { module: ModuleCard }) {
+function ModuleTile({ module, stagger }: { module: ModuleCard; stagger: number }) {
+  /*
+   * `interactive` is correct here and nowhere else on a dashboard: this tile IS a link
+   * target, so lifting on hover tells the truth rather than implying an affordance that
+   * does not exist.
+   *
+   * `h-full` matters because the grid stretches every cell to the tallest in its row —
+   * without it a short tile's hover lift stops halfway up and the shadow looks clipped.
+   */
   return (
-    <div className="flex h-full flex-col rounded-card border border-line bg-surface p-4 transition-shadow hover:shadow-raised">
+    <Card
+      interactive
+      stagger={stagger}
+      className="panel-enter h-full p-4 motion-reduce:transform-none"
+    >
       <div className="flex items-start gap-3">
         <span
           aria-hidden="true"
@@ -292,7 +310,7 @@ function ModuleTile({ module }: { module: ModuleCard }) {
           <ArrowRight aria-hidden="true" className="size-3" />
         </Link>
       </div>
-    </div>
+    </Card>
   )
 }
 

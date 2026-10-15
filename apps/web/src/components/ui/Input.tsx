@@ -32,8 +32,9 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
  * and echoes a value. Only a human looking at a rendered page could see it.
  */
 export const inputBaseClasses =
-  'w-full rounded-lg border bg-white px-3 py-2 text-sm text-body placeholder:text-body-subtle ' +
-  'transition-colors focus:border-infini-600 disabled:cursor-not-allowed disabled:bg-surface-muted ' +
+  'field-focus w-full rounded-lg border bg-white px-3 py-2 text-sm text-body ' +
+  'placeholder:text-body-subtle ' +
+  'disabled:cursor-not-allowed disabled:bg-surface-muted ' +
   'disabled:text-body-subtle'
 
 /**

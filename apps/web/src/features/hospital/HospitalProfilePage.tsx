@@ -194,7 +194,7 @@ function ProfileForm({
                 Save profile
               </Button>
             ) : (
-              <p className="flex items-center gap-2 text-sm text-ink-subtle">
+              <p className="flex items-center gap-2 text-sm text-body-subtle">
                 <ShieldCheck aria-hidden="true" className="size-4" />
                 You can view this but not change it.
               </p>
@@ -325,7 +325,7 @@ function SettingsForm({
                 Save settings
               </Button>
             ) : (
-              <p className="flex items-center gap-2 text-sm text-ink-subtle">
+              <p className="flex items-center gap-2 text-sm text-body-subtle">
                 <Building2 aria-hidden="true" className="size-4" />
                 Only a hospital administrator can change these.
               </p>

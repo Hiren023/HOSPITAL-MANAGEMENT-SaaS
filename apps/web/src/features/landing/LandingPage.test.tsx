@@ -20,11 +20,39 @@ describe('LandingPage', () => {
     renderLanding()
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
-    // The wordmark appears in the header and again in the footer.
-    expect(screen.getAllByText('Infinigrow').length).toBeGreaterThan(0)
     expect(
-      screen.getByText(/Infinigrow Softech\. Infinigrow Hospital Cloud is a product of/i),
+      screen.getByText(/Infinigrow Softech\. Infini Health is a product of/i),
     ).toBeInTheDocument()
+  })
+
+  /**
+   * The brand rule: **Infini** is infini-blue, **Health** is black.
+   *
+   * Asserted on the rendered classes rather than on a screenshot, because a screenshot
+   * cannot be reviewed in this environment and would pass even if both halves were
+   * accidentally the same colour. These two assertions are what make the split
+   * intentional rather than incidental — the wordmark is rendered as two separate runs
+   * precisely so they can be styled differently.
+   */
+  it('renders the wordmark as Infini in blue and Health in black', () => {
+    renderLanding()
+
+    // The wordmark appears in the header and again in the footer.
+    const infini = screen.getAllByText('Infini')
+    expect(infini.length).toBeGreaterThan(0)
+
+    for (const run of infini) {
+      expect(run.className).toMatch(/text-infini-\d+/)
+    }
+
+    const health = screen.getAllByText('Health')
+    expect(health.length).toBeGreaterThan(0)
+
+    for (const run of health) {
+      expect(run.className).toMatch(/text-(ink-\d+|white)/)
+      // Not blue: the two halves must not collapse into one colour.
+      expect(run.className).not.toMatch(/text-infini-/)
+    }
   })
 
   it('covers the product overview, features, security, pricing and FAQ', () => {

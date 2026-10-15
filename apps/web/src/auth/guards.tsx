@@ -32,7 +32,7 @@ function RestoringScreen() {
       aria-live="polite"
       className="flex min-h-screen items-center justify-center bg-canvas"
     >
-      <p className="text-sm text-ink-muted">Restoring your session…</p>
+      <p className="text-sm text-body-muted">Restoring your session…</p>
     </div>
   )
 }
@@ -61,7 +61,7 @@ export function UnauthorizedState({
         403
       </div>
       <h1 className="text-2xl font-semibold">Access restricted</h1>
-      <p role="alert" className="mt-2 text-sm text-ink-muted">
+      <p role="alert" className="mt-2 text-sm text-body-muted">
         {message}
       </p>
 
@@ -74,7 +74,7 @@ export function UnauthorizedState({
         was unconditional, so a platform operator who ended up here was given advice that
         could not possibly apply.
       */}
-      <p className="mt-1 text-sm text-ink-subtle">
+      <p className="mt-1 text-sm text-body-subtle">
         {isPlatform
           ? 'Platform administrators do not belong to any hospital, so hospital screens are closed to them by design.'
           : 'If you need this, ask a hospital administrator to update your role.'}
@@ -88,7 +88,7 @@ export function UnauthorizedState({
       */}
       <Link
         to={home}
-        className="mt-6 text-sm font-medium text-brand-700 underline underline-offset-4 hover:text-brand-800"
+        className="mt-6 text-sm font-medium text-infini-700 underline underline-offset-4 hover:text-infini-800"
       >
         Return to {isPlatform ? 'the platform console' : 'your dashboard'}
       </Link>

@@ -202,10 +202,10 @@ export function StaffPage() {
             <p className="truncate font-medium">
               {row.fullName}
               {row.userId === ownUserId ? (
-                <span className="ml-2 text-xs text-ink-subtle">(you)</span>
+                <span className="ml-2 text-xs text-body-subtle">(you)</span>
               ) : null}
             </p>
-            <p className="truncate text-xs text-ink-subtle">{row.email}</p>
+            <p className="truncate text-xs text-body-subtle">{row.email}</p>
           </div>
         ),
       },
@@ -314,7 +314,7 @@ export function StaffPage() {
             className="flex flex-wrap items-end gap-3 border-b border-line px-5 py-3"
           >
             <div className="w-full sm:w-48">
-              <label htmlFor="role-filter" className="mb-1 block text-xs font-medium text-ink-muted">
+              <label htmlFor="role-filter" className="mb-1 block text-xs font-medium text-body-muted">
                 Role
               </label>
               <Select
@@ -329,7 +329,7 @@ export function StaffPage() {
             <div className="w-full sm:w-52">
               <label
                 htmlFor="membership-filter"
-                className="mb-1 block text-xs font-medium text-ink-muted"
+                className="mb-1 block text-xs font-medium text-body-muted"
               >
                 Membership
               </label>

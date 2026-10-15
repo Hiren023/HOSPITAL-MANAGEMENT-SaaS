@@ -174,22 +174,22 @@ export function RegisterHospitalPage() {
           <Card>
             <CardBody className="flex flex-col items-center py-10 text-center">
               <CheckCircle2 aria-hidden="true" className="size-12 text-success" />
-              <h1 className="mt-4 text-2xl font-semibold text-navy-900">Registration received</h1>
-              <p className="mt-2 max-w-prose text-sm text-ink-muted">
-                <strong className="font-medium text-ink">{values.hospitalName}</strong> has been
-                registered and is awaiting approval by the Infinigrow platform team. You will be
+              <h1 className="mt-4 text-2xl font-semibold text-ink-900">Registration received</h1>
+              <p className="mt-2 max-w-prose text-sm text-body-muted">
+                <strong className="font-medium text-body">{values.hospitalName}</strong> has been
+                registered and is awaiting approval by the Infini Health platform team. You will be
                 able to sign in once a platform administrator approves the hospital and activates
                 your account.
               </p>
 
               <dl className="mt-6 grid w-full gap-px overflow-hidden rounded-lg border border-line bg-line text-left sm:grid-cols-2">
                 <div className="bg-surface px-4 py-3">
-                  <dt className="text-xs text-ink-subtle">Status</dt>
+                  <dt className="text-xs text-body-subtle">Status</dt>
                   <dd className="mt-0.5 text-sm font-medium text-warning">Pending approval</dd>
                 </div>
                 <div className="bg-surface px-4 py-3">
-                  <dt className="text-xs text-ink-subtle">Reference</dt>
-                  <dd className="mt-0.5 font-mono text-xs text-ink">{registered}</dd>
+                  <dt className="text-xs text-body-subtle">Reference</dt>
+                  <dd className="mt-0.5 font-mono text-xs text-body">{registered}</dd>
                 </div>
               </dl>
 
@@ -217,7 +217,7 @@ export function RegisterHospitalPage() {
           </Link>
           <Link
             to="/login"
-            className="text-sm font-medium text-brand-700 underline underline-offset-4"
+            className="text-sm font-medium text-infini-700 underline underline-offset-4"
           >
             Sign in
           </Link>
@@ -226,9 +226,9 @@ export function RegisterHospitalPage() {
 
       <main className="mx-auto w-full max-w-3xl px-5 py-10">
         <div className="max-w-2xl">
-          <h1 className="text-3xl font-semibold text-navy-900">Register your hospital</h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            Create a tenant on Infinigrow Hospital Cloud. Your account stays inactive until the
+          <h1 className="text-3xl font-semibold text-ink-900">Register your hospital</h1>
+          <p className="mt-2 text-sm text-body-muted">
+            Create a tenant on Infini Health. Your account stays inactive until the
             platform team approves the hospital — this is deliberate, and prevents unverified
             organisations from appearing in the platform.
           </p>
@@ -244,7 +244,7 @@ export function RegisterHospitalPage() {
           <CardBody>
             <form onSubmit={(event) => void onSubmit(event)} className="space-y-5" noValidate>
               <fieldset className="space-y-5">
-                <legend className="text-sm font-semibold text-navy-900">Hospital details</legend>
+                <legend className="text-sm font-semibold text-ink-900">Hospital details</legend>
 
                 <FormField label="Hospital name" error={fieldErrors['hospitalName']} required>
                   {({ id, describedBy, invalid }) => (
@@ -324,10 +324,10 @@ export function RegisterHospitalPage() {
               </fieldset>
 
               <fieldset className="space-y-5 border-t border-line pt-5">
-                <legend className="text-sm font-semibold text-navy-900">
+                <legend className="text-sm font-semibold text-ink-900">
                   Administrator account
                 </legend>
-                <p className="text-xs text-ink-subtle">
+                <p className="text-xs text-body-subtle">
                   This account will manage users, departments and settings for your hospital.
                 </p>
 
@@ -417,7 +417,7 @@ export function RegisterHospitalPage() {
                 >
                   Submit registration
                 </Button>
-                <p className="text-xs text-ink-subtle">
+                <p className="text-xs text-body-subtle">
                   All details are used to verify the organisation. We never store patient data here.
                 </p>
               </div>

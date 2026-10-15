@@ -122,7 +122,7 @@ export function DepartmentsPage() {
         cell: (row) => (
           <div className="min-w-0">
             <p className="truncate font-medium">{row.name}</p>
-            <p className="truncate font-mono text-xs text-ink-subtle">{row.code}</p>
+            <p className="truncate font-mono text-xs text-body-subtle">{row.code}</p>
           </div>
         ),
       },
@@ -130,7 +130,7 @@ export function DepartmentsPage() {
         key: 'description',
         header: 'Description',
         cell: (row) => (
-          <span className="text-sm text-ink-muted">{row.description || '—'}</span>
+          <span className="text-sm text-body-muted">{row.description || '—'}</span>
         ),
         secondary: true,
       },
@@ -163,7 +163,7 @@ export function DepartmentsPage() {
               Edit
             </Button>
           ) : (
-            <span className="text-xs text-ink-subtle">—</span>
+            <span className="text-xs text-body-subtle">—</span>
           ),
       },
     ],

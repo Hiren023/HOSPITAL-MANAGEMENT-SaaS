@@ -105,7 +105,7 @@ export function ConsultationPage() {
                 action={
                   <a
                     href="/queue"
-                    className="text-sm font-medium text-brand-700 underline underline-offset-4"
+                    className="text-sm font-medium text-infini-700 underline underline-offset-4"
                   >
                     Back to my queue
                   </a>
@@ -143,7 +143,7 @@ export function ConsultationPage() {
       actions={
         <a
           href="/queue"
-          className="inline-flex items-center gap-2 text-sm font-medium text-brand-700 underline-offset-4 hover:underline"
+          className="inline-flex items-center gap-2 text-sm font-medium text-infini-700 underline-offset-4 hover:underline"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
           My queue
@@ -189,7 +189,7 @@ export function ConsultationPage() {
                 wording alongside your change.
               </Alert>
             ) : (
-              <p className="text-sm text-ink-muted">
+              <p className="text-sm text-body-muted">
                 This is a draft, private to you. Finalizing is permanent and marks the record
                 as complete.
               </p>
@@ -240,7 +240,7 @@ export function ConsultationPage() {
             </>
           }
         >
-          <p className="text-sm text-ink-muted">
+          <p className="text-sm text-body-muted">
             Your name and the time will be attached to this record permanently. Afterwards,
             changes are possible but only as amendments, which record what the original said
             and why it changed.
@@ -364,9 +364,9 @@ function ReadOnlyField({
 }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">{label}</dt>
+      <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">{label}</dt>
       <dd className="mt-1 whitespace-pre-wrap text-sm">
-        {children.trim() === '' ? <span className="text-ink-subtle">Not recorded</span> : children}
+        {children.trim() === '' ? <span className="text-body-subtle">Not recorded</span> : children}
       </dd>
     </div>
   )
@@ -388,16 +388,16 @@ function AmendmentHistory({ record }: { record: Consultation }) {
               <p className="text-sm font-medium">
                 {amendment.fields.join(', ')} changed · {formatMoment(amendment.at)}
               </p>
-              <p className="mt-1 text-sm text-ink-muted">{amendment.reason}</p>
+              <p className="mt-1 text-sm text-body-muted">{amendment.reason}</p>
               {amendment.fields.map((field) => (
                 <div key={field} className="mt-2 space-y-1">
-                  <p className="text-xs uppercase tracking-wide text-ink-subtle">
+                  <p className="text-xs uppercase tracking-wide text-body-subtle">
                     {field} — said before
                   </p>
                   <p className="whitespace-pre-wrap rounded bg-canvas px-3 py-2 text-sm line-through opacity-70">
                     {String(amendment.before[field] ?? '') || 'Not recorded'}
                   </p>
-                  <p className="text-xs uppercase tracking-wide text-ink-subtle">now says</p>
+                  <p className="text-xs uppercase tracking-wide text-body-subtle">now says</p>
                   <p className="whitespace-pre-wrap rounded bg-canvas px-3 py-2 text-sm">
                     {String(amendment.after[field] ?? '') || 'Not recorded'}
                   </p>
@@ -638,7 +638,7 @@ function PrescriptionCard({
         {prescription.items.map((item, index) => (
           <li key={`${item.drugName}-${index}`} className="text-sm">
             <span className="font-medium">{item.drugName}</span>{' '}
-            <span className="text-ink-muted">
+            <span className="text-body-muted">
               — {item.dose}, {item.route}, {item.frequency}
               {item.duration ? `, for ${item.duration}` : ''}
             </span>
@@ -647,7 +647,7 @@ function PrescriptionCard({
       </ul>
 
       {prescription.notes ? (
-        <p className="mt-3 whitespace-pre-wrap text-sm text-ink-muted">{prescription.notes}</p>
+        <p className="mt-3 whitespace-pre-wrap text-sm text-body-muted">{prescription.notes}</p>
       ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -687,7 +687,7 @@ function PrescriptionCard({
             </>
           }
         >
-          <p className="text-sm text-ink-muted">
+          <p className="text-sm text-body-muted">
             Issuing seals the prescription and generates a printable document. Only you and
             colleagues with permission over this patient&rsquo;s records can download it —
             the document is not published to a shareable address.
@@ -759,7 +759,7 @@ function PrescriptionComposer({
       <div className="space-y-4">
         {items.map((item, index) => (
           <fieldset key={index} className="rounded-lg border border-line p-4">
-            <legend className="px-1 text-xs font-medium uppercase tracking-wide text-ink-subtle">
+            <legend className="px-1 text-xs font-medium uppercase tracking-wide text-body-subtle">
               Medicine {index + 1}
             </legend>
 

@@ -40,8 +40,8 @@ export function ErrorState({
     >
       <AlertTriangle aria-hidden="true" className="size-7 text-danger" />
 
-      <h3 className="text-base font-semibold text-navy-900">{title}</h3>
-      <p className="max-w-prose text-sm text-ink-muted">{message}</p>
+      <h3 className="text-base font-semibold text-ink-900">{title}</h3>
+      <p className="max-w-prose text-sm text-body-muted">{message}</p>
 
       {children}
 

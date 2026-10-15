@@ -1,4 +1,4 @@
-# Infinigrow Hospital Cloud
+# Infini Health
 
 **Ideas grow without limits.**
 
@@ -9,7 +9,7 @@ multispecialty hospitals. Built by **Infinigrow Softech**.
 > deployment.** Phases 0-9 are implemented and tested - registration, authentication, the
 > platform console, hospital administration, patients, appointments, clinical records,
 > prescriptions, attendance, billing with revenue reporting, subscriptions and
-> notifications. **1,052 tests pass.**
+> notifications. **1,057 tests pass.**
 >
 > A full review found **one Critical and three High findings** that block production. The
 > Critical one - a compiler OOM that meant `npm run typecheck` had never actually completed -

@@ -378,7 +378,7 @@ function ScheduleEditor({
                 </label>
 
                 <label className="flex items-center gap-2 text-sm">
-                  <span className="text-ink-subtle">From</span>
+                  <span className="text-body-subtle">From</span>
                   <Input
                     type="time"
                     value={day.start}
@@ -390,7 +390,7 @@ function ScheduleEditor({
                 </label>
 
                 <label className="flex items-center gap-2 text-sm">
-                  <span className="text-ink-subtle">to</span>
+                  <span className="text-body-subtle">to</span>
                   <Input
                     type="time"
                     value={day.end}
@@ -402,7 +402,7 @@ function ScheduleEditor({
                 </label>
 
                 <label className="flex items-center gap-2 text-sm">
-                  <span className="text-ink-subtle">Slot</span>
+                  <span className="text-body-subtle">Slot</span>
                   <Select
                     aria-label={`${WEEKDAYS[day.weekday]} slot length`}
                     options={SLOT_OPTIONS}
@@ -423,7 +423,7 @@ function ScheduleEditor({
               Save schedule
             </Button>
           ) : (
-            <p className="text-sm text-ink-subtle">
+            <p className="text-sm text-body-subtle">
               You can view this schedule but not change it.
             </p>
           )}
@@ -501,7 +501,7 @@ export function DoctorProfilePage() {
                 action={
                   <a
                     href="/doctors"
-                    className="text-sm font-medium text-brand-700 underline underline-offset-4"
+                    className="text-sm font-medium text-infini-700 underline underline-offset-4"
                   >
                     Back to doctors
                   </a>
@@ -538,7 +538,7 @@ export function DoctorProfilePage() {
       actions={
         <a
           href="/doctors"
-          className="inline-flex items-center gap-2 text-sm font-medium text-brand-700 underline-offset-4 hover:underline"
+          className="inline-flex items-center gap-2 text-sm font-medium text-infini-700 underline-offset-4 hover:underline"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
           All doctors
@@ -565,32 +565,32 @@ export function DoctorProfilePage() {
           <CardBody>
             <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Registration
                 </dt>
                 <dd className="mt-1 font-mono text-sm">
                   {doctor.registrationNumber ?? '—'}
                   {doctor.registrationNumberMasked ? (
-                    <span className="ml-2 text-xs text-ink-subtle">
+                    <span className="ml-2 text-xs text-body-subtle">
                       hidden — you do not manage doctors
                     </span>
                   ) : null}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Specialities
                 </dt>
                 <dd className="mt-1 text-sm">{doctor.specialities.join(', ') || '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Experience
                 </dt>
                 <dd className="mt-1 text-sm">{doctor.yearsOfExperience} years</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Consultation fee
                 </dt>
                 <dd className="mt-1 text-sm">
@@ -656,7 +656,7 @@ export function DoctorProfilePage() {
         )}
 
         {schedule.data && schedule.data.blocks.length > 0 ? (
-          <p className="flex items-center gap-2 text-sm text-ink-subtle">
+          <p className="flex items-center gap-2 text-sm text-body-subtle">
             <CalendarDays aria-hidden="true" className="size-4" />
             {schedule.data.blocks.filter((block) => block.isActive).length} working blocks stored for
             this doctor.

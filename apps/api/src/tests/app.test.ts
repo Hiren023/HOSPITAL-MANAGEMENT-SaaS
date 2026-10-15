@@ -18,7 +18,7 @@ describe('service metadata', () => {
 
     expect(response.status).toBe(200)
     expect(response.body.success).toBe(true)
-    expect(response.body.data.product).toBe('Infinigrow Hospital Cloud')
+    expect(response.body.data.product).toBe('Infini Health')
     expect(response.body.data.vendor).toBe('Infinigrow Softech')
     expect(response.body.data.tagline).toBe('Ideas grow without limits')
   })

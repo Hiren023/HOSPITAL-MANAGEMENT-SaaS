@@ -81,11 +81,11 @@ export function InvoicesPage() {
         <div className="min-w-0">
           <a
             href={`/invoices/${row.id}`}
-            className="truncate font-medium text-brand-700 underline-offset-4 hover:underline"
+            className="truncate font-medium text-infini-700 underline-offset-4 hover:underline"
           >
             {row.number}
           </a>
-          <p className="truncate text-xs text-ink-subtle">{row.issueDate}</p>
+          <p className="truncate text-xs text-body-subtle">{row.issueDate}</p>
         </div>
       ),
     },
@@ -93,7 +93,7 @@ export function InvoicesPage() {
       key: 'patient',
       header: 'Patient',
       cell: (row) => (
-        <span className="truncate text-sm text-ink-muted">{row.patientLabel ?? '—'}</span>
+        <span className="truncate text-sm text-body-muted">{row.patientLabel ?? '—'}</span>
       ),
     },
     {
@@ -111,7 +111,7 @@ export function InvoicesPage() {
       cell: (row) => (
         <span
           className={`whitespace-nowrap ${
-            row.balanceMinor === 0 ? 'text-ink-subtle' : 'font-medium'
+            row.balanceMinor === 0 ? 'text-body-subtle' : 'font-medium'
           }`}
         >
           {row.balanceMinor === 0
@@ -552,7 +552,7 @@ export function InvoiceDetailPage() {
               <caption className="sr-only">
                 Charges on this invoice, with the quantity, unit price, discount, tax and line total
               </caption>
-              <thead className="border-b border-line bg-canvas text-left text-xs uppercase tracking-wide text-ink-subtle">
+              <thead className="border-b border-line bg-canvas text-left text-xs uppercase tracking-wide text-body-subtle">
                 <tr>
                   <th scope="col" className="px-5 py-2 font-medium">Description</th>
                   <th scope="col" className="px-3 py-2 text-right font-medium">Qty</th>
@@ -567,7 +567,7 @@ export function InvoiceDetailPage() {
                     <td className="px-5 py-2">
                       {line.description}
                       {line.code ? (
-                        <span className="ml-2 font-mono text-xs text-ink-subtle">{line.code}</span>
+                        <span className="ml-2 font-mono text-xs text-body-subtle">{line.code}</span>
                       ) : null}
                     </td>
                     <td className="px-3 py-2 text-right">{line.quantity}</td>
@@ -609,7 +609,7 @@ export function InvoiceDetailPage() {
                         {payment.kind === 'REFUND' ? 'Refund' : 'Payment'} —{' '}
                         {formatMinorUnits(payment.amountMinor, data.currency)}
                       </p>
-                      <p className="text-xs text-ink-subtle">
+                      <p className="text-xs text-body-subtle">
                         {payment.method.replace('_', ' ').toLowerCase()} ·{' '}
                         {new Date(payment.occurredAt).toLocaleString()}
                         {payment.reference ? ` · ${payment.reference}` : ''}
@@ -677,7 +677,7 @@ function Figure({
 }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">{label}</dt>
+      <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">{label}</dt>
       <dd className={`mt-1 ${emphasis ? 'text-base font-semibold' : 'text-sm'}`}>{value}</dd>
     </div>
   )

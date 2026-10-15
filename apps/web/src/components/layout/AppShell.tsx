@@ -81,9 +81,9 @@ export function AppShell({
           <div
             aria-hidden="true"
             onClick={() => setNavigationOpen(false)}
-            className="absolute inset-0 bg-navy-950/50"
+            className="absolute inset-0 bg-ink-950/50"
           />
-          <div className="absolute inset-y-0 left-0 w-64 max-w-[80vw] shadow-xl">
+          <div className="absolute inset-y-0 left-0 w-64 max-w-[80vw] shadow-overlay">
             <Sidebar onNavigate={() => setNavigationOpen(false)} />
           </div>
         </div>

@@ -44,7 +44,7 @@ export function Pagination({ page, pageCount, onPageChange, total, className }: 
 
   const buttonClass =
     'flex size-9 items-center justify-center rounded-lg text-sm font-medium transition-colors ' +
-    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600'
+    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-infini-600'
 
   return (
     <nav
@@ -52,7 +52,7 @@ export function Pagination({ page, pageCount, onPageChange, total, className }: 
       className={cn('flex flex-wrap items-center justify-between gap-3', className)}
     >
       {typeof total === 'number' ? (
-        <p aria-live="polite" className="text-xs text-ink-muted">
+        <p aria-live="polite" className="text-xs text-body-muted">
           Showing page {page} of {pageCount} · {total.toLocaleString('en-IN')} records
         </p>
       ) : (
@@ -67,7 +67,7 @@ export function Pagination({ page, pageCount, onPageChange, total, className }: 
           aria-label="Go to previous page"
           className={cn(
             buttonClass,
-            'text-ink-muted hover:bg-surface-muted hover:text-ink disabled:pointer-events-none disabled:opacity-40',
+            'text-body-muted hover:bg-surface-muted hover:text-body disabled:pointer-events-none disabled:opacity-40',
           )}
         >
           <ChevronLeft aria-hidden="true" className="size-4" />
@@ -75,7 +75,7 @@ export function Pagination({ page, pageCount, onPageChange, total, className }: 
 
         {pages.map((entry, index) =>
           entry === 'gap' ? (
-            <span key={`gap-${index}`} aria-hidden="true" className="px-1 text-sm text-ink-subtle">
+            <span key={`gap-${index}`} aria-hidden="true" className="px-1 text-sm text-body-subtle">
               …
             </span>
           ) : (
@@ -88,8 +88,8 @@ export function Pagination({ page, pageCount, onPageChange, total, className }: 
               className={cn(
                 buttonClass,
                 entry === page
-                  ? 'bg-brand-700 text-white'
-                  : 'text-ink-muted hover:bg-surface-muted hover:text-ink',
+                  ? 'bg-infini-700 text-white'
+                  : 'text-body-muted hover:bg-surface-muted hover:text-body',
               )}
             >
               {entry}
@@ -104,7 +104,7 @@ export function Pagination({ page, pageCount, onPageChange, total, className }: 
           aria-label="Go to next page"
           className={cn(
             buttonClass,
-            'text-ink-muted hover:bg-surface-muted hover:text-ink disabled:pointer-events-none disabled:opacity-40',
+            'text-body-muted hover:bg-surface-muted hover:text-body disabled:pointer-events-none disabled:opacity-40',
           )}
         >
           <ChevronRight aria-hidden="true" className="size-4" />

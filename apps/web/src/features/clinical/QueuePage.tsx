@@ -91,7 +91,7 @@ export function QueuePage() {
       cell: (row) => (
         <a
           href={`/patients/${row.patientId}`}
-          className="font-medium text-brand-700 underline-offset-4 hover:underline"
+          className="font-medium text-infini-700 underline-offset-4 hover:underline"
         >
           {row.patientName ?? 'Unknown patient'}
         </a>
@@ -101,7 +101,7 @@ export function QueuePage() {
       key: 'reason',
       header: 'Reason given',
       cell: (row) => (
-        <span className="text-sm text-ink-muted">{row.reason ?? '—'}</span>
+        <span className="text-sm text-body-muted">{row.reason ?? '—'}</span>
       ),
       secondary: true,
     },
@@ -306,7 +306,7 @@ function StartConsultationDialog({
             : 'The consultation could not be created.'}
         </Alert>
       ) : (
-        <p className="text-sm text-ink-muted">
+        <p className="text-sm text-body-muted">
           The record starts as a <strong>draft</strong> and stays private to you until you
           finalize it. Finalizing is permanent — afterwards, corrections are recorded as
           amendments rather than overwriting what was signed.

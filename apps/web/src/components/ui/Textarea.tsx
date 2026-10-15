@@ -16,10 +16,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       rows={rows}
       aria-invalid={invalid || undefined}
       className={cn(
-        'w-full rounded-lg border bg-white px-3 py-2 text-sm text-ink ' +
-          'placeholder:text-ink-subtle transition-colors focus:border-brand-600 ' +
+        'w-full rounded-lg border bg-white px-3 py-2 text-sm text-body ' +
+          'placeholder:text-body-subtle transition-colors focus:border-infini-600 ' +
           'disabled:cursor-not-allowed disabled:bg-surface-muted',
-        invalid ? 'border-danger focus:border-danger' : 'border-line-strong focus:border-brand-600',
+        invalid ? 'border-danger focus:border-danger' : 'border-line-strong focus:border-infini-600',
         className,
       )}
       {...props}

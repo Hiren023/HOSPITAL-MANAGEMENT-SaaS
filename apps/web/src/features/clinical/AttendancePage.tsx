@@ -118,7 +118,7 @@ export function AttendancePage() {
       key: 'hours',
       header: 'Hours',
       cell: (row) => (
-        <span className="whitespace-nowrap text-sm text-ink-muted">
+        <span className="whitespace-nowrap text-sm text-body-muted">
           {row.hoursWorked === null ? '—' : row.hoursWorked.toFixed(2)}
         </span>
       ),
@@ -174,7 +174,7 @@ export function AttendancePage() {
       key: 'hours',
       header: 'Hours',
       cell: (row) => (
-        <span className="whitespace-nowrap text-sm text-ink-muted">
+        <span className="whitespace-nowrap text-sm text-body-muted">
           {row.hoursWorked === null ? '—' : row.hoursWorked.toFixed(2)}
         </span>
       ),
@@ -203,7 +203,7 @@ export function AttendancePage() {
       header: <span className="sr-only">Decide corrections</span>,
       cell: (row) => {
         const pending = row.corrections.find((entry) => entry.decision === null)
-        if (!pending) return <span className="text-xs text-ink-subtle">Nothing to decide</span>
+        if (!pending) return <span className="text-xs text-body-subtle">Nothing to decide</span>
         return (
           <CorrectionDecision
             recordId={row.id}
@@ -265,7 +265,7 @@ export function AttendancePage() {
               }
             />
             <CardBody>
-              <p className="text-sm text-ink-muted">
+              <p className="text-sm text-body-muted">
                 If the recorded time is wrong, ask for a correction below. It does not change
                 anything by itself — someone with approval responsibility decides.
               </p>
@@ -532,11 +532,11 @@ function CorrectionDecision({
   return (
     <>
       <div className="flex flex-col gap-1">
-        <span className="text-xs text-ink-muted">
+        <span className="text-xs text-body-muted">
           {field === 'checkInAt' ? 'Check-in' : 'Check-out'} →{' '}
           {requestedValue ? formatTime(requestedValue) : '—'}
         </span>
-        <span className="text-xs italic text-ink-subtle">{reason}</span>
+        <span className="text-xs italic text-body-subtle">{reason}</span>
       </div>
 
       <div className="mt-1 flex gap-2">

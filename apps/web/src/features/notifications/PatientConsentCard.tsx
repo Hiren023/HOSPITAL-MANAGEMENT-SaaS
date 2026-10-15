@@ -107,7 +107,7 @@ export function PatientConsentCard({
       <CardHeader
         title="Contact consent"
         description="Whether this patient has agreed to be contacted on each channel."
-        actions={<ShieldCheck aria-hidden="true" className="size-4 text-[var(--color-ink-subtle)]" />}
+        actions={<ShieldCheck aria-hidden="true" className="size-4 text-[var(--color-body-subtle)]" />}
       />
       <CardBody>
         {error ? (
@@ -140,7 +140,7 @@ export function PatientConsentCard({
                   >
                     <div>
                       <p className="font-medium">{CHANNEL_LABELS[channel]}</p>
-                      <p className="mt-0.5 text-xs text-[var(--color-ink-subtle)]">
+                      <p className="mt-0.5 text-xs text-[var(--color-body-subtle)]">
                         {describeConsent(record)}
                       </p>
                     </div>

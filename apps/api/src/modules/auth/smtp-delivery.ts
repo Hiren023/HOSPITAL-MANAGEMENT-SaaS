@@ -20,9 +20,9 @@ export interface SmtpConfig {
 }
 
 const SUBJECTS: Record<OtpPurpose, string> = {
-  EMAIL_VERIFICATION: 'Verify your Infinigrow Hospital Cloud email address',
-  PASSWORD_RESET: 'Reset your Infinigrow Hospital Cloud password',
-  LOGIN_CHALLENGE: 'Your Infinigrow Hospital Cloud sign-in code',
+  EMAIL_VERIFICATION: 'Verify your Infini Health email address',
+  PASSWORD_RESET: 'Reset your Infini Health password',
+  LOGIN_CHALLENGE: 'Your Infini Health sign-in code',
 }
 
 const INTRO: Record<OtpPurpose, string> = {

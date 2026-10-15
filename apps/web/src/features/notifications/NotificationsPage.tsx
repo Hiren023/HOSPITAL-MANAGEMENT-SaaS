@@ -128,7 +128,7 @@ function DeliveryLog({ canSend }: { canSend: boolean }) {
       cell: (row) => (
         <div>
           <span className="font-medium">{row.templateKey}</span>
-          <span className="ml-2 text-xs text-[var(--color-ink-subtle)]">
+          <span className="ml-2 text-xs text-[var(--color-body-subtle)]">
             {CHANNEL_LABELS[row.channel]} · {CATEGORY_LABELS[row.category]}
           </span>
         </div>
@@ -141,7 +141,7 @@ function DeliveryLog({ canSend }: { canSend: boolean }) {
         <div className="flex flex-col items-start gap-1">
           <Badge tone={statusTone(row.status)}>{notificationStatusLabel(row.status)}</Badge>
           {row.suppressionReason ? (
-            <span className="text-xs text-[var(--color-ink-subtle)]">
+            <span className="text-xs text-[var(--color-body-subtle)]">
               {suppressionLabel(row.suppressionReason)}
             </span>
           ) : null}
@@ -189,7 +189,7 @@ function DeliveryLog({ canSend }: { canSend: boolean }) {
               id="notification-status"
               value={status}
               onChange={(event) => setStatus(event.target.value as '' | NotificationStatus)}
-              className="rounded-lg border border-line-strong bg-white px-3 py-1.5 text-sm text-ink"
+              className="rounded-lg border border-line-strong bg-white px-3 py-1.5 text-sm text-body"
             >
               <option value="">All statuses</option>
               {NOTIFICATION_STATUSES.map((value) => (
@@ -248,7 +248,7 @@ function DeliveryLog({ canSend }: { canSend: boolean }) {
               items={query.data.items}
               rowKey={(row) => row.id}
             />
-            <p className="mt-3 text-xs text-[var(--color-ink-subtle)]">
+            <p className="mt-3 text-xs text-[var(--color-body-subtle)]">
               {query.data.meta.total} message{query.data.meta.total === 1 ? '' : 's'} recorded.
               &apos;Handed to provider&apos; means a provider accepted it for delivery. It is
               not a statement that anybody received it.
@@ -332,12 +332,12 @@ function TemplateList() {
 
                 {template.subject === null ? null : (
                   <p className="mt-3 text-sm">
-                    <span className="text-[var(--color-ink-subtle)]">Subject: </span>
+                    <span className="text-[var(--color-body-subtle)]">Subject: </span>
                     {template.subject}
                   </p>
                 )}
 
-                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-surface-muted p-3 text-sm text-ink">
+                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-surface-muted p-3 text-sm text-body">
                   {template.body}
                 </pre>
 
@@ -447,7 +447,7 @@ function MyPreferences() {
                             enabled: event.target.checked,
                           })
                         }
-                        className="size-4 accent-[var(--color-brand-600)]"
+                        className="size-4 accent-[var(--color-infini-600)]"
                       />
                       <label htmlFor={id} className="sr-only">
                         {CATEGORY_LABELS[category]} over {CHANNEL_LABELS[channel]}

@@ -1,6 +1,6 @@
 # Architecture
 
-**Infinigrow Hospital Cloud** · maintained by Infinigrow Softech · last updated during Phase 0.
+**Infini Health** · maintained by Infinigrow Softech · last updated during Phase 0.
 
 This document expands sections 3–8 of [`PROJECT_PROPOSAL.md`](./PROJECT_PROPOSAL.md) into the
 concrete decisions actually implemented. Everything described here is verified by the test

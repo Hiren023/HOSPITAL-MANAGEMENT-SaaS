@@ -67,7 +67,7 @@ function AuthenticatedRoutes() {
         aria-live="polite"
         className="flex min-h-screen items-center justify-center"
       >
-        <p className="text-sm text-ink-muted">Restoring your session…</p>
+        <p className="text-sm text-body-muted">Restoring your session…</p>
       </div>
     )
   }

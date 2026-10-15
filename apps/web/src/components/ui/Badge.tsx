@@ -16,8 +16,8 @@ const badgeVariants = cva(
   {
     variants: {
       tone: {
-        neutral: 'bg-surface-muted text-ink-muted ring-1 ring-line',
-        brand: 'bg-brand-50 text-brand-800 ring-1 ring-brand-200',
+        neutral: 'bg-surface-muted text-body-muted ring-1 ring-line',
+        brand: 'bg-infini-50 text-infini-800 ring-1 ring-infini-200',
         success:
           'bg-[var(--color-success-bg)] text-[oklch(0.36_0.11_155)] ring-1 ring-[oklch(0.85_0.06_155)]',
         warning:

@@ -34,7 +34,7 @@ describe('sign-in page', () => {
       // Width, padding, background and text colour are the four that were missing. A bare
       // `<input>` has none of them, which is why every field looked wrong and not merely
       // plain.
-      for (const token of ['w-full', 'px-3', 'py-2', 'bg-white', 'text-ink']) {
+      for (const token of ['w-full', 'px-3', 'py-2', 'bg-white', 'text-body']) {
         expect(classes, `${field.getAttribute('type')} is missing "${token}"`).toContain(token)
       }
 

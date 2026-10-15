@@ -140,7 +140,7 @@ export function Modal({
       <div
         aria-hidden="true"
         onClick={onClose}
-        className="absolute inset-0 bg-navy-950/50 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-ink-950/50 backdrop-blur-[1px]"
       />
 
       <div
@@ -151,17 +151,17 @@ export function Modal({
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         className={cn(
-          'relative z-10 flex max-h-[92vh] w-full flex-col rounded-t-card bg-surface shadow-xl sm:rounded-card',
+          'relative z-10 flex max-h-[92vh] w-full flex-col rounded-t-card bg-surface shadow-overlay sm:rounded-card',
           SIZES[size],
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div className="min-w-0">
-            <h2 id={titleId} className="text-base font-semibold text-navy-900">
+            <h2 id={titleId} className="text-base font-semibold text-ink-900">
               {title}
             </h2>
             {description ? (
-              <p id={descriptionId} className="mt-1 text-sm text-ink-muted">
+              <p id={descriptionId} className="mt-1 text-sm text-body-muted">
                 {description}
               </p>
             ) : null}
@@ -170,7 +170,7 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="-m-1.5 shrink-0 rounded-lg p-1.5 text-ink-subtle transition-colors hover:bg-surface-muted hover:text-ink"
+            className="-m-1.5 shrink-0 rounded-lg p-1.5 text-body-subtle transition-colors hover:bg-surface-muted hover:text-body"
           >
             <X aria-hidden="true" className="size-5" />
           </button>

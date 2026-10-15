@@ -1,6 +1,6 @@
-# Infinigrow Hospital Cloud — Architecture & Implementation Proposal
+# Infini Health — Architecture & Implementation Proposal
 
-**Product:** Infinigrow Hospital Cloud (by Infinigrow Softech)
+**Product:** Infini Health (by Infinigrow Softech)
 **Tagline:** *Ideas grow without limits*
 **Document status:** PROPOSAL — nothing has been implemented yet. Awaiting approval.
 **Date:** 2026-10-10
@@ -698,7 +698,7 @@ npm test
 
 # 7. First commit (no .env, ever)
 git add .
-git commit -m "chore: initialise Infinigrow Hospital Cloud monorepo (Phase 0)"
+git commit -m "chore: initialise Infini Health monorepo (Phase 0)"
 ```
 
 ---

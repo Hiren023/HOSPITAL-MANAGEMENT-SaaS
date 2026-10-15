@@ -141,11 +141,11 @@ export function PlatformHospitalsPage() {
           <div className="min-w-0">
             <a
               href={`/platform/hospitals/${row.id}`}
-              className="truncate font-medium text-brand-700 underline-offset-4 hover:underline"
+              className="truncate font-medium text-infini-700 underline-offset-4 hover:underline"
             >
               {row.name}
             </a>
-            <p className="truncate font-mono text-xs text-ink-subtle">{row.slug}</p>
+            <p className="truncate font-mono text-xs text-body-subtle">{row.slug}</p>
           </div>
         ),
       },
@@ -158,7 +158,7 @@ export function PlatformHospitalsPage() {
         key: 'plan',
         header: 'Plan',
         cell: (row) => (
-          <span className="whitespace-nowrap text-sm text-ink-muted">{row.planLabel}</span>
+          <span className="whitespace-nowrap text-sm text-body-muted">{row.planLabel}</span>
         ),
         secondary: true,
       },
@@ -166,7 +166,7 @@ export function PlatformHospitalsPage() {
         key: 'location',
         header: 'Location',
         cell: (row) => (
-          <span className="whitespace-nowrap text-sm text-ink-muted">
+          <span className="whitespace-nowrap text-sm text-body-muted">
             {[row.city, row.state].filter(Boolean).join(', ') || '—'}
           </span>
         ),
@@ -176,7 +176,7 @@ export function PlatformHospitalsPage() {
         key: 'registered',
         header: 'Registered',
         cell: (row) => (
-          <span className="whitespace-nowrap text-ink-muted">
+          <span className="whitespace-nowrap text-body-muted">
             {new Date(row.createdAt).toLocaleDateString('en-IN', {
               day: '2-digit',
               month: 'short',
@@ -202,12 +202,12 @@ export function PlatformHospitalsPage() {
           ) : row.status === 'SUSPENDED' ? (
             <a
               href={`/platform/hospitals/${row.id}`}
-              className="text-sm font-medium text-brand-700 underline underline-offset-4"
+              className="text-sm font-medium text-infini-700 underline underline-offset-4"
             >
               Reactivate
             </a>
           ) : (
-            <span className="text-xs text-ink-subtle">—</span>
+            <span className="text-xs text-body-subtle">—</span>
           ),
       },
     ]
@@ -259,7 +259,7 @@ export function PlatformHospitalsPage() {
             <div className="w-full sm:w-48">
               <label
                 htmlFor="status-filter"
-                className="mb-1 block text-xs font-medium text-ink-muted"
+                className="mb-1 block text-xs font-medium text-body-muted"
               >
                 Status
               </label>
@@ -275,7 +275,7 @@ export function PlatformHospitalsPage() {
             <div className="w-full sm:w-48">
               <label
                 htmlFor="plan-filter"
-                className="mb-1 block text-xs font-medium text-ink-muted"
+                className="mb-1 block text-xs font-medium text-body-muted"
               >
                 Plan
               </label>
@@ -385,12 +385,12 @@ export function PlatformHospitalsPage() {
         description={
           confirming?.action === 'approve' ? (
             <>
-              <strong className="font-medium text-ink">{confirming?.hospital.name}</strong> will be
+              <strong className="font-medium text-body">{confirming?.hospital.name}</strong> will be
               able to sign in and its administrator will gain full access to that hospital.
             </>
           ) : (
             <>
-              <strong className="font-medium text-ink">{confirming?.hospital.name}</strong> will
+              <strong className="font-medium text-body">{confirming?.hospital.name}</strong> will
               lose access immediately. Every member of that hospital will be refused at sign-in
               until it is reactivated.
             </>

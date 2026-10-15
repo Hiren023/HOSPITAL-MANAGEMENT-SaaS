@@ -60,7 +60,7 @@ export function DataTable<TItem>({
       <table className="w-full min-w-max border-collapse text-sm">
         <caption
           className={cn(
-            'text-left text-sm font-medium text-ink',
+            'text-left text-sm font-medium text-body',
             showCaption ? 'px-5 pb-2' : 'sr-only',
           )}
         >
@@ -73,7 +73,7 @@ export function DataTable<TItem>({
                 key={column.key}
                 scope="col"
                 className={cn(
-                  'whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-ink-subtle',
+                  'whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-body-subtle',
                   column.numeric ? 'text-right' : 'text-left',
                   column.secondary && 'hidden md:table-cell',
                   column.className,
@@ -88,7 +88,7 @@ export function DataTable<TItem>({
           {items.length === 0 ? (
             <tr>
               <td colSpan={columns.length} className="px-3 py-12 text-center">
-                {empty ?? <span className="text-sm text-ink-muted">No records found.</span>}
+                {empty ?? <span className="text-sm text-body-muted">No records found.</span>}
               </td>
             </tr>
           ) : (
@@ -106,7 +106,7 @@ export function DataTable<TItem>({
                   <td
                     key={column.key}
                     className={cn(
-                      'px-3 py-2.5 align-middle text-ink',
+                      'px-3 py-2.5 align-middle text-body',
                       column.numeric ? 'text-right tabular-nums' : 'text-left',
                       column.secondary && 'hidden md:table-cell',
                     )}

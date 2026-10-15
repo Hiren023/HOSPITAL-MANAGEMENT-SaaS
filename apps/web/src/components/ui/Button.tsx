@@ -16,19 +16,19 @@ import { cn } from '../../lib/cn.js'
 
 export const buttonVariants = cva(
   'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors ' +
-    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ' +
+    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-infini-600 ' +
     'disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        primary: 'bg-brand-700 text-white hover:bg-brand-800 active:bg-brand-900',
+        primary: 'bg-infini-700 text-white hover:bg-infini-800 active:bg-infini-900',
         secondary:
-          'bg-white text-navy-800 ring-1 ring-line-strong hover:bg-surface-muted active:bg-[var(--color-canvas)]',
-        ghost: 'text-ink-muted hover:bg-surface-muted hover:text-ink',
+          'bg-white text-ink-800 ring-1 ring-line-strong hover:bg-surface-muted active:bg-[var(--color-canvas)]',
+        ghost: 'text-body-muted hover:bg-surface-muted hover:text-body',
         danger: 'bg-danger text-white hover:brightness-95 active:brightness-90',
         outline:
-          'bg-transparent text-brand-700 ring-1 ring-brand-300 hover:bg-brand-50 active:bg-brand-100',
-        link: 'text-brand-700 underline underline-offset-4 hover:text-brand-800',
+          'bg-transparent text-infini-700 ring-1 ring-infini-300 hover:bg-infini-50 active:bg-infini-100',
+        link: 'text-infini-700 underline underline-offset-4 hover:text-infini-800',
       },
       size: {
         sm: 'h-8 px-3 text-sm',

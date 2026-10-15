@@ -1,6 +1,6 @@
 # API Guide
 
-**Infinigrow Hospital Cloud API** · Infinigrow Softech
+**Infini Health API** · Infinigrow Softech
 
 Current version: **v1** · base path `/api/v1`
 
@@ -432,7 +432,7 @@ a shared store** across instances (see [`SECURITY.md`](./SECURITY.md) R12).
 {
   "success": true,
   "data": {
-    "product": "Infinigrow Hospital Cloud",
+    "product": "Infini Health",
     "vendor": "Infinigrow Softech",
     "tagline": "Ideas grow without limits",
     "apiVersion": "0.1.0-phase0",

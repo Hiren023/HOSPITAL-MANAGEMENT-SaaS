@@ -1,8 +1,8 @@
 {
-  "name": "infinigrow-hospital-cloud",
+  "name": "infini-health",
   "version": "0.0.0",
   "private": true,
-  "description": "Infinigrow Hospital Cloud — multi-tenant Hospital Management SaaS. Ideas grow without limits.",
+  "description": "Infini Health — multi-tenant Hospital Management SaaS. Ideas grow without limits.",
   "license": "UNLICENSED",
   "type": "module",
   "engines": {

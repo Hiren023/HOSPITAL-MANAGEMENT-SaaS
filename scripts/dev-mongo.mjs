@@ -32,7 +32,7 @@ async function main() {
   const uri = server.getUri()
 
   console.log('')
-  console.log('  Infinigrow Hospital Cloud — local database')
+  console.log('  Infini Health — local database')
   console.log('  -----------------------------------------')
   console.log(`  URI : ${uri}`)
   console.log(`  DB  : ${DB_NAME}`)

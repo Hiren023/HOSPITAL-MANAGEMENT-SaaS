@@ -1,7 +1,7 @@
 name: CI
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Infinigrow Hospital Cloud — continuous integration
+# Infini Health — continuous integration
 #
 # Gate order is deliberate and fail-fast:
 #   install → lint → typecheck → test → build → security scan

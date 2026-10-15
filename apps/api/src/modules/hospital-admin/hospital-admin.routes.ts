@@ -61,7 +61,7 @@ import {
  */
 // The router is created by the shared factory, which guarantees every route is
 // authenticated and tenant-scoped before it runs. See `infrastructure/tenant-router.ts`
-// for why this is a registrar rather than `router.use()` � the short version is that
+// for why this is a registrar rather than `router.use()` — the short version is that
 // `router.use` at the API root leaks the boundary onto every unmatched path.
 const { router: hospitalAdminRouter, route: tenantRoute } = createTenantRouter({ module: 'CLINICAL' })
 

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Infinigrow Hospital Cloud API — Express 5 + TypeScript + MongoDB/Mongoose.",
+  "description": "Infini Health API — Express 5 + TypeScript + MongoDB/Mongoose.",
   "main": "./dist/index.js",
   "scripts": {
     "dev": "tsx watch --clear-screen=false src/index.ts",

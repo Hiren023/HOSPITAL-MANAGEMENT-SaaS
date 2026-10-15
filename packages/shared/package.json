@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Shared types, validation schemas, RBAC matrix and API contracts for Infinigrow Hospital Cloud.",
+  "description": "Shared types, validation schemas, RBAC matrix and API contracts for Infini Health.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

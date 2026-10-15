@@ -131,7 +131,7 @@
   h2,
   h3,
   h4 {
-    color: var(--color-navy-900);
+    color: var(--color-ink-900);
     letter-spacing: -0.015em;
     text-wrap: balance;
   }
@@ -150,6 +150,22 @@
     border-radius: 3px;
   }
 
+  /*
+   * Reduced motion.
+   *
+   * This zeroes durations as the last line of defence, so no animation can run for
+   * someone who asked for none.
+   *
+   * It deliberately does NOT reset `transform`. A blanket `transform: none !important`
+   * is the reflexive way to kill motion and it is wrong in this app: elements are
+   * positioned with translate throughout, including every centred dropdown chevron
+   * (`top-1/2 -translate-y-1/2`). Blanket-resetting transforms does not make those
+   * still, it makes them sit half a line too low, which is a visible layout bug rather
+   * than a calmer page.
+   *
+   * So transforms are neutralised per element with Tailwind's `motion-reduce:` variant at
+   * the point they are introduced, and this block only stops movement.
+   */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -158,6 +174,23 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+    }
+
+    /*
+     * A 3D button pressed without movement leaves the face sitting 3px below its edge,
+     * which looks like a rendering fault rather than a press. Returning it to rest keeps
+     * the shadow change, which still communicates the press without displacement.
+     */
+    .btn-3d,
+    .btn-3d:hover,
+    .btn-3d:active,
+    .panel-lift:hover {
+      transform: none !important;
+    }
+
+    /* The sheen travels 240% of the button's width; with no motion it simply is not there. */
+    .btn-sheen::after {
+      display: none;
     }
   }
 }
@@ -175,9 +208,163 @@
     left: 0.5rem;
     top: 0.5rem;
     padding: 0.5rem 1rem;
-    background: var(--color-navy-800);
+    background: var(--color-ink-800);
     color: white;
     border-radius: var(--radius-control);
+  }
+
+  /* == 3D buttons ========================================================
+   *
+   * Why a solid edge and not a shadow
+   * ---------------------------------
+   * The intuitive way to lift something is `box-shadow: 0 8px 16px rgba(0,0,0,.3)`.
+   * That does not read as a solid object. A soft, symmetric, downward blur reads as
+   * *glow*, as though the element were emitting light, and every button on the page
+   * then looks like it is hovering in the same vague way.
+   *
+   * Depth needs a hard edge with a known thickness: a 4px band of the button's own
+   * pressed colour, directly beneath it, which is *consumed* as the button is pressed.
+   * That is what makes a press feel like the surface has mass. The blur is still there,
+   * but only as a soft ambient contact shadow underneath the hard edge.
+   *
+   * The edge colour comes from `--btn-edge`, which each variant sets to its own pressed
+   * shade. A mismatched edge is the most common way a 3D button ends up looking wrong:
+   * blue face, grey base, and the whole thing reads as two unrelated shapes stacked.
+   *
+   * Why the press is one transition
+   * ------------------------------
+   * The press changes `translateY` and `box-shadow` together, on one duration and one
+   * easing. Animating them on separate curves desynchronises the button from its base:
+   * the face slides while the edge lingers, and the result reads as rubbery rather than
+   * solid.
+   *
+   * Both properties are compositor-only, so a page of buttons animates without causing a
+   * single layout.
+   */
+  .btn-3d {
+    --btn-edge: var(--color-infini-800);
+
+    transform: translateY(0);
+    box-shadow:
+      inset 0 1px 0 0 rgb(255 255 255 / 0.2),
+      0 4px 0 0 var(--btn-edge),
+      0 7px 14px -6px rgb(15 23 42 / 0.4);
+    transition:
+      transform 110ms cubic-bezier(0.2, 0, 0.2, 1),
+      box-shadow 110ms cubic-bezier(0.2, 0, 0.2, 1),
+      background-color 140ms ease,
+      filter 140ms ease;
+  }
+
+  /*
+   * `not(:disabled)` rather than relying on the variant's `pointer-events: none`.
+   *
+   * That class already suppresses hover, but only for as long as it survives someone
+   * restyling the variants. A disabled button that lifts on hover is worse than an ugly
+   * one, because it invites a click that does nothing.
+   */
+  .btn-3d:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: saturate(1.06) brightness(1.04);
+    box-shadow:
+      inset 0 1px 0 0 rgb(255 255 255 / 0.24),
+      0 6px 0 0 var(--btn-edge),
+      0 12px 20px -8px rgb(15 23 42 / 0.45);
+  }
+
+  /*
+   * The press. The button travels most of the way down and the 4px edge collapses to
+   * 1px. It does not sink *through* its own base, because a control that disappears
+   * under the pointer reads as a rendering bug rather than as a button.
+   */
+  .btn-3d:active:not(:disabled) {
+    transform: translateY(3px);
+    filter: brightness(0.96);
+    box-shadow:
+      inset 0 2px 5px 0 rgb(15 23 42 / 0.3),
+      0 1px 0 0 var(--btn-edge),
+      0 3px 8px -4px rgb(15 23 42 / 0.3);
+  }
+
+  /*
+   * Keyboard focus must survive the transform.
+   *
+   * The outline is drawn on the transformed element, so it travels with the button,
+   * which is correct. What it must not do is sit *inside* the 4px edge band, where a
+   * 3px ring reads as a smudge against two near-identical blues.
+   */
+  .btn-3d:focus-visible {
+    outline: 3px solid var(--color-infini-500);
+    outline-offset: 3px;
+  }
+
+  /* == Panel motion ======================================================
+   *
+   * -2px, not -6px. A large lift on a large surface reads as the card detaching from
+   * the page, which is alarming on a clinical screen where a panel holds records rather
+   * than being a control. Two pixels registers as responsive and is small enough that
+   * the layout never appears to be moving.
+   */
+  .panel-lift {
+    transition:
+      transform 180ms cubic-bezier(0.2, 0, 0.2, 1),
+      box-shadow 180ms cubic-bezier(0.2, 0, 0.2, 1),
+      border-color 180ms ease;
+  }
+
+  .panel-lift:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-raised);
+    border-color: var(--color-line-strong);
+  }
+
+  /* == Entry animation ==================================================== */
+  @keyframes panel-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /*
+   * 320ms is at the top of what still feels responsive. Slower than ~400ms and a data
+   * table feels like it is loading; faster than ~200ms and eight tiles arrive as one
+   * undifferentiated flash rather than as a set.
+   *
+   * `both` fill is required rather than decorative: without it a panel holds its `from`
+   * state during its stagger delay, flashing at zero opacity and then popping in. That
+   * flicker is far more noticeable than having no animation at all.
+   */
+  .panel-enter {
+    animation: panel-enter 320ms cubic-bezier(0.2, 0, 0.2, 1) both;
+    animation-delay: calc(var(--stagger, 0) * 45ms);
+  }
+
+  /* == Focus field ======================================================== */
+  /*
+   * A ring that grows on focus.
+   *
+   * `box-shadow`, not `outline`, because an outline cannot be transitioned and a border
+   * cannot grow without reflowing its box, which nudges every adjacent field by a pixel
+   * and makes the whole form jitter as the user tabs through it. A spread ring is drawn
+   * entirely outside the border box and disturbs nothing.
+   *
+   * The 18% alpha is deliberate. An opaque ring competes with the typed text for
+   * attention, when the ring's only job is to say which field you are in.
+   */
+  .field-focus {
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .field-focus:focus-visible {
+    border-color: var(--color-infini-600);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-infini-500) 18%, transparent);
   }
 }
 
@@ -190,5 +377,41 @@
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
+  }
+
+  /*
+   * A sheen that sweeps across a primary button on hover.
+   *
+   * A single narrow band, not a full overlay: a whole-face white wash at low opacity
+   * lowers the label's contrast at exactly the moment the pointer is on the button.
+   * Here only a 30%-wide highlight crosses, so most of the face is untouched.
+   *
+   * The pseudo-element sits behind the label via `z-index: -1` and `isolation: isolate`,
+   * so it cannot become a second click target or lift above the text.
+   */
+  .btn-sheen {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .btn-sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      100deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.28) 50%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+    transition: transform 600ms cubic-bezier(0.2, 0, 0.2, 1);
+    pointer-events: none;
+  }
+
+  .btn-sheen:hover:not(:disabled)::after {
+    transform: translateX(120%);
   }
 }

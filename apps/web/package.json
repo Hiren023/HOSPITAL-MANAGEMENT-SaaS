@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Infinigrow Hospital Cloud web application — React 19 + Vite + Tailwind CSS.",
+  "description": "Infini Health web application — React 19 + Vite + Tailwind CSS.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.build.json && vite build",

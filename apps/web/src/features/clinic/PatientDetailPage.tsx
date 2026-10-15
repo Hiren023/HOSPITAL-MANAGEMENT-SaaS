@@ -85,7 +85,7 @@ export function PatientDetailPage() {
                 action={
                   <a
                     href="/patients"
-                    className="text-sm font-medium text-brand-700 underline underline-offset-4"
+                    className="text-sm font-medium text-infini-700 underline underline-offset-4"
                   >
                     Back to patients
                   </a>
@@ -131,7 +131,7 @@ export function PatientDetailPage() {
       key: 'doctor',
       header: 'Doctor',
       cell: (row) => (
-        <span className="text-sm text-ink-muted">{row.doctorName ?? '—'}</span>
+        <span className="text-sm text-body-muted">{row.doctorName ?? '—'}</span>
       ),
       secondary: true,
     },
@@ -139,7 +139,7 @@ export function PatientDetailPage() {
       key: 'reason',
       header: 'Reason given',
       cell: (row) => (
-        <span className="text-sm text-ink-muted">{row.reason ?? '—'}</span>
+        <span className="text-sm text-body-muted">{row.reason ?? '—'}</span>
       ),
       secondary: true,
     },
@@ -161,7 +161,7 @@ export function PatientDetailPage() {
       actions={
         <a
           href="/patients"
-          className="inline-flex items-center gap-2 text-sm font-medium text-brand-700 underline-offset-4 hover:underline"
+          className="inline-flex items-center gap-2 text-sm font-medium text-infini-700 underline-offset-4 hover:underline"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
           All patients
@@ -182,17 +182,17 @@ export function PatientDetailPage() {
           <CardBody>
             <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Date of birth
                 </dt>
                 <dd className="mt-1 text-sm">
                   {data.dateOfBirth}
-                  {age !== null ? <span className="text-ink-subtle"> ({age} years)</span> : null}
+                  {age !== null ? <span className="text-body-subtle"> ({age} years)</span> : null}
                 </dd>
               </div>
 
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Gender
                 </dt>
                 <dd className="mt-1 text-sm">
@@ -201,7 +201,7 @@ export function PatientDetailPage() {
               </div>
 
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Phone
                 </dt>
                 <dd className="mt-1 text-sm">
@@ -210,7 +210,7 @@ export function PatientDetailPage() {
               </div>
 
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Email
                 </dt>
                 <dd className="mt-1 break-all text-sm">
@@ -219,7 +219,7 @@ export function PatientDetailPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Address
                 </dt>
                 <dd className="mt-1 text-sm">
@@ -234,7 +234,7 @@ export function PatientDetailPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Emergency contact
                 </dt>
                 <dd className="mt-1 text-sm">
@@ -264,7 +264,7 @@ export function PatientDetailPage() {
             actions={
               <a
                 href={`/schedule?patientId=${data.id}`}
-                className="text-sm font-medium text-brand-700 underline underline-offset-4"
+                className="text-sm font-medium text-infini-700 underline underline-offset-4"
               >
                 Book an appointment
               </a>
@@ -350,6 +350,6 @@ export function PatientDetailPage() {
  */
 function Restricted() {
   return (
-    <span className="text-xs text-ink-subtle">hidden — you do not have patient:write</span>
+    <span className="text-xs text-body-subtle">hidden — you do not have patient:write</span>
   )
 }

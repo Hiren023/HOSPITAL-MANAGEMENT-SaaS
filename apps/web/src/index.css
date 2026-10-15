@@ -1,14 +1,24 @@
 @import 'tailwindcss';
 
 /**
- * Infinigrow Hospital Cloud — design tokens.
+ * Infini Health — design tokens.
  *
- * Palette: restrained navy / blue on white, as a clinical SaaS should read as calm,
- * precise and trustworthy. Colour carries meaning only — status and focus. Nothing is
- * tinted for decoration, and every pairing below is checked for WCAG AA contrast.
+ * Palette: a single confident blue on near-black ink, over white. A clinical SaaS has to
+ * read as precise and calm, so colour carries meaning only — primary action, focus, and
+ * state. Nothing is tinted for decoration, and every text pairing below is checked for
+ * WCAG AA.
  *
- * The accent is a single blue. Status colours are reserved for state so that a red chip
- * always means "stop", never "this link is popular".
+ * The blue is the product's one identity signal. It is used for the wordmark, primary
+ * buttons, links, focus rings and the active navigation item — and nowhere else. Status
+ * colours stay reserved for state, so a red chip always means "stop" and never means
+ * "this link is popular".
+ *
+ * ── Why the ramp stops where it does ────────────────────────────────────────
+ *
+ * `--color-infini-500` is the decorative blue (fills, icon chips, borders) and is too
+ * light to carry white text at AA. `--color-infini-700` is the first step that clears
+ * 4.5:1 against white, so primary buttons, links and focus rings use 600/700 — never 500.
+ * Choosing 500 for a button would look marginally brighter and would fail contrast.
  */
 @theme {
   --font-sans:
@@ -16,57 +26,84 @@
     'Noto Sans', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* ── Navy — headers, sidebar, primary surfaces ─────────────────────────── */
-  --color-navy-50: oklch(0.97 0.008 255);
-  --color-navy-100: oklch(0.93 0.014 255);
-  --color-navy-200: oklch(0.86 0.022 255);
-  --color-navy-300: oklch(0.76 0.032 255);
-  --color-navy-400: oklch(0.62 0.045 255);
-  --color-navy-500: oklch(0.5 0.055 255);
-  --color-navy-600: oklch(0.42 0.06 255);
-  --color-navy-700: oklch(0.34 0.06 256);
-  --color-navy-800: oklch(0.27 0.055 257);
-  --color-navy-900: oklch(0.21 0.045 258);
-  --color-navy-950: oklch(0.15 0.035 259);
+  /* ── Infini blue — the brand ───────────────────────────────────────────── */
+  --color-infini-50: oklch(0.972 0.013 250);
+  --color-infini-100: oklch(0.935 0.028 250);
+  --color-infini-200: oklch(0.88 0.055 251);
+  --color-infini-300: oklch(0.79 0.095 252);
+  --color-infini-400: oklch(0.69 0.14 253);
+  --color-infini-500: oklch(0.61 0.17 254);
+  --color-infini-600: oklch(0.54 0.17 255);
+  --color-infini-700: oklch(0.47 0.15 256);
+  --color-infini-800: oklch(0.395 0.12 257);
+  --color-infini-900: oklch(0.335 0.095 258);
+  --color-infini-950: oklch(0.23 0.07 260);
 
-  /* ── Blue — primary action, links, focus ──────────────────────────────── */
-  --color-brand-50: oklch(0.97 0.014 254);
-  --color-brand-100: oklch(0.93 0.03 254);
-  --color-brand-200: oklch(0.87 0.06 254);
-  --color-brand-300: oklch(0.78 0.1 254);
-  --color-brand-400: oklch(0.68 0.14 254);
-  --color-brand-500: oklch(0.6 0.16 254);
-  --color-brand-600: oklch(0.53 0.16 254);
-  --color-brand-700: oklch(0.46 0.14 254);
-  --color-brand-800: oklch(0.39 0.11 254);
-  --color-brand-900: oklch(0.33 0.09 254);
+  /* ── Ink — the "Health" half of the wordmark, and the dark shell ───────── */
+  /*
+   * Navy was renamed to `ink` because it is no longer a blue: it is the near-black the
+   * wordmark's second half uses, and it carries the sidebar, headers and body copy. The
+   * ramp keeps a trace of blue at the light end so that a tinted row still reads as part
+   * of the same family, and goes neutral at the dark end where it must not look like a
+   * second brand colour.
+   */
+  --color-ink-50: oklch(0.985 0.002 255);
+  --color-ink-100: oklch(0.955 0.004 255);
+  --color-ink-200: oklch(0.91 0.006 255);
+  --color-ink-300: oklch(0.84 0.008 255);
+  --color-ink-400: oklch(0.68 0.01 256);
+  --color-ink-500: oklch(0.55 0.012 257);
+  --color-ink-600: oklch(0.45 0.013 258);
+  --color-ink-700: oklch(0.36 0.013 258);
+  --color-ink-800: oklch(0.28 0.012 259);
+  --color-ink-900: oklch(0.21 0.011 259);
+  --color-ink-950: oklch(0.145 0.009 260);
 
   /* ── Status — reserved for state only ─────────────────────────────────── */
-  --color-success: oklch(0.55 0.13 155);
+  --color-success: oklch(0.52 0.13 155);
   --color-success-bg: oklch(0.96 0.03 155);
-  --color-warning: oklch(0.62 0.14 75);
+  --color-warning: oklch(0.565 0.135 75);
   --color-warning-bg: oklch(0.97 0.04 85);
-  --color-danger: oklch(0.52 0.19 25);
+  --color-danger: oklch(0.5 0.19 25);
   --color-danger-bg: oklch(0.97 0.02 25);
-  --color-info: oklch(0.53 0.13 245);
+  --color-info: oklch(0.51 0.13 250);
   --color-info-bg: oklch(0.96 0.02 250);
 
   /* ── Surfaces ─────────────────────────────────────────────────────────── */
-  --color-canvas: oklch(0.985 0.002 250);
+  --color-canvas: oklch(0.975 0.003 255);
   --color-surface: oklch(1 0 0);
-  --color-surface-muted: oklch(0.97 0.003 250);
-  --color-line: oklch(0.92 0.006 250);
-  --color-line-strong: oklch(0.85 0.008 250);
-  --color-ink: oklch(0.22 0.02 258);
-  --color-ink-muted: oklch(0.5 0.015 256);
-  --color-ink-subtle: oklch(0.62 0.012 256);
+  --color-surface-muted: oklch(0.965 0.003 255);
+  --color-line: oklch(0.915 0.006 255);
+  --color-line-strong: oklch(0.845 0.008 255);
+  --color-body: oklch(0.22 0.011 259);
+  --color-body-muted: oklch(0.5 0.01 258);
+  --color-body-subtle: oklch(0.545 0.009 258);
 
   /* ── Shape and rhythm ─────────────────────────────────────────────────── */
-  --radius-card: 0.625rem;
+  --radius-card: 0.75rem;
   --radius-control: 0.5rem;
 
   /* Consistent 4px-based spacing scale used across screens. */
   --spacing-gutter: 1.5rem;
+
+  /* ── Elevation ─────────────────────────────────────────────────────────── */
+  /*
+   * Panels previously used `shadow-xs` throughout, which made every surface on the page
+   * look like the same flat rectangle. Depth is now three explicit levels:
+   *
+   *   panel   — resting cards, tables, stat tiles
+   *   raised  — sticky headers, popovers, the panel currently being acted on
+   *   overlay — modals and dialogs, which must detach from the page behind them
+   *
+   * Each is a tight ambient shadow plus a wider, softer one. A single-key shadow reads as
+   * a smudge; two layers read as a physical surface lifted off the canvas.
+   */
+  --shadow-panel:
+    0 1px 2px 0 oklch(0.145 0.009 260 / 0.06), 0 1px 3px 0 oklch(0.145 0.009 260 / 0.04);
+  --shadow-raised:
+    0 2px 4px 0 oklch(0.145 0.009 260 / 0.06), 0 8px 20px -4px oklch(0.145 0.009 260 / 0.1);
+  --shadow-overlay:
+    0 4px 8px 0 oklch(0.145 0.009 260 / 0.07), 0 24px 48px -12px oklch(0.145 0.009 260 / 0.22);
 }
 
 @layer base {
@@ -108,7 +145,7 @@
    * supplying an equally visible replacement — keyboard users depend on it.
    */
   :focus-visible {
-    outline: 2px solid var(--color-brand-600);
+    outline: 2px solid var(--color-infini-600);
     outline-offset: 2px;
     border-radius: 3px;
   }

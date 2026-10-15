@@ -102,7 +102,7 @@ export function RevenuePage() {
                   onChange={(event) => setParam({ from: event.target.value })}
                   className="w-auto"
                 />
-                <span className="text-sm text-ink-subtle">to</span>
+                <span className="text-sm text-body-subtle">to</span>
                 <label htmlFor="revenue-to" className="sr-only">
                   To
                 </label>
@@ -150,7 +150,7 @@ export function RevenuePage() {
             ) : null}
 
             {revenue.isPending ? (
-              <div className="py-8 text-center text-sm text-ink-subtle">Loading…</div>
+              <div className="py-8 text-center text-sm text-body-subtle">Loading…</div>
             ) : revenue.isError ? (
               <ErrorState
                 title="Could not load the revenue report"
@@ -207,7 +207,7 @@ export function RevenuePage() {
                           Revenue by {granularity === 'monthly' ? 'month' : 'day'}, split by
                           verification status
                         </caption>
-                        <thead className="border-b border-line bg-canvas text-left text-xs uppercase tracking-wide text-ink-subtle">
+                        <thead className="border-b border-line bg-canvas text-left text-xs uppercase tracking-wide text-body-subtle">
                           <tr>
                             <th scope="col" className="px-3 py-2 font-medium">Period</th>
                             <th scope="col" className="px-3 py-2 text-right font-medium">Staff</th>
@@ -230,12 +230,12 @@ export function RevenuePage() {
                                 className={`px-3 py-2 text-right ${
                                   bucket.pendingGatewayTotalMinor > 0
                                     ? 'font-medium text-warning-700'
-                                    : 'text-ink-subtle'
+                                    : 'text-body-subtle'
                                 }`}
                               >
                                 {formatMinorUnits(bucket.pendingGatewayTotalMinor, data.currency)}
                               </td>
-                              <td className="px-3 py-2 text-right text-ink-muted">
+                              <td className="px-3 py-2 text-right text-body-muted">
                                 {bucket.paymentCount}
                               </td>
                             </tr>
@@ -276,11 +276,11 @@ function Money({
 }) {
   return (
     <div className={`rounded-lg border p-4 ${warn ? 'border-warning-300 bg-warning-50' : 'border-line'}`}>
-      <dt className="text-xs font-medium uppercase tracking-wide text-ink-subtle">{label}</dt>
+      <dt className="text-xs font-medium uppercase tracking-wide text-body-subtle">{label}</dt>
       <dd className={`mt-1 ${emphasis ? 'text-2xl font-semibold' : 'text-lg font-medium'}`}>
         {formatMinorUnits(amount, currency)}
       </dd>
-      <p className="mt-1 text-xs text-ink-subtle">{hint}</p>
+      <p className="mt-1 text-xs text-body-subtle">{hint}</p>
     </div>
   )
 }

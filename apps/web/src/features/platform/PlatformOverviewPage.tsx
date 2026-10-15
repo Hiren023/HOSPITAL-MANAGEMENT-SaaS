@@ -88,20 +88,20 @@ export function PlatformOverviewPage() {
               ) : (
                 <dl className="space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                    <dt className="flex items-center gap-2 text-sm text-ink-muted">
-                      <Users aria-hidden="true" className="size-4 text-ink-subtle" />
+                    <dt className="flex items-center gap-2 text-sm text-body-muted">
+                      <Users aria-hidden="true" className="size-4 text-body-subtle" />
                       Total users
                     </dt>
-                    <dd className="text-sm font-semibold tabular-nums text-navy-900">
+                    <dd className="text-sm font-semibold tabular-nums text-ink-900">
                       {data?.identity.totalUsers ?? '—'}
                     </dd>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <dt className="flex items-center gap-2 text-sm text-ink-muted">
-                      <UserCog aria-hidden="true" className="size-4 text-ink-subtle" />
+                    <dt className="flex items-center gap-2 text-sm text-body-muted">
+                      <UserCog aria-hidden="true" className="size-4 text-body-subtle" />
                       Active memberships
                     </dt>
-                    <dd className="text-sm font-semibold tabular-nums text-navy-900">
+                    <dd className="text-sm font-semibold tabular-nums text-ink-900">
                       {data?.identity.activeMemberships ?? '—'}
                     </dd>
                   </div>
@@ -119,13 +119,13 @@ export function PlatformOverviewPage() {
               {overview.isPending ? (
                 <TableSkeleton rows={3} columns={2} caption="Plan distribution" />
               ) : Object.keys(data?.plans ?? {}).length === 0 ? (
-                <p className="text-sm text-ink-muted">No tenants assigned yet.</p>
+                <p className="text-sm text-body-muted">No tenants assigned yet.</p>
               ) : (
                 <dl className="space-y-3">
                   {Object.entries(data?.plans ?? {}).map(([plan, count]) => (
                     <div key={plan} className="flex items-center justify-between gap-3">
-                      <dt className="text-sm text-ink-muted">{planLabel(plan)}</dt>
-                      <dd className="text-sm font-semibold tabular-nums text-navy-900">{count}</dd>
+                      <dt className="text-sm text-body-muted">{planLabel(plan)}</dt>
+                      <dd className="text-sm font-semibold tabular-nums text-ink-900">{count}</dd>
                     </div>
                   ))}
                 </dl>
@@ -141,17 +141,17 @@ export function PlatformOverviewPage() {
               ) : (
                 <dl className="space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                    <dt className="flex items-center gap-2 text-sm text-ink-muted">
-                      <Clock aria-hidden="true" className="size-4 text-ink-subtle" />
+                    <dt className="flex items-center gap-2 text-sm text-body-muted">
+                      <Clock aria-hidden="true" className="size-4 text-body-subtle" />
                       Events, last 24h
                     </dt>
-                    <dd className="text-sm font-semibold tabular-nums text-navy-900">
+                    <dd className="text-sm font-semibold tabular-nums text-ink-900">
                       {data?.recentActivity.last24h ?? '—'}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm text-ink-muted">Most recent</dt>
-                    <dd className="mt-0.5 text-sm font-medium text-navy-900">
+                    <dt className="text-sm text-body-muted">Most recent</dt>
+                    <dd className="mt-0.5 text-sm font-medium text-ink-900">
                       {data?.recentActivity.mostRecentAt
                         ? new Date(data.recentActivity.mostRecentAt).toLocaleString('en-IN', {
                             dateStyle: 'medium',
@@ -169,7 +169,7 @@ export function PlatformOverviewPage() {
         <Alert tone="info" title="What a platform operator can see">
           Hospitals exist and are healthy, which accounts they employ, which plan they are on, and
           what has happened in the audit trail.{' '}
-          <strong className="font-medium text-ink">Patient records are not visible here</strong> and
+          <strong className="font-medium text-body">Patient records are not visible here</strong> and
           no permission in this product grants access to them.
         </Alert>
 
@@ -178,7 +178,7 @@ export function PlatformOverviewPage() {
           <CardBody className="flex flex-wrap gap-2">
             <Link
               to="/platform/hospitals?status=PENDING"
-              className="text-sm font-medium text-brand-700 underline underline-offset-4 hover:text-brand-800"
+              className="text-sm font-medium text-infini-700 underline underline-offset-4 hover:text-infini-800"
             >
               Review pending hospitals
             </Link>
@@ -187,7 +187,7 @@ export function PlatformOverviewPage() {
             </span>
             <Link
               to="/platform/audit"
-              className="text-sm font-medium text-brand-700 underline underline-offset-4 hover:text-brand-800"
+              className="text-sm font-medium text-infini-700 underline underline-offset-4 hover:text-infini-800"
             >
               Open the audit trail
             </Link>
@@ -196,7 +196,7 @@ export function PlatformOverviewPage() {
             </span>
             <Link
               to="/platform/reports"
-              className="text-sm font-medium text-brand-700 underline underline-offset-4 hover:text-brand-800"
+              className="text-sm font-medium text-infini-700 underline underline-offset-4 hover:text-infini-800"
             >
               Operational reports
             </Link>
@@ -215,7 +215,7 @@ export function PlatformOverviewPage() {
               }
             />
             <CardBody>
-              <p className="text-sm text-ink-muted">
+              <p className="text-sm text-body-muted">
                 {data.tenants.suspended}{' '}
                 {data.tenants.suspended === 1 ? 'hospital is' : 'hospitals are'} suspended. Their
                 staff cannot sign in, and the reason recorded at suspension is the only record they
@@ -223,7 +223,7 @@ export function PlatformOverviewPage() {
               </p>
               <Link
                 to="/platform/hospitals?status=SUSPENDED"
-                className="mt-3 inline-block text-sm font-medium text-brand-700 underline underline-offset-4"
+                className="mt-3 inline-block text-sm font-medium text-infini-700 underline underline-offset-4"
               >
                 Review suspended tenants
               </Link>

@@ -1,6 +1,6 @@
 # Compliance Notes
 
-**Infinigrow Hospital Cloud** · Infinigrow Softech
+**Infini Health** · Infinigrow Softech
 
 ---
 

@@ -50,7 +50,7 @@ export function FormField({
       )}
     >
       <div className={cn(layout === 'inline' ? 'sm:pt-2' : 'mb-1.5')}>
-        <label htmlFor={id} className="block text-sm font-medium text-ink">
+        <label htmlFor={id} className="block text-sm font-medium text-body">
           {label}
           {required ? (
             <>
@@ -62,7 +62,7 @@ export function FormField({
           ) : null}
         </label>
         {hint ? (
-          <p id={hintId} className="mt-1 text-xs text-ink-subtle">
+          <p id={hintId} className="mt-1 text-xs text-body-subtle">
             {hint}
           </p>
         ) : null}

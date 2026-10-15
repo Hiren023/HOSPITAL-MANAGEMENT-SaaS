@@ -118,15 +118,15 @@ export function LoginPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Brand panel, desktop only. */}
-      <div className="relative hidden flex-col justify-between bg-navy-900 p-12 lg:flex">
+      <div className="relative hidden flex-col justify-between bg-ink-900 p-12 lg:flex">
         <BrandMark tone="light" />
 
         <div className="max-w-md">
           <h2 className="text-3xl font-semibold leading-tight text-white">
             One cloud platform for every hospital you run.
           </h2>
-          <p className="mt-4 text-navy-200">
-            Infinigrow Hospital Cloud keeps patient records, appointments, billing and workforce
+          <p className="mt-4 text-ink-200">
+            Infini Health keeps patient records, appointments, billing and workforce
             management separated by hospital — and provably so.
           </p>
         </div>
@@ -138,7 +138,7 @@ export function LoginPage() {
             { label: 'Audit trail', value: 'Append-only' },
           ].map((item) => (
             <div key={item.label}>
-              <dt className="text-xs text-navy-300">{item.label}</dt>
+              <dt className="text-xs text-ink-300">{item.label}</dt>
               <dd className="mt-0.5 text-sm font-medium text-white">{item.value}</dd>
             </div>
           ))}
@@ -152,8 +152,8 @@ export function LoginPage() {
             <BrandMark />
           </div>
 
-          <h1 className="text-2xl font-semibold text-navy-900">Sign in</h1>
-          <p className="mt-1.5 text-sm text-ink-muted">
+          <h1 className="text-2xl font-semibold text-ink-900">Sign in</h1>
+          <p className="mt-1.5 text-sm text-body-muted">
             Use the email address your hospital administrator registered.
           </p>
 
@@ -187,7 +187,7 @@ export function LoginPage() {
               error={fieldErrors['password']}
               required
               hint={
-                <Link to="/forgot-password" className="text-brand-700 underline underline-offset-2">
+                <Link to="/forgot-password" className="text-infini-700 underline underline-offset-2">
                   Forgot your password?
                 </Link>
               }
@@ -219,11 +219,11 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-8 border-t border-line pt-6 text-center text-sm text-ink-muted">
+          <p className="mt-8 border-t border-line pt-6 text-center text-sm text-body-muted">
             New hospital?{' '}
             <Link
               to="/register"
-              className="font-medium text-brand-700 underline underline-offset-4"
+              className="font-medium text-infini-700 underline underline-offset-4"
             >
               Request an account
             </Link>

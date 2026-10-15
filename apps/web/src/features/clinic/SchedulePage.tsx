@@ -179,7 +179,7 @@ export function SchedulePage() {
         cell: (row) => (
           <a
             href={`/patients/${row.patientId}`}
-            className="font-medium text-brand-700 underline-offset-4 hover:underline"
+            className="font-medium text-infini-700 underline-offset-4 hover:underline"
           >
             {row.patientName ?? 'Unknown patient'}
           </a>
@@ -189,7 +189,7 @@ export function SchedulePage() {
         key: 'doctor',
         header: 'Doctor',
         cell: (row) => (
-          <span className="text-sm text-ink-muted">{row.doctorName ?? '—'}</span>
+          <span className="text-sm text-body-muted">{row.doctorName ?? '—'}</span>
         ),
         secondary: true,
       },

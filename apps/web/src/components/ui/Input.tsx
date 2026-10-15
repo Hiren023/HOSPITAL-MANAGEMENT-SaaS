@@ -32,9 +32,9 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
  * and echoes a value. Only a human looking at a rendered page could see it.
  */
 export const inputBaseClasses =
-  'w-full rounded-lg border bg-white px-3 py-2 text-sm text-ink placeholder:text-ink-subtle ' +
-  'transition-colors focus:border-brand-600 disabled:cursor-not-allowed disabled:bg-surface-muted ' +
-  'disabled:text-ink-subtle'
+  'w-full rounded-lg border bg-white px-3 py-2 text-sm text-body placeholder:text-body-subtle ' +
+  'transition-colors focus:border-infini-600 disabled:cursor-not-allowed disabled:bg-surface-muted ' +
+  'disabled:text-body-subtle'
 
 /**
  * Padding that makes room for an adornment.
@@ -48,7 +48,7 @@ const leadingClasses = 'pl-9'
 const trailingClasses = 'pr-10'
 
 const stateClasses = (invalid: boolean | undefined) =>
-  invalid ? 'border-danger focus:border-danger' : 'border-line-strong focus:border-brand-600'
+  invalid ? 'border-danger focus:border-danger' : 'border-line-strong focus:border-infini-600'
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { invalid, className, trailing, leading, type = 'text', ...props },
@@ -83,14 +83,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {leading ? (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute left-3 flex items-center text-ink-subtle"
+          className="pointer-events-none absolute left-3 flex items-center text-body-subtle"
         >
           {leading}
         </span>
       ) : null}
       {field}
       {trailing ? (
-        <span className="absolute right-2 flex items-center text-ink-subtle">{trailing}</span>
+        <span className="absolute right-2 flex items-center text-body-subtle">{trailing}</span>
       ) : null}
     </div>
   )

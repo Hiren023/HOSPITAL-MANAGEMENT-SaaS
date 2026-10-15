@@ -33,12 +33,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
         ref={ref}
         aria-invalid={invalid || undefined}
         className={cn(
-          'w-full appearance-none rounded-lg border bg-white py-2 pl-3 pr-9 text-sm text-ink ' +
-            'transition-colors focus:border-brand-600 disabled:cursor-not-allowed ' +
-            'disabled:bg-surface-muted disabled:text-ink-subtle',
+          'w-full appearance-none rounded-lg border bg-white py-2 pl-3 pr-9 text-sm text-body ' +
+            'transition-colors focus:border-infini-600 disabled:cursor-not-allowed ' +
+            'disabled:bg-surface-muted disabled:text-body-subtle',
           invalid
             ? 'border-danger focus:border-danger'
-            : 'border-line-strong focus:border-brand-600',
+            : 'border-line-strong focus:border-infini-600',
           className,
         )}
         {...props}
@@ -57,7 +57,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       <svg
         aria-hidden="true"
         viewBox="0 0 20 20"
-        className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 fill-none stroke-ink-subtle stroke-2"
+        className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 fill-none stroke-body-subtle stroke-2"
       >
         <path d="m6 8 4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
       </svg>

@@ -176,13 +176,13 @@ export function HospitalDashboard() {
           <CardBody>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+                <p className="text-xs font-medium uppercase tracking-wide text-body-subtle">
                   Hospital
                 </p>
-                <p className="mt-1 text-lg font-semibold text-navy-900">
+                <p className="mt-1 text-lg font-semibold text-ink-900">
                   {user?.hospitalName ?? '—'}
                 </p>
-                <p className="mt-0.5 font-mono text-xs text-ink-subtle">{user?.hospitalId}</p>
+                <p className="mt-0.5 font-mono text-xs text-body-subtle">{user?.hospitalId}</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -233,14 +233,14 @@ export function HospitalDashboard() {
               <ul className="flex flex-wrap gap-2">
                 {withheld.map((module) => (
                   <li key={module.to}>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-muted px-2.5 py-1 text-xs text-ink-subtle ring-1 ring-line">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-muted px-2.5 py-1 text-xs text-body-subtle ring-1 ring-line">
                       <Lock aria-hidden="true" className="size-3" />
                       {module.label}
                     </span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-3 text-xs text-ink-subtle">
+              <p className="mt-3 text-xs text-body-subtle">
                 The API refuses these requests independently of the interface, so hiding them here
                 is presentation only.
               </p>
@@ -254,7 +254,7 @@ export function HospitalDashboard() {
             <ul className="flex flex-wrap gap-1.5">
               {(user?.permissions ?? []).map((permission) => (
                 <li key={permission}>
-                  <code className="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-xs text-ink-muted">
+                  <code className="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-xs text-body-muted">
                     {permission}
                   </code>
                 </li>
@@ -269,24 +269,24 @@ export function HospitalDashboard() {
 
 function ModuleTile({ module }: { module: ModuleCard }) {
   return (
-    <div className="flex h-full flex-col rounded-card border border-line bg-surface p-4 transition-shadow hover:shadow-xs">
+    <div className="flex h-full flex-col rounded-card border border-line bg-surface p-4 transition-shadow hover:shadow-raised">
       <div className="flex items-start gap-3">
         <span
           aria-hidden="true"
-          className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700"
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-infini-50 text-infini-700"
         >
           <module.icon className="size-5" />
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-navy-900">{module.label}</p>
-          <p className="mt-0.5 text-xs text-ink-muted">{module.description}</p>
+          <p className="text-sm font-semibold text-ink-900">{module.label}</p>
+          <p className="mt-0.5 text-xs text-body-muted">{module.description}</p>
         </div>
       </div>
 
       <div className="mt-4 pt-1">
         <Link
           to={module.to}
-          className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 underline-offset-4 hover:underline"
+          className="inline-flex items-center gap-1 text-xs font-medium text-infini-700 underline-offset-4 hover:underline"
         >
           Open
           <ArrowRight aria-hidden="true" className="size-3" />

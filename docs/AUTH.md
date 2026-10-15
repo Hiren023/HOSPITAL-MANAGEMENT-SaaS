@@ -1,6 +1,6 @@
 # Authentication & Session Design
 
-**Infinigrow Hospital Cloud** · Infinigrow Softech
+**Infini Health** · Infinigrow Softech
 
 This document explains the chosen authentication approach, its trade-offs, and why the
 alternatives were rejected. It is the reference for `docs/ARCHITECTURE.md` §5.

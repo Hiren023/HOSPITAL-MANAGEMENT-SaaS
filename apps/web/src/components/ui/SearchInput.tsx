@@ -76,7 +76,7 @@ export function SearchInput({
       </label>
       <Search
         aria-hidden="true"
-        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-subtle"
+        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-body-subtle"
       />
       <input
         ref={inputRef}
@@ -98,7 +98,7 @@ export function SearchInput({
             onChange('')
           }
         }}
-        className="w-full rounded-lg border border-line-strong bg-white py-2 pl-9 pr-9 text-sm text-ink placeholder:text-ink-subtle focus:border-brand-600 [&::-webkit-search-cancel-button]:hidden"
+        className="w-full rounded-lg border border-line-strong bg-white py-2 pl-9 pr-9 text-sm text-body placeholder:text-body-subtle focus:border-infini-600 [&::-webkit-search-cancel-button]:hidden"
       />
       {draft !== '' ? (
         <button
@@ -109,7 +109,7 @@ export function SearchInput({
             inputRef.current?.focus()
           }}
           aria-label="Clear search"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-ink-subtle transition-colors hover:bg-surface-muted hover:text-ink"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-body-subtle transition-colors hover:bg-surface-muted hover:text-body"
         >
           <X aria-hidden="true" className="size-4" />
         </button>

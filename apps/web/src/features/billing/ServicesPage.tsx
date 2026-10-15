@@ -79,7 +79,7 @@ export function ServicesPage() {
       cell: (row) => (
         <div className="min-w-0">
           <p className="truncate font-medium">{row.name}</p>
-          <p className="truncate font-mono text-xs text-ink-subtle">{row.code}</p>
+          <p className="truncate font-mono text-xs text-body-subtle">{row.code}</p>
         </div>
       ),
     },
@@ -87,7 +87,7 @@ export function ServicesPage() {
       key: 'category',
       header: 'Category',
       cell: (row) => (
-        <span className="whitespace-nowrap text-sm text-ink-muted">
+        <span className="whitespace-nowrap text-sm text-body-muted">
           {row.category.replace('_', ' ').toLowerCase()}
         </span>
       ),
@@ -106,7 +106,7 @@ export function ServicesPage() {
       key: 'tax',
       header: 'Tax',
       cell: (row) => (
-        <span className="whitespace-nowrap text-sm text-ink-muted">
+        <span className="whitespace-nowrap text-sm text-body-muted">
           {row.taxBps === 0 ? '—' : formatBasisPoints(row.taxBps)}
           {row.taxInclusive ? ' incl.' : ''}
         </span>

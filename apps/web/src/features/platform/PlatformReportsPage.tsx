@@ -107,13 +107,13 @@ export function PlatformReportsPage() {
               {report.isPending ? (
                 <TableSkeleton rows={3} columns={2} caption="Tenants by status" />
               ) : Object.keys(data?.tenants.byStatus ?? {}).length === 0 ? (
-                <p className="text-sm text-ink-muted">No tenants recorded yet.</p>
+                <p className="text-sm text-body-muted">No tenants recorded yet.</p>
               ) : (
                 <dl className="space-y-3">
                   {Object.entries(data?.tenants.byStatus ?? {}).map(([status, count]) => (
                     <div key={status} className="flex items-center justify-between gap-3">
-                      <dt className="text-sm text-ink-muted">{status}</dt>
-                      <dd className="text-sm font-semibold tabular-nums text-navy-900">{count}</dd>
+                      <dt className="text-sm text-body-muted">{status}</dt>
+                      <dd className="text-sm font-semibold tabular-nums text-ink-900">{count}</dd>
                     </div>
                   ))}
                 </dl>
@@ -130,13 +130,13 @@ export function PlatformReportsPage() {
               {report.isPending ? (
                 <TableSkeleton rows={3} columns={2} caption="Tenants by plan" />
               ) : Object.keys(data?.tenants.byPlan ?? {}).length === 0 ? (
-                <p className="text-sm text-ink-muted">No tenants recorded yet.</p>
+                <p className="text-sm text-body-muted">No tenants recorded yet.</p>
               ) : (
                 <dl className="space-y-3">
                   {Object.entries(data?.tenants.byPlan ?? {}).map(([plan, count]) => (
                     <div key={plan} className="flex items-center justify-between gap-3">
-                      <dt className="text-sm text-ink-muted">{planLabel(plan)}</dt>
-                      <dd className="text-sm font-semibold tabular-nums text-navy-900">{count}</dd>
+                      <dt className="text-sm text-body-muted">{planLabel(plan)}</dt>
+                      <dd className="text-sm font-semibold tabular-nums text-ink-900">{count}</dd>
                     </div>
                   ))}
                 </dl>
@@ -154,25 +154,25 @@ export function PlatformReportsPage() {
             {report.isPending ? (
               <TableSkeleton rows={4} columns={2} caption="Registration trend" />
             ) : (data?.growth.length ?? 0) === 0 ? (
-              <p className="text-sm text-ink-muted">
+              <p className="text-sm text-body-muted">
                 No registrations in this window. Widen the reporting window to see earlier activity.
               </p>
             ) : (
               <ul className="space-y-2.5">
                 {data?.growth.map((point) => (
                   <li key={point.date} className="flex items-center gap-3">
-                    <span className="w-24 shrink-0 text-xs tabular-nums text-ink-muted">
+                    <span className="w-24 shrink-0 text-xs tabular-nums text-body-muted">
                       {point.date}
                     </span>
                     <div
-                      className="h-5 rounded bg-brand-600"
+                      className="h-5 rounded bg-infini-600"
                       style={{
                         width: `${Math.max(4, (point.count / maxGrowth) * 100)}%`,
                       }}
                       role="img"
                       aria-label={`${point.count} registrations on ${point.date}`}
                     />
-                    <span className="text-xs font-medium tabular-nums text-ink">{point.count}</span>
+                    <span className="text-xs font-medium tabular-nums text-body">{point.count}</span>
                   </li>
                 ))}
               </ul>

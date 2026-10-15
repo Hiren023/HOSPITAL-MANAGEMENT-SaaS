@@ -65,7 +65,7 @@ export function Header({
           aria-label={navigationOpen ? 'Close navigation' : 'Open navigation'}
           aria-expanded={navigationOpen}
           aria-controls="app-navigation"
-          className="-ml-1 rounded-lg p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink lg:hidden"
+          className="-ml-1 rounded-lg p-2 text-body-muted transition-colors hover:bg-surface-muted hover:text-body lg:hidden"
         >
           {navigationOpen ? (
             <X aria-hidden="true" className="size-5" />
@@ -75,7 +75,7 @@ export function Header({
         </button>
 
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-base font-semibold text-navy-900">{title}</h1>
+          <h1 className="truncate text-base font-semibold text-ink-900">{title}</h1>
           {breadcrumbs ? <Breadcrumbs items={breadcrumbs} className="mt-0.5" /> : null}
         </div>
 
@@ -92,16 +92,16 @@ export function Header({
             >
               <span
                 aria-hidden="true"
-                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-800"
+                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-infini-100 text-xs font-semibold text-infini-800"
               >
                 {user.firstName?.[0] ?? ''}
                 {user.lastName?.[0] ?? ''}
               </span>
               <span className="hidden min-w-0 sm:block">
-                <span className="block truncate text-xs font-medium text-ink">
+                <span className="block truncate text-xs font-medium text-body">
                   {user.firstName} {user.lastName}
                 </span>
-                <span className="block truncate text-[0.6875rem] text-ink-subtle">
+                <span className="block truncate text-[0.6875rem] text-body-subtle">
                   {isPlatformUser(user) ? 'Platform' : user.hospitalName}
                 </span>
               </span>
@@ -112,11 +112,11 @@ export function Header({
               role="menu"
               hidden={!menuOpen}
               className={cn(
-                'absolute right-0 z-40 mt-2 w-60 overflow-hidden rounded-card border border-line bg-surface shadow-lg',
+                'absolute right-0 z-40 mt-2 w-60 overflow-hidden rounded-card border border-line bg-surface shadow-overlay',
               )}
             >
               <div className="border-b border-line px-4 py-3">
-                <p className="truncate text-sm font-medium text-ink">{user.email}</p>
+                <p className="truncate text-sm font-medium text-body">{user.email}</p>
                 <div className="mt-1.5">
                   <RoleBadge role={user.role} />
                 </div>

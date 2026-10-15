@@ -43,7 +43,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
 
       <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
-          <Link to="/" className="shrink-0" aria-label="Infinigrow Hospital Cloud, home">
+          <Link to="/" className="shrink-0" aria-label="Infini Health, home">
             <BrandMark />
           </Link>
 
@@ -52,7 +52,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               <a
                 key={link.href}
                 href={link.href}
-                className="rounded-lg px-3 py-2 text-sm text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
+                className="rounded-lg px-3 py-2 text-sm text-body-muted transition-colors hover:bg-surface-muted hover:text-body"
               >
                 {link.label}
               </a>
@@ -75,7 +75,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               aria-expanded={menuOpen}
               aria-controls="public-mobile-menu"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              className="rounded-lg p-2 text-ink-muted transition-colors hover:bg-surface-muted md:hidden"
+              className="rounded-lg p-2 text-body-muted transition-colors hover:bg-surface-muted md:hidden"
             >
               {menuOpen ? (
                 <X aria-hidden="true" className="size-5" />
@@ -98,7 +98,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                   <a
                     href={link.href}
                     onClick={() => setMenuOpen(false)}
-                    className="block rounded-lg px-3 py-2.5 text-sm text-ink-muted transition-colors hover:bg-surface-muted"
+                    className="block rounded-lg px-3 py-2.5 text-sm text-body-muted transition-colors hover:bg-surface-muted"
                   >
                     {link.label}
                   </a>
@@ -108,7 +108,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                 <NavLink
                   to="/login"
                   onClick={() => setMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-brand-700"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-infini-700"
                 >
                   Sign in
                 </NavLink>
@@ -122,11 +122,11 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      <footer className="border-t border-line bg-navy-900 text-navy-200">
+      <footer className="border-t border-line bg-ink-900 text-ink-200">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4">
           <div className="md:col-span-2">
             <BrandMark tone="light" />
-            <p className="mt-4 max-w-sm text-sm text-navy-300">
+            <p className="mt-4 max-w-sm text-sm text-ink-300">
               Hospital management software for Indian healthcare providers, built with tenant
               isolation and an auditable security model from the first line of code.
             </p>
@@ -169,11 +169,11 @@ export function PublicLayout({ children }: { children: ReactNode }) {
 
         <div className="border-t border-white/10">
           <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
-            <p className="text-xs text-navy-300">
-              © {new Date().getFullYear()} Infinigrow Softech. Infinigrow Hospital Cloud is a
+            <p className="text-xs text-ink-300">
+              © {new Date().getFullYear()} Infinigrow Softech. Infini Health is a
               product of Infinigrow Softech.
             </p>
-            <p className="mt-2 text-xs text-navy-400">
+            <p className="mt-2 text-xs text-ink-400">
               Demonstration software. Hospital, staff and patient details shown anywhere in this
               product are fictional.
             </p>
@@ -203,7 +203,7 @@ export function Section({
   const toneClass = {
     default: 'bg-surface',
     muted: 'bg-canvas',
-    navy: 'bg-navy-900 text-navy-100',
+    navy: 'bg-ink-900 text-ink-100',
   }[tone]
 
   return (
@@ -220,7 +220,7 @@ export function Section({
               <p
                 className={cn(
                   'mt-3 text-base',
-                  tone === 'navy' ? 'text-navy-200' : 'text-ink-muted',
+                  tone === 'navy' ? 'text-ink-200' : 'text-body-muted',
                 )}
               >
                 {description}

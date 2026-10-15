@@ -1,6 +1,6 @@
 # Security Risk Register & Threat Model
 
-**Infinigrow Hospital Cloud** · Infinigrow Softech
+**Infini Health** · Infinigrow Softech
 Severity: **C**ritical · **H**igh · **M**edium · **L**ow
 
 This document is the living register referenced by [`ARCHITECTURE.md`](./ARCHITECTURE.md). Each

@@ -86,7 +86,7 @@ export function PlatformAuditPage() {
         key: 'when',
         header: 'When',
         cell: (row) => (
-          <span className="whitespace-nowrap text-ink-muted">
+          <span className="whitespace-nowrap text-body-muted">
             {new Date(row.createdAt).toLocaleString('en-IN', {
               day: '2-digit',
               month: 'short',
@@ -100,15 +100,15 @@ export function PlatformAuditPage() {
       {
         key: 'action',
         header: 'Action',
-        cell: (row) => <code className="font-mono text-xs text-ink">{row.action}</code>,
+        cell: (row) => <code className="font-mono text-xs text-body">{row.action}</code>,
       },
       {
         key: 'role',
         header: 'Actor',
         cell: (row) => (
           <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-ink">{row.actorRole ?? 'system'}</p>
-            <p className="truncate font-mono text-[0.6875rem] text-ink-subtle">
+            <p className="truncate text-xs font-medium text-body">{row.actorRole ?? 'system'}</p>
+            <p className="truncate font-mono text-[0.6875rem] text-body-subtle">
               {row.actorUserId ? row.actorUserId.slice(-8) : '—'}
             </p>
           </div>
@@ -118,7 +118,7 @@ export function PlatformAuditPage() {
         key: 'tenant',
         header: 'Tenant',
         cell: (row) => (
-          <span className="font-mono text-xs text-ink-subtle">
+          <span className="font-mono text-xs text-body-subtle">
             {row.hospitalId ? row.hospitalId.slice(-8) : 'platform'}
           </span>
         ),
@@ -276,7 +276,7 @@ export function PlatformAuditPage() {
           {/* Cursor paging, presented as back/forward rather than page numbers: the API
               exposes no total, and inventing a page count would be a fiction. */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3">
-            <p aria-live="polite" className="text-xs text-ink-muted">
+            <p aria-live="polite" className="text-xs text-body-muted">
               {rows.length} event{rows.length === 1 ? '' : 's'} on this page
             </p>
 
@@ -291,7 +291,7 @@ export function PlatformAuditPage() {
               </Button>
 
               {history.length > 1 ? (
-                <label className="flex items-center gap-2 text-xs text-ink-muted">
+                <label className="flex items-center gap-2 text-xs text-body-muted">
                   <span className="sr-only sm:not-sr-only">Position</span>
                   <select
                     aria-label="Position in the trail"

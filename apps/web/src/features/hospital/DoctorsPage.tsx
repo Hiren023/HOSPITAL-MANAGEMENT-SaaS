@@ -151,11 +151,11 @@ export function DoctorsPage() {
           <div className="min-w-0">
             <a
               href={`/doctors/${row.id}`}
-              className="truncate font-medium text-brand-700 underline-offset-4 hover:underline"
+              className="truncate font-medium text-infini-700 underline-offset-4 hover:underline"
             >
               {row.fullName ?? 'Unnamed account'}
             </a>
-            <p className="truncate text-xs text-ink-subtle">{row.email ?? '—'}</p>
+            <p className="truncate text-xs text-body-subtle">{row.email ?? '—'}</p>
           </div>
         ),
       },
@@ -163,7 +163,7 @@ export function DoctorsPage() {
         key: 'speciality',
         header: 'Speciality',
         cell: (row) => (
-          <span className="text-sm text-ink-muted">{row.specialities[0] ?? '—'}</span>
+          <span className="text-sm text-body-muted">{row.specialities[0] ?? '—'}</span>
         ),
         secondary: true,
       },
@@ -174,7 +174,7 @@ export function DoctorsPage() {
         key: 'department',
         header: 'Department',
         cell: (row) => (
-          <span className="whitespace-nowrap text-sm text-ink-muted">
+          <span className="whitespace-nowrap text-sm text-body-muted">
             {row.departmentId ? (departmentName.get(row.departmentId) ?? '—') : 'Unassigned'}
           </span>
         ),
@@ -190,11 +190,11 @@ export function DoctorsPage() {
       // interface honest about what the person is actually looking at.
       cell: (row) =>
         row.registrationNumber ? (
-          <span className="whitespace-nowrap font-mono text-xs text-ink-muted">
+          <span className="whitespace-nowrap font-mono text-xs text-body-muted">
             {row.registrationNumber}
           </span>
         ) : (
-          <span className="text-xs text-ink-subtle">—</span>
+          <span className="text-xs text-body-subtle">—</span>
         ),
     })
 
@@ -202,7 +202,7 @@ export function DoctorsPage() {
       key: 'fee',
       header: 'Consultation',
       cell: (row) => (
-        <span className="whitespace-nowrap text-sm text-ink-muted">
+        <span className="whitespace-nowrap text-sm text-body-muted">
           {row.consultationFeeInPaise > 0 ? formatInr(row.consultationFeeInPaise) : '—'}
         </span>
       ),

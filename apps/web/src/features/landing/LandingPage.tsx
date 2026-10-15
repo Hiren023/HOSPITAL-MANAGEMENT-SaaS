@@ -186,7 +186,7 @@ export function LandingPage() {
       <Section
         id="product"
         title="One platform, from reception to accounts"
-        description="Infinigrow Hospital Cloud covers the daily work of a hospital — who is coming in, what was found, what was prescribed, and what is owed — without stitching together separate systems that do not agree with each other."
+        description="Infini Health covers the daily work of a hospital — who is coming in, what was found, what was prescribed, and what is owed — without stitching together separate systems that do not agree with each other."
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
@@ -211,9 +211,9 @@ export function LandingPage() {
           ].map((item) => (
             <Card key={item.stat} className="h-full">
               <CardBody>
-                <p className="text-3xl font-semibold tracking-tight text-navy-900">{item.stat}</p>
-                <p className="mt-0.5 text-sm font-medium text-ink-muted">{item.label}</p>
-                <p className="mt-3 text-sm text-ink-muted">{item.detail}</p>
+                <p className="text-3xl font-semibold tracking-tight text-ink-900">{item.stat}</p>
+                <p className="mt-0.5 text-sm font-medium text-body-muted">{item.label}</p>
+                <p className="mt-3 text-sm text-body-muted">{item.detail}</p>
               </CardBody>
             </Card>
           ))}
@@ -232,12 +232,12 @@ export function LandingPage() {
               <CardBody>
                 <span
                   aria-hidden="true"
-                  className="flex size-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700"
+                  className="flex size-10 items-center justify-center rounded-lg bg-infini-50 text-infini-700"
                 >
                   <feature.icon className="size-5" />
                 </span>
-                <h3 className="mt-4 text-sm font-semibold text-navy-900">{feature.title}</h3>
-                <p className="mt-1.5 text-sm text-ink-muted">{feature.description}</p>
+                <h3 className="mt-4 text-sm font-semibold text-ink-900">{feature.title}</h3>
+                <p className="mt-1.5 text-sm text-body-muted">{feature.description}</p>
               </CardBody>
             </Card>
           ))}
@@ -253,18 +253,18 @@ export function LandingPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           {SECURITY_POINTS.map((point) => (
             <div key={point.title} className="flex gap-4">
-              <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-brand-400" />
+              <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-infini-400" />
               <div>
                 <h3 className="text-sm font-semibold text-white">{point.title}</h3>
-                <p className="mt-1.5 text-sm text-navy-200">{point.description}</p>
+                <p className="mt-1.5 text-sm text-ink-200">{point.description}</p>
               </div>
             </div>
           ))}
         </div>
 
         <div className="mt-10 flex flex-wrap items-center gap-3 rounded-card border border-white/10 bg-white/5 px-5 py-4">
-          <Lock aria-hidden="true" className="size-4 text-brand-400" />
-          <p className="text-sm text-navy-200">
+          <Lock aria-hidden="true" className="size-4 text-infini-400" />
+          <p className="text-sm text-ink-200">
             Every administrative action — approval, suspension, permission change — is written to an
             append-only audit trail.
           </p>
@@ -280,26 +280,26 @@ export function LandingPage() {
           {PLANS.map((plan) => (
             <Card
               key={plan.name}
-              className={plan.featured ? 'relative border-brand-300 ring-1 ring-brand-300' : ''}
+              className={plan.featured ? 'relative border-infini-300 ring-1 ring-infini-300' : ''}
             >
               {plan.featured ? (
-                <span className="absolute -top-3 left-6 rounded-full bg-brand-700 px-3 py-1 text-xs font-medium text-white">
+                <span className="absolute -top-3 left-6 rounded-full bg-infini-700 px-3 py-1 text-xs font-medium text-white">
                   Most hospitals choose this
                 </span>
               ) : null}
               <CardBody className="flex h-full flex-col">
-                <h3 className="text-sm font-semibold text-navy-900">{plan.name}</h3>
+                <h3 className="text-sm font-semibold text-ink-900">{plan.name}</h3>
                 <p className="mt-3 flex items-baseline gap-1.5">
-                  <span className="text-3xl font-semibold tracking-tight text-navy-900">
+                  <span className="text-3xl font-semibold tracking-tight text-ink-900">
                     {plan.price}
                   </span>
-                  <span className="text-sm text-ink-subtle">{plan.period}</span>
+                  <span className="text-sm text-body-subtle">{plan.period}</span>
                 </p>
-                <p className="mt-2 text-sm text-ink-muted">{plan.description}</p>
+                <p className="mt-2 text-sm text-body-muted">{plan.description}</p>
 
                 <ul className="mt-5 flex-1 space-y-2.5">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2.5 text-sm text-ink-muted">
+                    <li key={feature} className="flex items-start gap-2.5 text-sm text-body-muted">
                       <BadgeCheck
                         aria-hidden="true"
                         className="mt-0.5 size-4 shrink-0 text-success"
@@ -319,7 +319,7 @@ export function LandingPage() {
           ))}
         </div>
 
-        <p className="mt-5 text-xs text-ink-subtle">
+        <p className="mt-5 text-xs text-body-subtle">
           Prices exclude GST. All plans include data residency in India, encrypted storage and daily
           backups.
         </p>
@@ -329,14 +329,14 @@ export function LandingPage() {
         <div className="mx-auto max-w-3xl divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
           {FAQS.map((item) => (
             <details key={item.question} className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-navy-900 transition-colors hover:bg-surface-muted">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-ink-900 transition-colors hover:bg-surface-muted">
                 {item.question}
                 <ChevronDown
                   aria-hidden="true"
-                  className="size-4 shrink-0 text-ink-subtle transition-transform group-open:rotate-180"
+                  className="size-4 shrink-0 text-body-subtle transition-transform group-open:rotate-180"
                 />
               </summary>
-              <div className="px-5 pb-4 text-sm text-ink-muted">{item.answer}</div>
+              <div className="px-5 pb-4 text-sm text-body-muted">{item.answer}</div>
             </details>
           ))}
         </div>
@@ -349,19 +349,19 @@ export function LandingPage() {
 
 function Hero() {
   return (
-    <section className="border-b border-line bg-gradient-to-b from-navy-50 to-surface">
+    <section className="border-b border-line bg-gradient-to-b from-ink-50 to-surface">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-2">
         <div>
-          <p className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-800 ring-1 ring-brand-200">
+          <p className="inline-flex items-center gap-2 rounded-full bg-infini-50 px-3 py-1 text-xs font-medium text-infini-800 ring-1 ring-infini-200">
             <ShieldCheck aria-hidden="true" className="size-3.5" />
             Built for Indian hospitals
           </p>
 
-          <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-navy-900 sm:text-5xl">
+          <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-ink-900 sm:text-5xl">
             Hospital management that keeps every hospital&rsquo;s data to itself.
           </h1>
 
-          <p className="mt-5 max-w-xl text-lg text-ink-muted">
+          <p className="mt-5 max-w-xl text-lg text-body-muted">
             Patients, appointments, clinical records, billing and staff — in one place, with tenant
             isolation enforced at the database layer rather than assumed in the interface.
           </p>
@@ -386,8 +386,8 @@ function Hero() {
               { label: 'Password hashing', value: 'Argon2id' },
             ].map((item) => (
               <div key={item.label}>
-                <dd className="text-lg font-semibold text-navy-900">{item.value}</dd>
-                <dt className="mt-0.5 text-xs text-ink-subtle">{item.label}</dt>
+                <dd className="text-lg font-semibold text-ink-900">{item.value}</dd>
+                <dt className="mt-0.5 text-xs text-body-subtle">{item.label}</dt>
               </div>
             ))}
           </dl>
@@ -395,12 +395,12 @@ function Hero() {
 
         {/* Abstract product illustration: decorative, so hidden from assistive tech. */}
         <div aria-hidden="true" className="relative hidden lg:block">
-          <div className="rounded-card border border-line bg-surface p-5 shadow-lg">
+          <div className="rounded-card border border-line bg-surface p-5 shadow-raised">
             <div className="flex items-center gap-2 border-b border-line pb-3">
               <span className="size-2.5 rounded-full bg-[oklch(0.85_0.05_25)]" />
               <span className="size-2.5 rounded-full bg-[oklch(0.87_0.07_85)]" />
               <span className="size-2.5 rounded-full bg-[oklch(0.85_0.06_155)]" />
-              <span className="ml-2 text-xs text-ink-subtle">Today · Outpatient</span>
+              <span className="ml-2 text-xs text-body-subtle">Today · Outpatient</span>
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-3">
@@ -410,10 +410,10 @@ function Hero() {
                 { label: 'Collected', value: '₹48.2k' },
               ].map((tile) => (
                 <div key={tile.label} className="rounded-lg bg-canvas px-3 py-2.5">
-                  <p className="text-[0.625rem] uppercase tracking-wide text-ink-subtle">
+                  <p className="text-[0.625rem] uppercase tracking-wide text-body-subtle">
                     {tile.label}
                   </p>
-                  <p className="mt-0.5 text-sm font-semibold tabular-nums text-navy-900">
+                  <p className="mt-0.5 text-sm font-semibold tabular-nums text-ink-900">
                     {tile.value}
                   </p>
                 </div>
@@ -430,14 +430,14 @@ function Hero() {
                   key={row.name}
                   className="flex items-center gap-3 rounded-lg border border-line px-3 py-2.5"
                 >
-                  <span className="size-7 shrink-0 rounded-full bg-brand-100" />
+                  <span className="size-7 shrink-0 rounded-full bg-infini-100" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-xs font-medium text-ink">{row.name}</span>
-                    <span className="block truncate text-[0.625rem] text-ink-subtle">
+                    <span className="block truncate text-xs font-medium text-body">{row.name}</span>
+                    <span className="block truncate text-[0.625rem] text-body-subtle">
                       {row.detail}
                     </span>
                   </span>
-                  <span className="shrink-0 rounded-full bg-surface-muted px-2 py-0.5 text-[0.625rem] text-ink-muted">
+                  <span className="shrink-0 rounded-full bg-surface-muted px-2 py-0.5 text-[0.625rem] text-body-muted">
                     {row.state}
                   </span>
                 </li>
@@ -518,7 +518,7 @@ function DemoRequestSection() {
         <div className="lg:col-span-2">
           <Card className="h-full">
             <CardBody>
-              <h3 className="text-sm font-semibold text-navy-900">What happens next</h3>
+              <h3 className="text-sm font-semibold text-ink-900">What happens next</h3>
               <ol className="mt-4 space-y-4">
                 {[
                   'You send this form and it opens an email in your own mail client.',
@@ -529,21 +529,21 @@ function DemoRequestSection() {
                   <li key={step} className="flex gap-3">
                     <span
                       aria-hidden="true"
-                      className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-800"
+                      className="flex size-6 shrink-0 items-center justify-center rounded-full bg-infini-100 text-xs font-semibold text-infini-800"
                     >
                       {index + 1}
                     </span>
-                    <span className="text-sm text-ink-muted">{step}</span>
+                    <span className="text-sm text-body-muted">{step}</span>
                   </li>
                 ))}
               </ol>
 
               <div className="mt-6 border-t border-line pt-5">
-                <p className="text-xs text-ink-subtle">
+                <p className="text-xs text-body-subtle">
                   Already registered?{' '}
                   <Link
                     to="/login"
-                    className="font-medium text-brand-700 underline underline-offset-2"
+                    className="font-medium text-infini-700 underline underline-offset-2"
                   >
                     Sign in to your hospital
                   </Link>
@@ -646,7 +646,7 @@ function DemoRequestSection() {
                 <Button type="submit" size="lg">
                   Open the email
                 </Button>
-                <p className="text-xs text-ink-subtle">
+                <p className="text-xs text-body-subtle">
                   This form composes an email in your own mail application. It does not submit to a
                   server.
                 </p>

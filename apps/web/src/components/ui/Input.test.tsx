@@ -39,7 +39,7 @@ describe('Input styling', () => {
 
     // The defect in one assertion: this used to be the full class list, meaning
     // "border-line-strong" and nothing else.
-    for (const token of ['w-full', 'rounded-lg', 'border', 'bg-white', 'px-3', 'py-2', 'text-ink']) {
+    for (const token of ['w-full', 'rounded-lg', 'border', 'bg-white', 'px-3', 'py-2', 'text-body']) {
       expect(input.className.split(/\s+/)).toContain(token)
     }
   })
@@ -50,14 +50,14 @@ describe('Input styling', () => {
     // that must survive all of them.
     //
     // The tokens deliberately excluded are the ones a state is *supposed* to replace:
-    // `focus:border-brand-600` yields to `focus:border-danger`, `px-3` yields to `pl-9`
+    // `focus:border-infini-600` yields to `focus:border-danger`, `px-3` yields to `pl-9`
     // / `pr-10` when an adornment needs room, and `w-full` yields to a caller's `w-48`.
     // Asserting they survived would be asserting the override does not work. Each
     // override is asserted on its own below.
     const always = inputBaseClasses
       .split(/\s+/)
       .filter(
-        (token) => !['px-3', 'focus:border-brand-600'].includes(token),
+        (token) => !['px-3', 'focus:border-infini-600'].includes(token),
       )
 
     const { rerender } = render(<Input invalid />)
@@ -88,7 +88,7 @@ describe('Input styling', () => {
     const classes = screen.getByRole('textbox').className.split(/\s+/)
 
     expect(classes).toContain('focus:border-danger')
-    expect(classes).not.toContain('focus:border-brand-600')
+    expect(classes).not.toContain('focus:border-infini-600')
   })
 
   it('lets a caller override the width without losing the base styling', () => {
@@ -99,7 +99,7 @@ describe('Input styling', () => {
     // rather than both being emitted and the winner decided by stylesheet order.
     expect(classes).toContain('w-48')
     expect(classes).not.toContain('w-full')
-    expect(classes).toContain('text-ink')
+    expect(classes).toContain('text-body')
   })
 
   it('keeps the invalid border and does not also keep the valid one', () => {
@@ -152,7 +152,7 @@ describe('fields share one visual language', () => {
    * shared part of the appearance explicit, so the next control added picks it up by
    * reading a neighbouring file rather than by copying whatever was there.
    */
-  const sharedTokens = ['w-full', 'rounded-lg', 'border', 'bg-white', 'text-sm', 'text-ink']
+  const sharedTokens = ['w-full', 'rounded-lg', 'border', 'bg-white', 'text-sm', 'text-body']
 
   it('Select carries the shared appearance', () => {
     render(

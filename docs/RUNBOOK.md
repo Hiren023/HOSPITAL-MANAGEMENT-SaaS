@@ -1,6 +1,6 @@
 # Operations Runbook
 
-**Infinigrow Hospital Cloud** · Infinigrow Softech
+**Infini Health** · Infinigrow Softech
 
 Operational procedures for running, deploying, recovering and monitoring the platform.
 

@@ -175,10 +175,10 @@ export function PlatformHospitalDetailPage() {
         header: 'Person',
         cell: (row) => (
           <div className="min-w-0">
-            <p className="truncate font-medium text-ink">
+            <p className="truncate font-medium text-body">
               {row.firstName} {row.lastName}
             </p>
-            <p className="truncate text-xs text-ink-subtle">{row.email}</p>
+            <p className="truncate text-xs text-body-subtle">{row.email}</p>
           </div>
         ),
       },
@@ -186,7 +186,7 @@ export function PlatformHospitalDetailPage() {
         key: 'role',
         header: 'Role',
         cell: (row) =>
-          row.role ? <RoleBadge role={row.role} /> : <span className="text-ink-subtle">—</span>,
+          row.role ? <RoleBadge role={row.role} /> : <span className="text-body-subtle">—</span>,
       },
       {
         key: 'status',
@@ -231,7 +231,7 @@ export function PlatformHospitalDetailPage() {
       <div className="space-y-5">
         <Link
           to="/platform/hospitals"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 underline-offset-4 hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-infini-700 underline-offset-4 hover:underline"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
           All hospitals
@@ -308,8 +308,8 @@ export function PlatformHospitalDetailPage() {
               />
               <CardBody className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-navy-900">{hospital.planLabel}</p>
-                  <p className="mt-0.5 text-xs text-ink-muted">
+                  <p className="text-sm font-semibold text-ink-900">{hospital.planLabel}</p>
+                  <p className="mt-0.5 text-xs text-body-muted">
                     {hospital.seatLimit === null ? 'Unlimited' : hospital.seatLimit} staff seats ·{' '}
                     {hospital.departmentLimit === null ? 'unlimited' : hospital.departmentLimit}{' '}
                     departments
@@ -465,8 +465,8 @@ export function PlatformHospitalDetailPage() {
           </>
         }
       >
-        <p className="text-sm text-ink-muted">
-          <strong className="font-medium text-ink">{hospital?.name}</strong> and all of its staff
+        <p className="text-sm text-body-muted">
+          <strong className="font-medium text-body">{hospital?.name}</strong> and all of its staff
           lose access immediately. They will be refused at sign-in until it is reactivated.
         </p>
 
@@ -542,8 +542,8 @@ export function PlatformHospitalDetailPage() {
           </>
         }
       >
-        <p className="text-sm text-ink-muted">
-          <strong className="font-medium text-ink">{statusTarget?.email}</strong>
+        <p className="text-sm text-body-muted">
+          <strong className="font-medium text-body">{statusTarget?.email}</strong>
           {statusChoice === 'SUSPENDED'
             ? ' will be refused at sign-in for every hospital they belong to, not only this one.'
             : ' will be able to sign in again.'}
@@ -574,7 +574,7 @@ export function PlatformHospitalDetailPage() {
         onConfirm={() => lifecycle.mutate('reactivate')}
         description={
           <>
-            <strong className="font-medium text-ink">{hospital?.name}</strong> will return to
+            <strong className="font-medium text-body">{hospital?.name}</strong> will return to
             approved status and its staff will be able to sign in again.
           </>
         }
@@ -589,7 +589,7 @@ export function PlatformHospitalDetailPage() {
         onConfirm={() => lifecycle.mutate('approve')}
         description={
           <>
-            <strong className="font-medium text-ink">{hospital?.name}</strong> will be able to sign
+            <strong className="font-medium text-body">{hospital?.name}</strong> will be able to sign
             in and its administrator will gain full access to that hospital.
           </>
         }
@@ -693,8 +693,8 @@ function PlanDialog({
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-ink-subtle">{label}</dt>
-      <dd className="mt-0.5 truncate text-sm font-medium text-ink">{value}</dd>
+      <dt className="text-xs text-body-subtle">{label}</dt>
+      <dd className="mt-0.5 truncate text-sm font-medium text-body">{value}</dd>
     </div>
   )
 }

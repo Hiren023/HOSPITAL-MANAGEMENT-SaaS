@@ -38,12 +38,12 @@ export function Breadcrumbs({ items, className }: { items: Crumb[]; className?: 
 
   return (
     <nav aria-label="Breadcrumb" className={cn('min-w-0', className)}>
-      <ol className="flex flex-wrap items-center gap-1 text-xs text-ink-subtle">
+      <ol className="flex flex-wrap items-center gap-1 text-xs text-body-subtle">
         <li className="flex items-center">
           <Link
             to="/dashboard"
             aria-label="Home"
-            className="flex items-center gap-1 rounded transition-colors hover:text-ink"
+            className="flex items-center gap-1 rounded transition-colors hover:text-body"
           >
             <Home aria-hidden="true" className="size-3.5" />
           </Link>
@@ -54,18 +54,18 @@ export function Breadcrumbs({ items, className }: { items: Crumb[]; className?: 
 
           return (
             <li key={`${crumb.to ?? crumb.label}`} className="flex min-w-0 items-center gap-1">
-              <ChevronRight aria-hidden="true" className="size-3 shrink-0 text-ink-subtle" />
+              <ChevronRight aria-hidden="true" className="size-3 shrink-0 text-body-subtle" />
               {isLast || !crumb.to ? (
                 <span
                   aria-current={isLast ? 'page' : undefined}
-                  className="truncate font-medium text-ink-muted"
+                  className="truncate font-medium text-body-muted"
                 >
                   {crumb.label}
                 </span>
               ) : (
                 <Link
                   to={crumb.to}
-                  className="truncate transition-colors hover:text-ink hover:underline"
+                  className="truncate transition-colors hover:text-body hover:underline"
                 >
                   {crumb.label}
                 </Link>

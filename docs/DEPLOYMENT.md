@@ -601,7 +601,11 @@ overwrite it.
 
 ### Before
 
-- [ ] `npm run verify` green: lint, typecheck, **1,056 tests**, build
+- [ ] `npm run verify` green: lint, typecheck, **1,057 tests**, build
+- [ ] **`npx tsx scripts/check-contrast.ts` green** — proves every colour pairing the
+      design system actually uses meets WCAG AA, read live from `index.css`. A design
+      system whose own comment claims AA while its tokens fail AA is worse than one that
+      never claimed it
 - [ ] **`npx tsx scripts/check-production-env.ts` green** — proves §2.2 boots against the
       real production guards. A deployment guide that names values the guards reject is
       worse than no guide: the operator follows it and the service will not start

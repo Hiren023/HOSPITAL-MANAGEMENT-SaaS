@@ -146,7 +146,7 @@ export function createApp(): Express {
     res.status(200).json({
       success: true,
       data: {
-        product: 'Infinigrow Hospital Cloud',
+        product: 'Infini Health',
         vendor: PRODUCT_VENDOR,
         tagline: PRODUCT_TAGLINE,
         apiVersion: SERVICE_VERSION,
@@ -209,7 +209,7 @@ export function createApp(): Express {
   if (!env.isProduction && !env.isTest) {
     logger.info(
       { corsOrigins: env.corsOrigins, apiBasePath: API_BASE_PATH },
-      'Infinigrow Hospital Cloud API configured',
+      'Infini Health API configured',
     )
   }
 

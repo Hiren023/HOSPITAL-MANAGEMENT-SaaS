@@ -150,11 +150,11 @@ export function PatientsPage() {
           <div className="min-w-0">
             <a
               href={`/patients/${row.id}`}
-              className="truncate font-medium text-brand-700 underline-offset-4 hover:underline"
+              className="truncate font-medium text-infini-700 underline-offset-4 hover:underline"
             >
               {row.firstName} {row.lastName}
             </a>
-            <p className="truncate font-mono text-xs text-ink-subtle">{row.patientNumber}</p>
+            <p className="truncate font-mono text-xs text-body-subtle">{row.patientNumber}</p>
           </div>
         )
       },
@@ -163,7 +163,7 @@ export function PatientsPage() {
       key: 'age',
       header: 'Age',
       cell: (row) => (
-        <span className="whitespace-nowrap text-sm text-ink-muted">
+        <span className="whitespace-nowrap text-sm text-body-muted">
           {ageFrom(row.dateOfBirth) ?? '—'}
         </span>
       ),
@@ -173,7 +173,7 @@ export function PatientsPage() {
       key: 'gender',
       header: 'Gender',
       cell: (row) => (
-        <span className="whitespace-nowrap text-sm text-ink-muted">
+        <span className="whitespace-nowrap text-sm text-body-muted">
           {row.gender === 'UNDECLARED' ? '—' : row.gender}
         </span>
       ),
@@ -186,9 +186,9 @@ export function PatientsPage() {
       // state explicitly is more honest than a blank cell that reads as missing data.
       cell: (row) =>
         row.contactVisible ? (
-          <span className="whitespace-nowrap text-sm text-ink-muted">{row.phone ?? '—'}</span>
+          <span className="whitespace-nowrap text-sm text-body-muted">{row.phone ?? '—'}</span>
         ) : (
-          <span className="whitespace-nowrap text-xs text-ink-subtle">
+          <span className="whitespace-nowrap text-xs text-body-subtle">
             hidden — read-only access
           </span>
         ),

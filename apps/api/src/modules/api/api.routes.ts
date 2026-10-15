@@ -18,7 +18,7 @@ apiRouter.get('/', (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      name: 'Infinigrow Hospital Cloud API',
+      name: 'Infini Health API',
       vendor: 'Infinigrow Softech',
       basePath: API_BASE_PATH,
       docsEnabled: env.ENABLE_API_DOCS,

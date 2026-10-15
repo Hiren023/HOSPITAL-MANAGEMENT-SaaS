@@ -15,6 +15,6 @@ export const SUPPORTED_ROLES = [
   'PATIENT',
 ] as const
 
-export const PRODUCT_NAME = 'Infinigrow Hospital Cloud'
+export const PRODUCT_NAME = 'Infini Health'
 export const PRODUCT_TAGLINE = 'Ideas grow without limits'
 export const PRODUCT_VENDOR = 'Infinigrow Softech'

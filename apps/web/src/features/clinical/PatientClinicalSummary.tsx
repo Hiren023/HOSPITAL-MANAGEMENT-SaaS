@@ -93,14 +93,14 @@ export function PatientClinicalSummary({ patientId }: { patientId: string }) {
     {
       key: 'doctor',
       header: 'Clinician',
-      cell: (row) => <span className="text-sm text-ink-muted">{row.doctorName ?? '—'}</span>,
+      cell: (row) => <span className="text-sm text-body-muted">{row.doctorName ?? '—'}</span>,
       secondary: true,
     },
     {
       key: 'complaint',
       header: 'Chief complaint',
       cell: (row) => (
-        <span className="text-sm text-ink-muted">{row.chiefComplaint ?? '—'}</span>
+        <span className="text-sm text-body-muted">{row.chiefComplaint ?? '—'}</span>
       ),
     },
     {
@@ -123,7 +123,7 @@ export function PatientClinicalSummary({ patientId }: { patientId: string }) {
       cell: (row) => (
         <a
           href={`/consultations/${row.id}`}
-          className="text-sm font-medium text-brand-700 underline underline-offset-4"
+          className="text-sm font-medium text-infini-700 underline underline-offset-4"
         >
           Open
         </a>
